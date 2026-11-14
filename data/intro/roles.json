@@ -1,0 +1,54 @@
+{
+  "_comment": "Crew roles for Mission Ares 1. 'modifiers' are multipliers the gameplay scene can read from GameState.role_data (1.0 = normal). 'color' tints the placeholder astronaut sprite.",
+  "order": ["engineer", "biologist", "medic", "astrophysicist"],
+  "roles": {
+	"engineer": {
+	  "title": "ENGINEER",
+	  "crew_name": "Sam Reyes",
+	  "color": "#ffb347",
+	  "tagline": "Keeps the machines alive.",
+	  "perks": [
+		"Repairs broken systems 50% faster",
+        "Solar panels and batteries lose less Energy"
+	  ],
+	  "fact": "Real Mars bases would run on solar panels, batteries and maybe small nuclear reactors.",
+	  "modifiers": { "repair_speed": 1.5, "energy_drain": 0.85, "oxygen_drain": 1.0, "health_recovery": 1.0, "research_gain": 1.0, "storm_warning": 1.0 }
+	},
+	"biologist": {
+	  "title": "BIOLOGIST",
+	  "crew_name": "Ada Okafor",
+	  "color": "#7ee081",
+	  "tagline": "Grows food and fresh air.",
+	  "perks": [
+		"Greenhouse plants make 30% more Oxygen",
+        "Can analyze Martian soil samples"
+	  ],
+	  "fact": "Plants turn carbon dioxide into oxygen. Astronauts have grown lettuce on the ISS!",
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "oxygen_drain": 0.7, "health_recovery": 1.0, "research_gain": 1.15, "storm_warning": 1.0 }
+	},
+	"medic": {
+	  "title": "MEDIC",
+	  "crew_name": "Lena Lindqvist",
+	  "color": "#ff6b81",
+	  "tagline": "Keeps everyone healthy.",
+	  "perks": [
+		"Recovers Health twice as fast",
+        "Keeps the sleeping crew's pods safe"
+	  ],
+	  "fact": "Astronauts lose bone and muscle in low gravity, so they exercise about 2 hours every day.",
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "oxygen_drain": 1.0, "health_recovery": 2.0, "research_gain": 1.0, "storm_warning": 1.0 }
+	},
+	"astrophysicist": {
+	  "title": "ASTROPHYSICIST",
+	  "crew_name": "Kenji Tanaka",
+	  "color": "#8ab4ff",
+	  "tagline": "Reads the sky and the Sun.",
+	  "perks": [
+		"Gets warnings before solar storms hit",
+        "Earns 50% more Research points"
+	  ],
+	  "fact": "NASA watches the Sun every day to warn astronauts about dangerous solar storms.",
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "oxygen_drain": 1.0, "health_recovery": 1.0, "research_gain": 1.5, "storm_warning": 2.0 }
+	}
+  }
+}

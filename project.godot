@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Martians"
-run/main_scene="res://scenes/world_map.tscn"
+run/main_scene="res://scenes/intro/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -23,7 +23,6 @@ GameState="*res://scripts/game_state.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
