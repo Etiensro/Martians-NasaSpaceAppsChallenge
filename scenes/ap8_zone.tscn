@@ -1,0 +1,48 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/fixed_zone.gd" id="1_ap1"]
+[ext_resource type="Script" path="res://scripts/zone_area.gd" id="2_zone"]
+[ext_resource type="Texture2D" path="res://assets/zones/ap8_ground.png" id="3_ground"]
+[ext_resource type="PackedScene" path="res://scenes/astronaut.tscn" id="4_astro"]
+
+[node name="AP8Zone" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_ap1")
+
+[node name="Zona" type="Node2D" parent="."]
+script = ExtResource("2_zone")
+texture = ExtResource("3_ground")
+cell = 3.0
+
+[node name="Suelo" type="Sprite2D" parent="Zona"]
+centered = false
+
+[node name="Astronauta" parent="." node_paths=PackedStringArray("map") instance=ExtResource("4_astro")]
+map = NodePath("../Zona")
+walk_speed = 200.0
+run_speed = 370.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.33, 0.33)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Titulo" type="Label" parent="HUD"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 1270.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(1, 0.47, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.18, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = "AP-8 · ZONA DE INVESTIGACIÓN · LABORATORIO"
+
+[node name="Ayuda" type="Label" parent="HUD"]
+offset_left = 10.0
+offset_top = 36.0
+offset_right = 1270.0
+offset_bottom = 60.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "WASD mover · Shift correr · Esc: mapa"
