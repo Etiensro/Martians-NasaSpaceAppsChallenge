@@ -1,0 +1,34 @@
+{
+  "native_width": 320,
+  "scale": 4,
+  "title_scale": 2,
+  "sites": {
+    "AP-1": {
+      "x": 144.18,
+      "y": 121.93,
+      "title": "AP-1",
+      "subtitle": "BASE ARES 1",
+      "label": "above",
+      "description": "Sitio de aterrizaje de la mision. Aqui empieza todo.",
+      "icon_scale": 1
+    },
+    "AP-8": {
+      "x": 85.52,
+      "y": 51.94,
+      "title": "AP-8",
+      "subtitle": "ZONA DE INVESTIGACIÓN",
+      "label": "above",
+      "description": "Terreno nudoso y crateres. Peligroso para el rover.",
+      "icon_scale": 1
+    },
+    "AP-9": {
+      "x": 236.42,
+      "y": 105.75,
+      "title": "AP-9",
+      "subtitle": "ZONA DE INVESTIGACIÓN",
+      "label": "above",
+      "description": "Pingos y monticulos: indicios de hielo bajo el suelo.",
+      "icon_scale": 1
+    }
+  }
+}
