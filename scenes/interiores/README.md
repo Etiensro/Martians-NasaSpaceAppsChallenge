@@ -47,8 +47,9 @@ Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or E
 - `scenes/interiores/paneles_solares/minijuegos/campo_solar/campo_solar.tscn`
 - `scenes/interiores/paneles_solares/minijuegos/sala_electrica/sala_electrica.tscn`
 
-Mientras no existan, la puerta dice "Coming soon". Al terminar un minijuego, vuelve al vestíbulo con
+Al terminar un minijuego, se vuelve al vestíbulo con
 `SceneChanger.go_to("res://scenes/interiores/paneles_solares/paneles_solares.tscn")`.
+Reglas de energía, tormentas y assets pendientes de los dos minijuegos: `docs/PANELES_SOLARES.md`.
 
 Los vestíbulos usan `scripts/interiores/lobby.gd`; sus imágenes, puertas y efectos se generan con
 `python tools/build_lobbies.py`.
