@@ -412,25 +412,3 @@ func _draw_floor_details() -> void:
 		for k in 5:
 			draw_rect(Rect2(g.position.x + 6 + k * 13, g.position.y + 5, 6, g.size.y - 10), Color(0.12, 0.13, 0.17))
 		draw_rect(g, OUTLINE, false, 3)
-	# Banco de trabajo (abajo a la izquierda) con portátil y herramientas
-	var bench := Rect2(90, 560, 210, 70)
-	draw_rect(Rect2(bench.position + Vector2(6, 8), bench.size), Color(0, 0, 0, 0.3))
-	draw_rect(bench, Color(0.55, 0.58, 0.66))
-	draw_rect(bench, OUTLINE, false, 4)
-	var laptop := Rect2(110, 572, 64, 42)
-	draw_rect(laptop, Color(0.2, 0.22, 0.28))
-	draw_rect(laptop.grow(-5), Color(0.08, 0.2, 0.35))
-	for k in 3:
-		draw_rect(Rect2(laptop.position.x + 9, laptop.position.y + 10 + k * 8, 20 + (k * 13) % 26, 3), CYAN)
-	draw_rect(laptop, OUTLINE, false, 3)
-	draw_line(Vector2(200, 578), Vector2(250, 610), Color(0.8, 0.25, 0.2), 6)   # destornillador
-	draw_rect(Rect2(258, 574, 26, 18), Color(0.95, 0.75, 0.2))                   # cinta
-	draw_rect(Rect2(258, 574, 26, 18), OUTLINE, false, 2)
-	# Botellas de oxígeno de repuesto (abajo a la derecha)
-	for k in 4:
-		var c := Vector2(1010 + k * 42, 600)
-		draw_circle(c + Vector2(4, 5), 17, Color(0, 0, 0, 0.3))
-		draw_circle(c, 17, Color(0.25, 0.65, 0.4))
-		draw_circle(c, 9, Color(0.75, 0.78, 0.82))
-		draw_arc(c, 17, 0, TAU, 20, OUTLINE, 3)
-		draw_string(_small_font, c + Vector2(-17, 30), "O2", HORIZONTAL_ALIGNMENT_CENTER, 34, 11, Color(1, 1, 1, 0.85))
