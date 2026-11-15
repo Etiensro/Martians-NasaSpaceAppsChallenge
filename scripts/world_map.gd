@@ -163,6 +163,10 @@ func _set_info(id: String) -> void:
 
 ## El astronauta camina hasta el sitio elegido, celebra y se carga la zona.
 func _go_to(id: String) -> void:
+	var blocked := Mission.expedition.travel_blocked_reason(id)  # carro, comida, energía, tormenta...
+	if blocked != "":
+		Mission.notify(blocked)
+		return
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 	_travelling = true
 	var target: Vector2 = _nodes[id].stand
@@ -171,6 +175,11 @@ func _go_to(id: String) -> void:
 		_astro.flip_h = false
 		_astro.play("celebrate")
 		await get_tree().create_timer(0.35).timeout
+	var why: String = await Mission.expedition.travel(id)  # el reloj avanza las horas de viaje
+	if why != "":
+		Mission.notify(why)
+		_travelling = false
+		return
 	GameState.selected_site = id
 	SceneChanger.go_to(GameState.site_scene(id))
 

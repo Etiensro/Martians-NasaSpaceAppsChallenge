@@ -204,4 +204,12 @@ func _finish() -> void:
 	for k in holes.size():
 		get_tree().create_timer(0.3 + 0.04 * k).timeout.connect(_sparkle.bind(holes[k] + Vector2(-10, 0)))
 	tw.tween_interval(2.0)
-	tw.tween_callback(SceneChanger.go_to.bind(GREENHOUSE))
+	tw.tween_callback(_after_planting)
+
+
+## Registra la tarea en Mission.crops (el reloj avanza lo que dura) y vuelve al invernadero.
+func _after_planting() -> void:
+	var why: String = await Mission.crops.plant()
+	if why != "":
+		Mission.notify(why)
+	SceneChanger.go_to(GREENHOUSE)
