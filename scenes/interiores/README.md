@@ -38,3 +38,17 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
    `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn")`.
 
 Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").
+
+## Paneles solares: vestíbulo y minijuegos
+
+`paneles_solares.tscn` es un vestíbulo en primera persona (como el de la estación) con dos lugares:
+**SOLAR FIELD** (campo de paneles, afuera) y **POWER ROOM** (sala eléctrica). Cada uno abre su minijuego:
+
+- `scenes/interiores/paneles_solares/minijuegos/campo_solar/campo_solar.tscn`
+- `scenes/interiores/paneles_solares/minijuegos/sala_electrica/sala_electrica.tscn`
+
+Mientras no existan, la puerta dice "Coming soon". Al terminar un minijuego, vuelve al vestíbulo con
+`SceneChanger.go_to("res://scenes/interiores/paneles_solares/paneles_solares.tscn")`.
+
+Los vestíbulos usan `scripts/interiores/lobby.gd`; sus imágenes, puertas y efectos se generan con
+`python tools/build_lobbies.py`.

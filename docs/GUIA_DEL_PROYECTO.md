@@ -8,10 +8,10 @@ Todo el texto que ve el jugador está en **inglés**; comentarios y documentaci�
 ## Flujo del juego
 
 ```
-scenes/intro/main_menu.tscn ──START──▶ scenes/intro/base_interior.tscn ──elige rol──▶ scenes/world_map.tscn
-                                                                                       │ clic en un sitio
+scenes/intro/main_menu.tscn ──START──▶ scenes/intro/base_interior.tscn ──elige rol──▶ estacion_ares1.tscn (vestíbulo)
+                                                                                       │ flecha EXIT
                                                                                        ▼
-                           scenes/interiores/*  ◀──E (puerta)── scenes/ap1_zone.tscn / ap8 / ap9  ──Esc──▶ mapa
+                 scenes/interiores/*  ◀──E (puerta)──  scenes/ap1_zone.tscn / ap8 / ap9  ──Esc──▶ scenes/world_map.tscn
 ```
 
 ## Autoloads (existen en todas las escenas)

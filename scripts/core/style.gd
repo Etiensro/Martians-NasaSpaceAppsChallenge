@@ -140,3 +140,16 @@ static func brand_gradient(alpha := 1.0) -> GradientTexture2D:
 	t.fill_from = Vector2(0, 0)
 	t.fill_to = Vector2(1, 1)
 	return t
+
+
+## Barra de progreso de la marca (Neon Yellow sobre Deep Blue, sin porcentaje: se pone en una etiqueta).
+static func progress_bar(width := 300.0, height := 16.0) -> ProgressBar:
+	var b := ProgressBar.new()
+	b.custom_minimum_size = Vector2(width, height)
+	b.show_percentage = false
+	b.max_value = 100.0
+	var bg := box(Color(DEEP_BLUE, 0.9), WHITE, 2, 0)
+	var fill := box(NEON_YELLOW, NEON_YELLOW, 0, 0)
+	b.add_theme_stylebox_override("background", bg)
+	b.add_theme_stylebox_override("fill", fill)
+	return b
