@@ -1,11 +1,12 @@
 extends Node2D
 ## Minijuego REGAR del invernadero (paso 2) (scenes/interiores/estacion_ares1/modulos/invernadero/regar.tscn).
-## Vista cenital de las 3 camas con 24 brotes, regados por FILAS (12 filas de 2 brotes).
-## Pasa el mouse por una fila: la regadera riega y el medidor sube. Saca el mouse de la fila dentro de la
-## zona verde del medidor:
-##   - Poca agua  -> tierra húmeda y burbuja de "sed": vuelve a pasar para regar más.
-##   - En la zona -> tierra empapada y burbuja de "perfecto": fila lista.
-##   - Demasiada  -> tierra encharcada y burbuja de "ahogada": se seca un momento y hay que repetir.
+## Vista cenital de las 3 camas con 24 brotes, regados por COLUMNAS (6 columnas de 4 brotes).
+## Pasa el mouse por una columna: la regadera riega y el medidor sube. Haz CLIC justo cuando el agua esté
+## en la zona verde para cerrar la regadera:
+##   - Clic antes de la zona -> tierra húmeda y burbuja de "sed": vuelve a regar para llegar.
+##   - Clic en la zona       -> tierra empapada y burbuja de "perfecto": columna lista.
+##   - Clic tarde o no clic  -> tierra encharcada y burbuja de "ahogada": se seca y hay que repetir.
+## Si sacas el mouse de la columna sin hacer clic, la regadera se detiene y el agua se queda como está.
 ## La barra de progreso debe llegar al 100 %; entonces los brotes crecen, se desbloquea el paso 3 y se vuelve
 ## al invernadero. Esc: volver.
 ## Sprites y anclas: assets/interiores/estacion_ares1/invernadero/riego_layout.json (los hizo el equipo).
@@ -17,14 +18,14 @@ const DIR := "res://assets/interiores/estacion_ares1/invernadero/"
 const GREENHOUSE := "res://scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn"
 const POUR_SPEED := 0.42      # medidor lleno por segundo
 const ZONE_SIZE := 0.2        # alto de la zona verde (parte del medidor)
-const DRAIN_TIME := 1.4       # lo que tarda en secarse una fila ahogada
+const DRAIN_TIME := 1.4       # lo que tarda en secarse una columna ahogada
 
 enum S { DRY, THIRSTY, OK, DROWNED }
 
 var lay: Dictionary
 var plants: Array = []        # {pos, soil, sprout, bubble}
-var rows: Array = []          # {plants: [índices], rect, level, lo, hi, state}
-var _sel := -1                # fila que se está regando
+var rows: Array = []          # columnas: {plants: [índices], rect, level, lo, hi, state}
+var _sel := -1                # columna que se está regando
 var _tex := {}
 var _can := Sprite2D.new()
 var _rains: Array[Sprite2D] = []
@@ -75,22 +76,22 @@ func _ready() -> void:
 			sprout.position = pos - Vector2(bc[0], bc[1])
 			add_child(sprout)
 			plants.append({"pos": pos, "soil": soil, "sprout": sprout, "bubble": null})
-			if not by_row.has(h.fila):
-				by_row[h.fila] = []
-			by_row[h.fila].append(plants.size() - 1)
+			if not by_row.has(h.col):
+				by_row[h.col] = []
+			by_row[h.col].append(plants.size() - 1)
 		for f in by_row:
 			var idx: Array = by_row[f]
 			var r := Rect2(plants[idx[0]].pos, Vector2.ZERO)
 			for i in idx:
 				r = r.expand(plants[i].pos)
-			var row := {"plants": idx, "rect": r.grow_individual(34, 32, 34, 28), "level": 0.0, "state": S.DRY}
+			var row := {"plants": idx, "rect": r.grow_individual(36, 34, 36, 30), "level": 0.0, "state": S.DRY}
 			_new_zone(row)
 			rows.append(row)
 	_fx.draw.connect(_draw_fx)
 	_fx.z_index = 6
 	add_child(_fx)
 
-	for k in 2:
+	for k in 4:  # una lluvia por brote de la columna
 		var rain := Sprite2D.new()
 		rain.texture = _atlas("efectos_riego", "lluvia_1")
 		rain.centered = false
@@ -184,9 +185,9 @@ func _update_meter() -> void:
 	var row: Dictionary = rows[_sel]
 	var win: Dictionary = lay.medidor.ventana_agua
 	_meter.visible = true
-	# a la derecha de la fila, sin salirse de la pantalla
+	# a la derecha de la columna, sin salirse de la pantalla
 	var r: Rect2 = row.rect
-	var at := Vector2(r.end.x + 6, r.get_center().y - 100)
+	var at := Vector2(r.end.x + 6, r.get_center().y - _meter.size.y * _meter.scale.y / 2.0)
 	at.x = clampf(at.x, 8, 1280 - _meter.size.x * _meter.scale.x - 8)
 	at.y = clampf(at.y, 8, 720 - _meter.size.y * _meter.scale.y - 8)
 	_meter.position = at
@@ -225,7 +226,7 @@ func _build_ui() -> void:
 	bar_row.add_child(_bar)
 	_pct = Style.label("0 %", 18, Style.NEON_YELLOW, 0)
 	bar_row.add_child(_pct)
-	_hint = Style.label("Move the mouse over a row to water it  ·  Move away inside the GREEN zone  ·  Esc: back", 16, Style.WHITE, 5)
+	_hint = Style.label("Move the mouse over a column to water it  ·  CLICK when the water is in the GREEN zone  ·  Esc: back", 16, Style.WHITE, 5)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	_hint.offset_left = -600
@@ -262,20 +263,20 @@ func _process(delta: float) -> void:
 		return
 	var under := _row_at(get_global_mouse_position())
 	if _sel >= 0 and under != _sel:
-		_release()            # el mouse salió de la fila: se evalúa
+		_pause()              # el mouse salió de la columna sin hacer clic: se detiene
 	if _sel < 0 and under >= 0:
-		_start_pour(under)    # entró a una fila sin regar
+		_start_pour(under)    # entró a una columna sin regar
 	if _sel >= 0:
 		var row: Dictionary = rows[_sel]
 		row.level += POUR_SPEED * delta
-		if row.level > 1.0:   # se desborda
+		if row.level > 1.0:   # se desborda: no hizo clic a tiempo
 			_release()
 		else:
 			_update_soil(row)
 			_set_frame(_can, "regadera", "vertiendo_%d" % (int(_t * 10.0) % 3 + 1))
 			for rain in _rains:
 				_set_frame(rain, "efectos_riego", "lluvia_%d" % (int(_t * 12.0) % 4 + 1))
-	for i in plants.size():  # los brotes de filas listas se mecen un poco
+	for i in plants.size():  # los brotes se mecen un poco
 		var sp: Sprite2D = plants[i].sprout
 		sp.skew = sin(_t * 2.0 + i) * 0.04
 	_update_meter()
@@ -285,7 +286,7 @@ func _process(delta: float) -> void:
 func _draw_fx() -> void:
 	if _finished:
 		return
-	for i in rows.size():  # filas por regar: recuadro que late; la activa, más fuerte
+	for i in rows.size():  # columnas por regar: recuadro que late; la activa, más fuerte
 		var row: Dictionary = rows[i]
 		if row.state == S.OK:
 			continue
@@ -304,9 +305,32 @@ func _row_at(pos: Vector2) -> int:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and not _finished:
+	if _finished:
+		return
+	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		SceneChanger.go_to(GREENHOUSE)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and _sel >= 0:
+		_release()  # clic: se cierra la regadera y se evalúa
+
+
+## Sale de la columna sin clic: la regadera se va y el agua se queda como está (si ya pasó la zona, se ahoga).
+func _pause() -> void:
+	var row: Dictionary = rows[_sel]
+	if row.level > row.hi:
+		_release()
+		return
+	_sel = -1
+	_hide_can()
+	if row.level > 0.02:
+		row.state = S.THIRSTY
+		_bubbles(row, "sed")
+
+
+func _hide_can() -> void:
+	_can.visible = false
+	for rain in _rains:
+		rain.visible = false
 
 
 func _start_pour(i: int) -> void:
@@ -317,7 +341,7 @@ func _start_pour(i: int) -> void:
 	var rose: Array = lay.anclas.regadera_roseta
 	var rain_at: Array = lay.anclas.lluvia_planta
 	var r: Rect2 = row.rect
-	_can.position = Vector2(r.get_center().x, r.position.y - 26) - Vector2(rose[0], rose[1])
+	_can.position = Vector2(r.get_center().x, r.position.y - 22) - Vector2(rose[0], rose[1])
 	_can.visible = true
 	_can.scale = Vector2.ONE * 0.8
 	create_tween().tween_property(_can, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK)
@@ -328,13 +352,11 @@ func _start_pour(i: int) -> void:
 			rain.position = plants[row.plants[k]].pos - Vector2(rain_at[0], rain_at[1])
 
 
-## El mouse salió de la fila (o se desbordó): se evalúa cuánta agua recibió.
+## Clic (o se desbordó): se evalúa cuánta agua recibió la columna.
 func _release() -> void:
 	var i := _sel
 	_sel = -1
-	_can.visible = false
-	for rain in _rains:
-		rain.visible = false
+	_hide_can()
 	var row: Dictionary = rows[i]
 	if row.level < row.lo:
 		row.state = S.THIRSTY
@@ -357,7 +379,7 @@ func _release() -> void:
 	_update_soil(row)
 
 
-## Una fila ahogada se seca poco a poco y se puede volver a regar desde cero (otra zona verde).
+## Una columna ahogada se seca poco a poco y se puede volver a regar desde cero (otra zona verde).
 func _drain(row: Dictionary) -> void:
 	var tw := create_tween()
 	tw.tween_interval(DRAIN_TIME)
