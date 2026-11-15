@@ -20,7 +20,7 @@ scenes/intro/main_menu.tscn ──START──▶ scenes/intro/base_interior.tscn
 |---|---|---|
 | `GameState` | `scripts/game_state.gd` | Roles y tripulación (`roles`, `selected_role`, `frames_for()`, `portrait_for()`, `role_color()`, `first_name()`, `modifier()`), sitio elegido, rutas de escenas (`WORLD_MAP`, `BASE_ZONE`, `GAMEPLAY_SCENE`, `site_scene()`), entrar/salir de edificios (`enter_building()`, `leave_building()`) |
 | `SceneChanger` | `scripts/core/scene_changer.gd` | **Único** sitio donde se cambia de escena: `SceneChanger.go_to(ruta)` (con fundido a negro) |
-| `Mission` | `scripts/core/mission.gd` | Reloj, batería, sistemas, paneles y tormentas, con su HUD (`mission_hud.gd`). Reglas en `data/mission/rules.json`. Ver `docs/PANELES_SOLARES.md` |
+| `Mission` | `scripts/core/mission.gd` (+ módulos en `scripts/core/mission/`) | El sistema base: reloj, actividades, energía, hambre, cansancio, radiación, condición física, cultivos, investigación, expediciones, tormentas y puntuación, con su HUD (`mission_hud.gd`). Reglas en `data/mission/rules.json`. **Ver `docs/SISTEMAS_DE_MISION.md`** |
 
 ## Módulos compartidos (`scripts/core/`)
 
@@ -43,7 +43,7 @@ Se usan con `const X := preload("res://scripts/core/x.gd")`.
 | `scripts/core/` | Lo compartido (ver arriba) |
 | `scripts/intro/` | Solo lo de la intro |
 | `data/intro/` | `intro_dialogue.json` (diálogos) y `roles.json` (profesiones) |
-| `data/mission/` | `rules.json`: números de la misión (energía, tormentas, paneles) |
+| `data/mission/` | `rules.json`: todos los números de la misión (tiempo, energía, barras, cultivos, investigación, expediciones, tormentas, puntuación) |
 | `assets/` | Imágenes y recursos que usa el juego. **Casi todo lo genera `tools/`**: no se editan a mano |
 | `tools/` | Scripts de Python que convierten las imágenes de Gemini/NASA en assets (Godot ignora esta carpeta) |
 

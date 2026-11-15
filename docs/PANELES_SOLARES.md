@@ -1,50 +1,27 @@
 # Energía, tormentas y paneles solares
 
-## Autoload `Mission` (`scripts/core/mission.gd`)
+El tiempo, la energía, las tormentas y el resto de sistemas de la misión (autoload `Mission`) están
+explicados en **`docs/SISTEMAS_DE_MISION.md`**. Aquí solo va lo propio de los paneles.
 
-Lleva el tiempo y la energía de la misión en todo el juego (se para en el menú y la intro).
-Todos los números están en **`data/mission/rules.json`** (valores del documento de reglas del equipo;
-los campos `_proposed` son propuestas nuestras y se pueden cambiar).
+## Paneles y cables
 
-| Sistema | Cómo funciona |
+| | |
 |---|---|
-| Reloj | 1 min real = 1 h de juego. Empieza en Sol 1, 08:00. 60 sols. |
-| Batería | 0–1000 EU, empieza en 800. Cada instante: `+ generación − consumo`. Si llega a 0, termina la misión. |
-| Generación | Según la limpieza media de los paneles (70–100: 12 EU/h, 40–69: 6, 1–39: 2, 0: 0) × paneles que funcionan / 16 × (1 − reducción por tormenta). |
-| Consumo | Soporte vital 4 + cápsulas 1 + invernadero 2 + luces/auxiliares 1 = 8 EU/h, más consumos extra (laboratorio). |
-| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. Cada fila va en serie hasta su caja: un panel da energía si no está roto y el cable hasta la caja está entero. Cada sol +10 de suciedad. |
-| Tormentas | Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 %, moderada 24 h −45 %, intensa 48 h −70 %. Al terminar: +20 de suciedad, paneles rotos y cables cortados (leve 1/0, moderada 2/1, intensa 4/3). |
-| Encierro | Con tormenta moderada o intensa, el jugador va solo al centro de la estación y no puede salir hasta que pase. |
-| Auxiliares | Se pueden apagar antes de una expedición. Apagados, no se puede entrar a la estación (A.R.I.A. lo explica). |
-| Invernadero | Se puede apagar. Las consecuencias para las plantas las aplica el módulo del invernadero (ver abajo). |
+| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. Cada sol +10 de suciedad; cada tormenta +20. |
+| Cables | Cada fila va en serie hasta su caja: un panel da energía si no está roto y el cable hasta la caja está entero. |
+| Generación | Según la limpieza media (70–100: 12 EU/h, 40–69: 6, 1–39: 2, 0: 0) × paneles que funcionan / 16 × (1 − pérdida por tormenta). |
+| Daños de tormenta | Paneles rotos / cables cortados: leve 1/0, moderada 2/1, intensa 4/3 (`_proposed` en `rules.json`). |
+| Cambiar un panel | 10 EU (`energy.panel_repair_cost`). |
 
-### Cómo lo usan otros módulos
+Limpiar los paneles dura 2 h en el documento: en el campo solar se juega en tiempo real (1 min = 1 h),
+así que limpiar los 16 a mano tarda más o menos eso y no se adelanta el reloj. Mientras se está en el
+campo cuenta como exterior (radiación +4/h).
 
 ```gdscript
-Mission.advance_hours(2.0)           # actividad que dura 2 h de juego (gimnasio, dormir, analizar...)
-Mission.spend(20)                    # gasto puntual (escáner médico: 20 EU). false si no alcanza
-Mission.set_extra_load("lab", 4)     # consumo extra mientras dure; set_extra_load("lab", 0) para quitarlo
-Mission.is_on("greenhouse")          # ¿invernadero encendido?
-Mission.notify("Text")               # mensaje de A.R.I.A. en pantalla
-Mission.sol(); Mission.hour_of_day() # tiempo actual
-Mission.sol_started.connect(f)       # señales: hour_passed, sol_started, storm_warning, storm_started,
-                                     # storm_ended, systems_changed, panels_changed, mission_over
+Mission.cleanliness(); Mission.working_panels(); Mission.is_panel_working(i)
+Mission.set_panel_dirt(i, dirt); Mission.replace_panel(i); Mission.repair_cable(k)
+Mission.panels_changed.connect(f)
 ```
-
-Pendiente para otros módulos:
-- **Invernadero** (`scripts/interiores/estacion_ares1/invernadero.gd`): si `Mission.is_on("greenhouse")` es false
-  con un cultivo plantado, cada sol cuenta como "sol sin regar" (tabla del documento: −10 %, −25 %, −50 %,
-  muere al 4.º). También se puede usar `Mission.sol_started` para el riego diario.
-- **Gimnasio**: la caminadora dura 15 s reales; debería llamar `Mission.advance_hours(2.0 - 0.25)` al completarse.
-
-### Atajos de prueba (solo al ejecutar desde el editor)
-
-| Tecla | Qué hace |
-|---|---|
-| Ctrl+1 | Tormenta ya (leve → moderada → intensa, en orden) |
-| Ctrl+2 | +1 hora |
-| Ctrl+3 | +1 sol (los paneles se ensucian) |
-| Ctrl+4 | Daños de tormenta intensa en los paneles |
 
 ## Edificio de paneles solares
 

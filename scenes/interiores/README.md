@@ -39,6 +39,13 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
 
 Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").
 
+## Tiempo, energía y barras del jugador
+
+Cualquier escena que gaste tiempo o energía (dormir, comer, chequeo, laboratorio, reparar, cosechar,
+viajar...) lo hace a través del autoload `Mission`. Qué tiene que llamar cada módulo de la estación
+(dormitorios, enfermería, Work Room, invernadero) está en **`docs/SISTEMAS_DE_MISION.md`** (sección
+"Qué falta por conectar").
+
 ## Paneles solares: vestíbulo y minijuegos
 
 `paneles_solares.tscn` es un vestíbulo en primera persona (como el de la estación) con dos lugares:
