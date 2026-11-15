@@ -79,7 +79,10 @@ func _ready() -> void:
 func _build_crew() -> void:
 	for id in order:
 		var r: Dictionary = roles[id]
+		# Cada tripulante con su propio sprite (biólogo, ingeniero, médico, astrofísico)
 		var a := Style.make_astronaut(Color.html(r.get("color", "#ffffff")), 1.4)
+		a.sprite_frames = GameState.frames_for(id)
+		a.material = null
 		var s: Array = STAND.get(id, [Vector2(640, 500), "down", false])
 		a.position = s[0]
 		a.play("idle_" + s[1])
@@ -179,7 +182,11 @@ func _play_lines(lines: Array) -> void:
 			var r: Dictionary = roles.get(who, {})
 			var col := Color.html(r.get("color", "#ffffff"))
 			var speaker_name := "%s  ·  %s" % [r.get("crew_name", who), r.get("title", "")]
-			await box.say(speaker_name, col, text, Style.astronaut_frame(0), Style.suit_material(col))
+			var face := GameState.portrait_for(who)
+			if face:
+				await box.say(speaker_name, col, text, face)
+			else:
+				await box.say(speaker_name, col, text, Style.astronaut_frame(0), Style.suit_material(col))
 	_in_dialogue = false
 	room.aria_talking = false
 

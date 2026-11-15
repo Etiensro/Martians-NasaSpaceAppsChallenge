@@ -9,8 +9,38 @@ extends Node2D
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 
+## Polvo que levanta al caminar (más al correr)
+@export var dust_color := Color(0.93, 0.72, 0.58, 0.8)
+var _dust: CPUParticles2D
+
 var facing := "down"   # down, up, side
 var _face_left := false
+
+
+func _ready() -> void:
+	_dust = CPUParticles2D.new()
+	_dust.texture = preload("res://assets/fx/puff.png")
+	_dust.emitting = false
+	_dust.local_coords = false          # el polvo se queda donde pisó
+	_dust.amount = 16
+	_dust.lifetime = 0.6
+	_dust.position = Vector2(0, -2)
+	_dust.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_dust.emission_rect_extents = Vector2(10, 2)
+	_dust.direction = Vector2(0, -1)
+	_dust.spread = 70
+	_dust.initial_velocity_min = 10
+	_dust.initial_velocity_max = 30
+	_dust.gravity = Vector2(0, 20)
+	_dust.scale_amount_min = 1.4
+	_dust.scale_amount_max = 2.2
+	var curve := Curve.new()
+	curve.add_point(Vector2(0, 0.6)); curve.add_point(Vector2(1, 1.8))
+	_dust.scale_amount_curve = curve
+	var grad := Gradient.new()
+	grad.set_color(0, dust_color); grad.set_color(1, Color(dust_color, 0.0))
+	_dust.color_ramp = grad
+	add_child(_dust)
 
 
 func _process(delta: float) -> void:
@@ -34,6 +64,8 @@ func _process(delta: float) -> void:
 			facing = "down" if dir.y > 0 else "up"
 
 	_animate(dir != Vector2.ZERO, running)
+	_dust.emitting = dir != Vector2.ZERO
+	_dust.scale_amount_max = 3.2 if running else 2.2  # al correr levanta más polvo
 
 
 func _animate(moving: bool, running: bool) -> void:

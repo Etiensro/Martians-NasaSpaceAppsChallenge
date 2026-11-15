@@ -13,6 +13,10 @@ const WORLD_MAP := "res://scenes/world_map.tscn"
 
 
 func _ready() -> void:
+	# El jugador es el tripulante que eligió en la intro
+	var gs0 := get_node_or_null("/root/GameState")
+	if gs0 and gs0.selected_role != "":
+		player.get_node("Sprite").sprite_frames = gs0.frames_for()
 	camera.position = zone.center()
 	camera.zoom = Vector2(0.33, 0.33)
 	await get_tree().process_frame  # esperar a que la cámara se aplique
@@ -20,6 +24,14 @@ func _ready() -> void:
 	# Margen extra arriba: la posición del personaje son sus pies y mide ~80 px de alto
 	zone.walk_rect = zone.walk_rect.grow_individual(0, -60, 0, 0)
 	player.position = zone.center()
+	if has_node("Colonia"):  # AP-1: aparecer frente a la estación principal
+		player.position = $Colonia.spawn_point()
+	# Si venimos de un edificio, aparecer delante de su puerta
+	var gs := get_node_or_null("/root/GameState")
+	if gs and gs.return_scene == scene_file_path and gs.return_position != Vector2.INF:
+		player.position = gs.return_position
+		gs.return_scene = ""
+		gs.return_position = Vector2.INF
 
 
 func _unhandled_key_input(event: InputEvent) -> void:

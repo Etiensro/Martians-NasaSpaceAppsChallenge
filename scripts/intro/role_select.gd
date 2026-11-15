@@ -7,6 +7,8 @@ signal role_chosen(role_id: String)
 
 const Style := preload("res://scripts/intro/intro_style.gd")
 const CARD_SIZE := Vector2(272, 420)
+const PORTRAITS := "res://assets/characters/portraits/%s.png"         # sin casco
+const PORTRAITS_HELMET := "res://assets/characters/portraits/%s_helmet.png"  # con casco
 
 var roles: Dictionary = {}
 var order: Array = []
@@ -110,8 +112,13 @@ func _make_card(id: String, r: Dictionary) -> Button:
 	margin.add_child(v)
 
 	var portrait := TextureRect.new()
-	portrait.texture = Style.astronaut_frame(0)
-	portrait.material = Style.suit_material(color)
+	# Retrato de la persona (sin casco); al pasar el ratón o elegirlo se pone el casco.
+	# Si falta la imagen, se usa el astronauta genérico teñido como antes.
+	if ResourceLoader.exists(PORTRAITS % id):
+		portrait.texture = load(PORTRAITS % id)
+	else:
+		portrait.texture = Style.astronaut_frame(0)
+		portrait.material = Style.suit_material(color)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.custom_minimum_size = Vector2(0, 110)
@@ -160,9 +167,7 @@ func _ignore_mouse(n: Node) -> void:
 
 
 func _hover(id: String, on: bool) -> void:
-	var p: TextureRect = _portraits[id]
-	# Al pasar por encima, el astronauta saluda (cuadro "celebrate")
-	p.texture = Style.astronaut_frame(6 if (on or id == _selected) else 0)
+	_set_portrait(id, on or id == _selected)
 	var card: Button = _cards[id]
 	card.pivot_offset = card.size / 2.0
 	create_tween().tween_property(card, "scale", Vector2.ONE * (1.04 if on else 1.0), 0.12)
@@ -178,7 +183,7 @@ func _select(id: String) -> void:
 	_selected = id
 	if prev != "" and prev != id:
 		_hover(prev, false)
-	_portraits[id].texture = Style.astronaut_frame(6)
+	_set_portrait(id, true)
 	var r: Dictionary = roles[id]
 	var first_name := str(r.get("crew_name", "")).get_slice(" ", 0).to_upper()
 	_confirm.text = "CONFIRM: %s STAYS AWAKE" % first_name
@@ -186,3 +191,12 @@ func _select(id: String) -> void:
 	if get_viewport().gui_get_focus_owner() == _cards[id]:
 		_confirm.grab_focus()  # con teclado: Enter elige y Enter otra vez confirma
 
+
+
+## Con casco al pasar el ratón / al estar elegido; sin casco el resto del tiempo.
+func _set_portrait(id: String, helmet: bool) -> void:
+	var p: TextureRect = _portraits[id]
+	if ResourceLoader.exists(PORTRAITS % id):
+		p.texture = load((PORTRAITS_HELMET if helmet else PORTRAITS) % id)
+	else:  # astronauta genérico: saluda (cuadro "celebrate")
+		p.texture = Style.astronaut_frame(6 if helmet else 0)
