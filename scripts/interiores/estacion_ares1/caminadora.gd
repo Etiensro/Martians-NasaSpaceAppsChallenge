@@ -21,12 +21,12 @@ const PLAYER_X := 150.0          # posición del corredor dentro de la pantalla
 const PLAYER_SCALE := 1.15
 const GRAVITY := 2700.0
 const JUMP_SPEED := 980.0
-const SPEED_START := 320.0       # px/s del suelo
-const SPEED_MAX := 600.0
+const SPEED_START := 390.0       # px/s del suelo
+const SPEED_MAX := 680.0
 ## La dificultad sube poco a poco: tarda RAMP_SECONDS (de la carrera actual) en llegar al máximo.
 ## Durante las 2 horas (RUN_SECONDS) solo se llega a una parte; después sigue subiendo despacio.
 const RAMP_SECONDS := 60.0
-const METEOR_AFTER := 6.0        # segundos corriendo antes de que salgan meteoritos
+const METEOR_AFTER := 2.5        # segundos corriendo antes de que salgan meteoritos
 const RESTART_DELAY := 0.5       # tras caerse, espera antes de poder volver a empezar
 ## Obstáculos de suelo (se saltan) y de aire (hay que agacharse)
 const GROUND_OBSTACLES := ["rock_m", "rocks"]
@@ -276,7 +276,7 @@ func _process(delta: float) -> void:
 
 
 func _spawn() -> void:
-	var air := _run_time > METEOR_AFTER and randf() < lerpf(0.12, 0.28, _ramp())
+	var air := _run_time > METEOR_AFTER and randf() < lerpf(0.38, 0.45, _ramp())
 	var kind: String = (AIR_OBSTACLES if air else GROUND_OBSTACLES).pick_random()
 	var n := Sprite2D.new()
 	n.texture = _textures[kind]
@@ -296,7 +296,7 @@ func _spawn() -> void:
 	_clip.move_child(n, _floors[-1].get_index() + 1)  # delante del suelo, detrás del corredor
 	_obstacles.append({"node": n, "kind": kind, "air": air})
 	var gap := randf_range(lerpf(1.2, 0.85, _ramp()), lerpf(2.0, 1.5, _ramp())) * SPEED_START / speed
-	_spawn_in = gap + (1.4 if air else 0.0)  # tras un meteorito no sale otra cosa enseguida
+	_spawn_in = gap + (1.0 if air else 0.0)  # tras un meteorito no sale otra cosa enseguida
 
 
 ## 0 al empezar a correr, 1 cuando la dificultad está al máximo (sube suave).
