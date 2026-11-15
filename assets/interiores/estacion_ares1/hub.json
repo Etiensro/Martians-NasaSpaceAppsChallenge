@@ -1,0 +1,206 @@
+{
+ "doors": [
+  {
+   "id": "sala_trabajo",
+   "name": "WORK ROOM",
+   "color": "5aa8ff",
+   "rect": [
+    24,
+    219,
+    218,
+    548
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn"
+  },
+  {
+   "id": "invernadero",
+   "name": "GREENHOUSE",
+   "color": "5cf27a",
+   "rect": [
+    293,
+    255,
+    497,
+    516
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn"
+  },
+  {
+   "id": "gimnasio",
+   "name": "GYM",
+   "color": "ffa640",
+   "rect": [
+    549,
+    265,
+    747,
+    510
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/gimnasio/gimnasio.tscn"
+  },
+  {
+   "id": "enfermeria",
+   "name": "INFIRMARY",
+   "color": "ff4a4a",
+   "rect": [
+    798,
+    255,
+    1001,
+    516
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/enfermeria/enfermeria.tscn"
+  },
+  {
+   "id": "dormitorios",
+   "name": "CREW QUARTERS",
+   "color": "ffc861",
+   "rect": [
+    1056,
+    219,
+    1256,
+    548
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/dormitorios/dormitorios.tscn"
+  }
+ ],
+ "door_lights": [
+  [
+   147,
+   158
+  ],
+  [
+   401,
+   200
+  ],
+  [
+   647,
+   210
+  ],
+  [
+   892,
+   201
+  ],
+  [
+   1145,
+   158
+  ]
+ ],
+ "status_lights": [
+  [
+   7,
+   387
+  ],
+  [
+   7,
+   406
+  ],
+  [
+   247,
+   381
+  ],
+  [
+   505,
+   387
+  ],
+  [
+   756,
+   387
+  ],
+  [
+   1011,
+   381
+  ],
+  [
+   1272,
+   387
+  ],
+  [
+   1272,
+   406
+  ]
+ ],
+ "windows": [
+  [
+   92,
+   19,
+   256,
+   87
+  ],
+  [
+   318,
+   61,
+   489,
+   129
+  ],
+  [
+   556,
+   87,
+   734,
+   139
+  ],
+  [
+   805,
+   61,
+   972,
+   129
+  ],
+  [
+   1037,
+   19,
+   1195,
+   87
+  ]
+ ],
+ "screens": [
+  [
+   34,
+   295,
+   79,
+   326,
+   "chart"
+  ],
+  [
+   35,
+   341,
+   71,
+   369,
+   "chart"
+  ],
+  [
+   60,
+   378,
+   103,
+   403,
+   "text"
+  ],
+  [
+   938,
+   350,
+   981,
+   379,
+   "heart"
+  ]
+ ],
+ "grow_lights": [
+  [
+   303,
+   330,
+   418,
+   339
+  ],
+  [
+   303,
+   381,
+   418,
+   390
+  ],
+  [
+   408,
+   287,
+   466,
+   303
+  ]
+ ],
+ "exit": [
+  640,
+  652
+ ]
+}

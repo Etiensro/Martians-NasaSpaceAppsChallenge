@@ -52,7 +52,7 @@ BUILDINGS = {
     "paneles_grande": {
         "name": "Solar panels",
         "src": "buildings/paneles_grande_gemini.jpg",
-        "width": 380, "pos": (1080, 265),
+        "width": 380, "pos": (918, 341),
         "door": (885, 1045),
         "depth": 0.30,
         "cable": {"sur": (1900, 1000)},
@@ -68,7 +68,7 @@ BUILDINGS = {
     "excavadora": {
         "name": "Ice excavator",
         "src": "buildings/excavadora_gemini.jpg",
-        "width": 300, "pos": (760, 680),
+        "width": 300, "pos": (561, 639),
         "door": (595, 1245),
         "depth": 0.22,
         "free": [(1200, 100, 1800, 1300)],  # la torre/antena del taladro no bloquea el paso
@@ -85,7 +85,7 @@ BUILDINGS = {
     "nave": {
         "name": "Spaceship",
         "src": "buildings/nave_gemini.png",
-        "width": 230, "pos": (175, 705),
+        "width": 230, "pos": (1100, 662),
         "door": (310, 540),          # pie de la escalera de la plataforma (no se entra: decoración)
         "enterable": False,
         "depth": 0.06,
@@ -111,9 +111,12 @@ BUILDINGS = {
 }
 VEHICLE = {"src": "vehicles/vehiculo_sheet_gemini.jpg", "frame": (0, 1), "width": 70, "pos": (300, 480)}  # en el punto de reunión, donde aparece el personaje
 # Cables de energía/datos sobre el suelo: (edificio.punto, edificio.punto)
+# Cables: (desde, hasta[, "h"|"v"]). Cada extremo es "edificio.punto" (ver "cable" de BUILDINGS) o un punto
+# (x, y) en px del mapa. "h" = primero en horizontal y luego en vertical; "v" = al revés; sin nada, automático.
 CABLES = [
-    ("paneles_grande.sur", "excavadora.norte"),      # energía de los paneles a la excavadora y la base
-    ("excavadora.norte", "estacion.este"),           # agua/energía de la excavadora
+    ("paneles_grande.sur", "estacion.este"),         # energía de los paneles a la base
+    ((548, 543), (753, 319), "h"),                   # excavadora (lado derecho del tanque) -> cable paneles-base
+    ((1089, 322), (1140, 520), "h"),                 # paneles (módulo de control) -> nave
 ]
 CABLE_OUT = np.array([12, 18, 46])
 CABLE_CORE = np.array([38, 86, 190])
@@ -208,11 +211,12 @@ class Ground:
                         if r <= half - 2 or (r <= half + 2 and self.thr[y, x] < (half + 2 - r) / 4):
                             self.g[y, x] = PATH if self.noise[y, x] > 0.1 else PATH_DARK
 
-    def cable(self, a, b):
+    def cable(self, a, b, first=""):
         """Cable sobre el suelo de a a b: tramo en L con esquina redondeada, contorno oscuro,
-        núcleo azul, brillo y pequeñas cajas de conexión."""
+        núcleo azul, brillo y pequeñas cajas de conexión. first="h"/"v": por dónde empieza la L."""
         (ax, ay), (bx, by) = a, b
-        mid = (bx, ay) if abs(bx - ax) > abs(by - ay) else (ax, by)
+        horizontal_first = first == "h" or (first == "" and abs(bx - ax) > abs(by - ay))
+        mid = (bx, ay) if horizontal_first else (ax, by)
         pts = []
         for (px0, py0), (px1, py1) in ((a, mid), (mid, b)):
             n = int(max(abs(px1 - px0), abs(py1 - py0))) + 1
@@ -326,12 +330,14 @@ def main():
 
     # 3b) cables entre edificios
     def cpoint(ref):
+        if not isinstance(ref, str):
+            return ref  # punto suelto en px del mapa
         bid, name = ref.split(".")
         it = items[bid]
         sx, sy = BUILDINGS[bid]["cable"][name]
         return (it["x0"] + (sx - it["box"][0]) * it["k"], it["y0"] + (sy - it["box"][1]) * it["k"])
-    for a, b in CABLES:
-        ground.cable(cpoint(a), cpoint(b))
+    for c in CABLES:
+        ground.cable(cpoint(c[0]), cpoint(c[1]), c[2] if len(c) > 2 else "")
 
     # 4) sombras, zona bloqueada y sprites
     OUT.mkdir(parents=True, exist_ok=True)
@@ -410,7 +416,7 @@ def main():
         # la rampa también es sólida; solo se asegura que el punto de entrada quede libre
         blocked[dy - 2:dy + 8, max(0, dx - 10):dx + 11] = False
     vm = vsprite[..., 3] > 0
-    ground.shadow(vm, vx0, vy0, dx=5, dy=3)
+    # la sombra del vehículo NO se pinta en el suelo: la dibuja colony.gd y se va con él
     placed.append((vsprite, vx0, vy0, None))
     meta["vehicle"] = {"texture": "res://assets/buildings/vehiculo.png",
                        "pos": [vx * CELL, vy * CELL], "size": [vsprite.shape[1] * CELL, vsprite.shape[0] * CELL],

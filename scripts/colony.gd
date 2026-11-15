@@ -56,8 +56,18 @@ func _add_vehicle() -> void:
 	_vehicle.hint_height = v.door[1] - v.pos[1] + v.size[1] + 55
 	_vehicle.used.connect(_drive_away)
 	add_child(_vehicle)
-	# faros encendidos, parpadeo suave
-	_light(_vehicle.position + Vector2(-v.size[0] * 0.18, -v.size[1] * 0.32), Color("fff07a"), 1.6, "pulse", 2.5)
+	# sombra (va con el vehículo, así no se queda en el suelo cuando se va)
+	var shadow := Sprite2D.new()
+	shadow.texture = load(v.texture)
+	shadow.centered = false
+	shadow.scale = Vector2.ONE * meta.cell
+	shadow.position = Vector2(-v.size[0] / 2.0, -v.size[1]) + Vector2(5, 3) * meta.cell
+	shadow.modulate = Color(0.12, 0.04, 0.02, 0.4)
+	_vehicle.add_child(shadow)
+	_vehicle.move_child(shadow, 0)
+	# faros encendidos, parpadeo suave (también se van con el vehículo)
+	var lamp := _light(_vehicle.position + Vector2(-v.size[0] * 0.18, -v.size[1] * 0.32), Color("fff07a"), 1.6, "pulse", 2.5)
+	lamp.reparent(_vehicle)
 
 
 ## El astronauta sube al vehículo (vacío), arranca y sale por la izquierda; luego el mapa general.

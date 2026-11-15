@@ -17,9 +17,9 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
 `scenes/interiores/estacion_ares1/modulos/` y para sus imágenes en
 `assets/interiores/estacion_ares1/`:
 
-`laboratorio`, `invernadero`, `cocina`, `dormitorios`, `enfermeria`, `criogenia` (las 4 cápsulas), `oxigeno`.
+`sala_trabajo` (Work Room), `invernadero`, `gimnasio`, `enfermeria`, `dormitorios`.
 
-`estacion_ares1.tscn` es la entrada (la esclusa): desde ahí se puede ir a los módulos.
+`estacion_ares1.tscn` es la entrada: un menú en primera persona donde se elige con el cursor a qué módulo ir o la flecha EXIT para salir a AP-1.
 
 ## Reglas para que todo siga funcionando
 
@@ -35,6 +35,6 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
    y su retrato con `GameState.portrait_for(GameState.selected_role)`.
 5. **Para cambiar de escena** usa siempre `SceneChanger.go_to("res://...tscn")` (hace el fundido).
    Por ejemplo, para ir a un módulo de la estación:
-   `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/cocina/cocina.tscn")`.
+   `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn")`.
 
 Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").
