@@ -1,7 +1,7 @@
 {
   "_comment": "Intro dialogue for Mission Ares 1. 'speaker' is 'aria' (the base AI) or a role id from roles.json. Optional 'event' runs when the line starts: alarm_on, alarm_off, shake, lights_dim. In 'farewell', {player} = chosen crew name, {player_role} = chosen role title. Lines with speaker 'player' are said by the chosen astronaut; 'sleeper' lines are said by each sleeping crew member (one random line each).",
   "speakers": {
-	"aria": { "name": "A.R.I.A.", "color": "#5ef2e4" }
+	"aria": { "name": "A.R.I.A.", "color": "#2e96f5" }
   },
   "intro": [
 	{ "speaker": "aria", "event": "alarm_on", "text": "WARNING! A massive dust storm is heading toward Ares Base. Estimated arrival: 2 hours." },

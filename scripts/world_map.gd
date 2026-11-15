@@ -2,10 +2,12 @@ extends Node2D
 ## Mapa general de Arcadia Planitia: selección de sitio (AP-1, AP-8, AP-9).
 ## Los recursos los genera tools/build_world_map.py (assets/world/).
 ## Pasar el ratón por un sitio lo resalta y muestra su descripción; clic para ir a ese sitio.
-## El astronauta aparece junto al sitio donde está el jugador y camina hasta el elegido.
+## El astronauta aparece junto al sitio donde está el jugador y camina hasta el elegido;
+## el robot acompañante (scenes/robot.tscn) lo sigue.
 
 const Movement := preload("res://scripts/core/movement.gd")
 const Style := preload("res://scripts/core/style.gd")
+const RobotScene := preload("res://scenes/robot.tscn")
 const SITES_FILE := "res://assets/world/world_sites.json"
 const ASTRO_SCALE := 0.6
 const WALK_SPEED := 350.0  # px/s al caminar por el mapa
@@ -32,6 +34,7 @@ func _ready() -> void:
 	for id in meta.sites:
 		_build_marker(id, meta.sites[id])
 	_build_astronaut()
+	_build_robot()
 	_fit_camera()
 	get_viewport().size_changed.connect(_fit_camera)
 	_set_info("")
@@ -105,6 +108,17 @@ func _build_astronaut() -> void:
 	var tw := create_tween().set_loops()
 	tw.tween_property(arrow, "position:y", -115.0, 0.4).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(arrow, "position:y", -105.0, 0.4).set_trans(Tween.TRANS_SINE)
+
+
+## Robot acompañante: misma escala que el astronauta en el mapa y lo sigue al caminar.
+func _build_robot() -> void:
+	var robot := RobotScene.instantiate()
+	robot.scale = Vector2.ONE * ASTRO_SCALE
+	robot.offset = Vector2(-60, 12) * ASTRO_SCALE
+	robot.speed = WALK_SPEED * 0.9
+	robot.z_index = 5
+	robot.target = _astro
+	add_child(robot)
 
 
 func _unhandled_input(event: InputEvent) -> void:

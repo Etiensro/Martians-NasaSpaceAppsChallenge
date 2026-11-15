@@ -1,11 +1,13 @@
 extends RefCounted
 ## Estilo visual compartido: colores, botones, paneles y textos.
 ## Uso: const Style := preload("res://scripts/core/style.gd")
+## Todo el juego usa la marca NASA Space Apps (ver la sección de abajo): los nombres antiguos
+## (NAVY, AMBER, CYAN) apuntan a los colores de la marca para que el código existente siga igual.
 
-const NAVY := Color(0.047, 0.07, 0.18)        # contorno / fondo de paneles
-const NAVY_SOFT := Color(0.047, 0.07, 0.18, 0.88)
-const AMBER := Color(1, 0.84, 0.27)           # títulos, bordes, botones
-const CYAN := Color(0.37, 0.95, 0.89)         # A.R.I.A.
+const NAVY := Color("07173f")                 # Deep Blue: contorno / fondo de paneles
+const NAVY_SOFT := Color("07173f", 0.9)
+const AMBER := Color("eafe07")                # Neon Yellow: bordes, botones y acentos
+const CYAN := Color("2e96f5")                 # Blue Yonder: A.R.I.A. y detalles
 const DUST := Color(0.78, 0.45, 0.25)         # polvo marciano
 const DUST_DARK := Color(0.45, 0.22, 0.12)
 const WHITE := Color(1, 1, 1)
@@ -24,27 +26,16 @@ static func box(bg: Color, border: Color, border_w := 4, pad := 12.0) -> StyleBo
 	return s
 
 
-## Botón pixel art: azul noche con borde ámbar; al pasar el ratón se rellena de ámbar.
+## Botón principal del juego (marca: Neon Yellow con texto Deep Blue, Overpass Bold).
 static func style_button(b: Button, font_size := 24) -> void:
-	b.add_theme_stylebox_override("normal", box(NAVY_SOFT, AMBER))
-	b.add_theme_stylebox_override("hover", box(AMBER, WHITE))
-	b.add_theme_stylebox_override("pressed", box(AMBER.darkened(0.25), WHITE))
-	b.add_theme_stylebox_override("focus", box(Color(0, 0, 0, 0), WHITE, 3))
-	b.add_theme_stylebox_override("disabled", box(Color(0.2, 0.2, 0.25, 0.8), Color(0.45, 0.45, 0.5)))
-	b.add_theme_color_override("font_color", WHITE)
-	b.add_theme_color_override("font_hover_color", NAVY)
-	b.add_theme_color_override("font_pressed_color", NAVY)
-	b.add_theme_color_override("font_focus_color", WHITE)
-	b.add_theme_color_override("font_hover_pressed_color", NAVY)
-	b.add_theme_color_override("font_disabled_color", Color(0.6, 0.6, 0.65))
-	b.add_theme_font_size_override("font_size", font_size)
-	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	brand_button(b, true, font_size)
 
 
-## Texto con contorno azul noche.
+## Texto en Overpass SemiBold con contorno Deep Blue (se lee sobre el mapa y sobre paneles).
 static func label(text: String, font_size := 18, color := WHITE, outline := 4) -> Label:
 	var l := Label.new()
 	l.text = text
+	l.add_theme_font_override("font", body_font(600))
 	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_color_override("font_outline_color", NAVY)
@@ -93,7 +84,8 @@ static func body_font(weight := 400) -> FontVariation:
 
 
 ## Título de marca: Fira Sans Black, mayúsculas y 5 % de espaciado.
-static func brand_title(text: String, font_size := 60, color := WHITE) -> Label:
+## Con `outline` > 0 lleva contorno Deep Blue (para títulos encima del mapa o de la escena).
+static func brand_title(text: String, font_size := 60, color := WHITE, outline := 0) -> Label:
 	var f := FontVariation.new()
 	f.base_font = FONT_TITLE
 	f.spacing_glyph = roundi(font_size * 0.05)
@@ -102,6 +94,9 @@ static func brand_title(text: String, font_size := 60, color := WHITE) -> Label:
 	l.add_theme_font_override("font", f)
 	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
+	if outline > 0:
+		l.add_theme_color_override("font_outline_color", NAVY)
+		l.add_theme_constant_override("outline_size", outline)
 	return l
 
 
