@@ -10,7 +10,8 @@ extends Node
 const WORLD_MAP := "res://scenes/world_map.tscn"
 const BASE_ZONE := "res://scenes/ap1_zone.tscn"
 ## Escena a la que salta la intro al terminar. Cámbiala cuando exista la de gestión de recursos.
-const GAMEPLAY_SCENE := BASE_ZONE  # al terminar la intro se aparece directo en AP-1
+## Al terminar la intro se empieza dentro de la Estación Ares 1 (su vestíbulo); al salir, AP-1.
+const GAMEPLAY_SCENE := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 
 
 ## Escena de un sitio del mapa: "AP-8" -> res://scenes/ap8_zone.tscn
@@ -106,6 +107,11 @@ func modifier(key: String) -> float:
 
 # ---------------------------------------------------------------- edificios
 
+## Invernadero: en qué paso va (0 = sembrar, 1 = regar, 2 = cosechar). Un paso se desbloquea al
+## completar el anterior al 100 %.
+var greenhouse_step := 0
+
+
 ## Al entrar a un edificio se guarda de dónde venías, para volver delante de su puerta.
 var _return_scene := ""
 var _return_position := Vector2.INF
@@ -116,6 +122,16 @@ func enter_building(interior_scene: String, door_position: Vector2) -> void:
 	_return_scene = get_tree().current_scene.scene_file_path
 	_return_position = door_position
 	SceneChanger.go_to(interior_scene)
+
+
+## Empieza el juego dentro de un edificio de una zona sin haber pasado por su puerta (tras la intro):
+## al salir, el jugador aparece delante de la puerta de ese edificio en la zona.
+func start_inside(interior_scene: String, zone_scene: String, building_id: String) -> void:
+	var colony = JSON.parse_string(FileAccess.get_file_as_string("res://assets/buildings/colony.json"))
+	var door: Array = colony.buildings[building_id].door
+	_return_scene = zone_scene
+	_return_position = Vector2(door[0], door[1]) + Vector2(0, 40)  # igual que building.gd
+	SceneChanger.go_to(interior_scene, 1.2)
 
 
 ## Sale del interior a la zona por la que se entró (o a la base si no se sabe).
