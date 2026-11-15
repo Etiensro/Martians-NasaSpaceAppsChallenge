@@ -7,18 +7,16 @@ extends Node2D
 
 const Style := preload("res://scripts/core/style.gd")
 const Fx := preload("res://scripts/core/fx.gd")
+const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 
 const BG := preload("res://assets/interiores/estacion_ares1/hub.png")
 const DATA := "res://assets/interiores/estacion_ares1/hub.json"
-const EXIT_SIZE := Vector2(120, 90)  # zona de clic de la flecha de salida
 
 var data: Dictionary
 var _add := CanvasItemMaterial.new()
 var _fx := Node2D.new()          # pantallas, luces de cultivo y luces de estado (dibujadas)
 var _hover_box := Node2D.new()   # resalte de la puerta bajo el cursor
-var _arrow := Node2D.new()
-var _arrow_glow: Sprite2D
-var _exit_label: Label
+var _exit := ExitArrow.new()
 var _banner: Label
 var _sub: Label
 var _toast: Label
@@ -56,8 +54,8 @@ func _build_windows() -> void:
 		var mask := ColorRect.new()
 		mask.position = r.position
 		mask.size = r.size
-		mask.color = Color(1, 1, 1, 0.0)
-		mask.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+		mask.color = Color.WHITE  # solo sirve de máscara (no se dibuja)
+		mask.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 		mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(mask)
 		var p := Fx.particles(Fx.STREAK, 14, r.size.x / 120.0, Vector2(1, 0.15), 4, 100, 160)
@@ -161,34 +159,8 @@ func _draw_hover() -> void:
 # ---------------------------------------------------------------- flecha de salida (animada)
 
 func _build_exit_arrow() -> void:
-	var p: Array = data.exit
-	_arrow.position = Vector2(p[0], p[1])
-	add_child(_arrow)
-	_arrow_glow = Sprite2D.new()
-	_arrow_glow.texture = Fx.GLOW
-	_arrow_glow.material = _add
-	_arrow_glow.scale = Vector2.ONE * 2.2
-	_arrow_glow.modulate = Color(Style.NEON_YELLOW, 0.0)
-	_arrow.add_child(_arrow_glow)
-	# Dos chevrones hacia abajo (hacia el jugador): "por aquí se sale"
-	for k in 2:
-		var chev := Polygon2D.new()
-		chev.polygon = PackedVector2Array([Vector2(-34, -20), Vector2(-20, -20), Vector2(0, 0),
-			Vector2(20, -20), Vector2(34, -20), Vector2(0, 14)])
-		chev.position = Vector2(0, -14 + k * 22)
-		chev.color = Style.NEON_YELLOW
-		var line := Line2D.new()
-		line.points = chev.polygon + PackedVector2Array([chev.polygon[0]])
-		line.width = 3
-		line.default_color = Style.NAVY
-		chev.add_child(line)
-		_arrow.add_child(chev)
-		var tw := create_tween().set_loops()
-		tw.tween_property(chev, "modulate:a", 0.35, 0.45).set_delay(k * 0.2)
-		tw.tween_property(chev, "modulate:a", 1.0, 0.45)
-	var bob := create_tween().set_loops()
-	bob.tween_property(_arrow, "position:y", p[1] + 8.0, 0.5).set_trans(Tween.TRANS_SINE)
-	bob.tween_property(_arrow, "position:y", float(p[1]), 0.5).set_trans(Tween.TRANS_SINE)
+	_exit.position = Vector2(data.exit[0], data.exit[1])
+	add_child(_exit)
 
 
 # ---------------------------------------------------------------- UI
@@ -220,13 +192,6 @@ func _build_ui() -> void:
 	_sub.modulate.a = 0.0
 	layer.add_child(_sub)
 
-	_exit_label = Style.brand_title("EXIT", 30, Style.NEON_YELLOW, 8)
-	_exit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_exit_label.size = Vector2(200, 40)
-	_exit_label.position = Vector2(data.exit[0] - 100, data.exit[1] - 78)
-	_exit_label.modulate.a = 0.0
-	layer.add_child(_exit_label)
-
 	_toast = Style.label("", 22, Style.WHITE, 6)
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
@@ -253,15 +218,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var id := _hit(get_global_mouse_position())
 		if id == "exit":
-			_exit()
+			_leave()
 		elif id != "":
 			_enter(_door(id))
 	elif event.is_action_pressed("ui_cancel"):
-		_exit()
+		_leave()
 
 
 func _hit(p: Vector2) -> String:
-	if Rect2(Vector2(data.exit[0], data.exit[1]) - EXIT_SIZE / 2.0, EXIT_SIZE).has_point(p):
+	if _exit.hit(p):
 		return "exit"
 	for door in data.doors:
 		if _rect(door).has_point(p):
@@ -275,10 +240,8 @@ func _set_hover(id: String) -> void:
 	_hovered = id
 	Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if id != "" else Input.CURSOR_ARROW)
 	var is_exit := id == "exit"
+	_exit.hovered = is_exit
 	var tw := create_tween().set_parallel()
-	tw.tween_property(_exit_label, "modulate:a", 1.0 if is_exit else 0.0, 0.15)
-	tw.tween_property(_arrow_glow, "modulate:a", 0.8 if is_exit else 0.0, 0.15)
-	tw.tween_property(_arrow, "scale", Vector2.ONE * (1.2 if is_exit else 1.0), 0.15)
 	var show_door := id != "" and not is_exit
 	if show_door:
 		_banner.text = _door(id).name
@@ -299,7 +262,7 @@ func _enter(door: Dictionary) -> void:
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.4)
 
 
-func _exit() -> void:
+func _leave() -> void:
 	_leaving = true
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 	GameState.leave_building()
