@@ -1,7 +1,7 @@
 extends Node2D
 ## Robot acompañante (scenes/robot.tscn): sigue al personaje (`target`) un poco detrás y a un lado.
 ## No se controla. Si el personaje se oculta (p. ej. sube al rover), el robot también.
-## Todavía no está colocado en ninguna zona: instancia robot.tscn y asígnale `target`.
+## Está en zone_base.tscn (lo heredan AP-1, AP-8 y AP-9) siguiendo al nodo "Astronauta".
 
 const Movement := preload("res://scripts/core/movement.gd")
 
@@ -21,6 +21,11 @@ var _base_offset_y := 0.0
 
 func _ready() -> void:
 	_base_offset_y = sprite.offset.y
+	snap_to_target()
+
+
+## Coloca el robot junto al personaje al instante (al aparecer en una zona).
+func snap_to_target() -> void:
 	if target:
 		position = target.position + offset
 

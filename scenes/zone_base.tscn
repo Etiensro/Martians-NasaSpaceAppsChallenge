@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/fixed_zone.gd" id="1_zone"]
 [ext_resource type="Script" path="res://scripts/zone_area.gd" id="2_area"]
 [ext_resource type="PackedScene" path="res://scenes/astronaut.tscn" id="3_astro"]
+[ext_resource type="PackedScene" path="res://scenes/robot.tscn" id="4_robot"]
 
 [node name="Zone" type="Node2D"]
 y_sort_enabled = true
@@ -19,6 +20,9 @@ centered = false
 map = NodePath("../Zona")
 walk_speed = 200.0
 run_speed = 370.0
+
+[node name="Robot" parent="." node_paths=PackedStringArray("target") instance=ExtResource("4_robot")]
+target = NodePath("../Astronauta")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.33, 0.33)
