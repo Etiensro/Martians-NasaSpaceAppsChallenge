@@ -16,7 +16,7 @@
         450,
         1152
       ],
-      "interior": "res://scenes/interiores/domo_laboratorio/domo_laboratorio.tscn",
+      "interior": "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn",
       "enterable": true,
       "fx": [
         {
@@ -530,7 +530,7 @@
         249,
         2151
       ],
-      "interior": "res://scenes/interiores/nave_espacial/nave_espacial.tscn",
+      "interior": "",
       "enterable": false,
       "fx": [
         {

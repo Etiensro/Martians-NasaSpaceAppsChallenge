@@ -37,7 +37,7 @@ BUILDINGS = {
         "width": 520, "pos": (400, 385),
         "door": (135, 1150),
         "cable": {"este": (1760, 1150), "sur": (900, 790), "oeste": (330, 1110)},   # pie de la rampa de la entrada principal (izquierda, con poste de luz)
-        "interior": "res://scenes/interiores/domo_laboratorio/domo_laboratorio.tscn",
+        "interior": "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn",
         "fx": [
             {"type": "door_light", "at": (240, 1030), "color": "ffd84a"},
             {"type": "door_light", "at": (160, 975), "color": "c8ff9a"},        # poste de luz
@@ -95,7 +95,7 @@ BUILDINGS = {
         # Plataforma: solo se camina sobre la parte de arriba y se sube solo por la escalera
         "walk_ellipse": (512, 365, 226, 104),   # cx, cy, rx, ry en px de la imagen original
         "walk_poly": [(280, 512), (325, 542), (418, 448), (405, 412), (355, 410)],  # escalera
-        "interior": "res://scenes/interiores/nave_espacial/nave_espacial.tscn",
+        "interior": "",  # no se puede entrar
         "fx": [
             {"type": "beacon", "at": (512, 30), "color": "ff3b2f"},
             {"type": "glow", "at": (512, 375), "color": "ff9a3c", "size": 1.6},     # tobera aún tibia
