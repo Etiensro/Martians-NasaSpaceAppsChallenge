@@ -107,6 +107,11 @@ func modifier(key: String) -> float:
 
 # ---------------------------------------------------------------- edificios
 
+## Invernadero: en qué paso va (0 = sembrar, 1 = regar, 2 = cosechar). Un paso se desbloquea al
+## completar el anterior al 100 %.
+var greenhouse_step := 0
+
+
 ## Al entrar a un edificio se guarda de dónde venías, para volver delante de su puerta.
 var _return_scene := ""
 var _return_position := Vector2.INF

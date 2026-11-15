@@ -1,7 +1,8 @@
 extends Node2D
 ## Invernadero de la Estación Ares 1 (scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn).
-## Se elige con el cursor qué hacer: las semillas abren SEMBRAR, el tanque de agua abre REGAR;
-## composta y cosecha todavía no existen ("Coming soon"). La flecha de abajo (o Esc) vuelve a la estación.
+## Las tareas van por pasos (GameState.greenhouse_step): 1) sembrar (semillas), 2) regar (tanque de agua),
+## 3) cosechar (camas, aún "Coming soon"). Un paso se desbloquea al completar el anterior al 100 %.
+## El paso actual se marca con un contorno que late y una flecha. La flecha de abajo (o Esc) vuelve a la estación.
 ## Fondo y zonas: assets/interiores/estacion_ares1/invernadero/ (los preparó el equipo, ver tools/invernadero/).
 
 const Style := preload("res://scripts/core/style.gd")
@@ -12,11 +13,10 @@ const DIR := "res://assets/interiores/estacion_ares1/invernadero/"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 const GAMES := "res://scenes/interiores/estacion_ares1/modulos/invernadero/%s.tscn"
 
-## Lugares que se pueden elegir: id, nombre (lo ve el jugador), subtítulo, minijuego ("" = aún no existe)
+## Pasos, en orden: id del lugar, nombre (lo ve el jugador), tarea, minijuego ("" = aún no existe)
 const SPOTS := [
 	["semillas", "SEED POTATOES", "Plant the seed potatoes", "sembrar"],
 	["tanque_agua", "WATER TANK", "Water the sprouts", "regar"],
-	["composta", "COMPOSTER", "Make compost", ""],
 	["camas", "GROW BEDS", "Harvest the potatoes", ""],
 ]
 const BEDS := Rect2(124, 398, 1044, 212)          # las 3 camas juntas (cosecha)
@@ -28,7 +28,7 @@ const VALVES := [Vector2(354, 372), Vector2(713, 372), Vector2(1073, 372)]
 const DRIPS := [Vector2(312, 392), Vector2(642, 392), Vector2(985, 392)]  # boquillas sobre las camas
 
 var layout: Dictionary
-var _spots := {}            # id -> {rect, name, sub, game}
+var _spots := {}            # id -> {rect, name, sub, game, step}
 var _hover := ""
 var _add := CanvasItemMaterial.new()
 var _fx := Node2D.new()
@@ -45,12 +45,13 @@ func _ready() -> void:
 	layout = JSON.parse_string(FileAccess.get_file_as_string(DIR + "invernadero_layout.json"))
 	_add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	var st: Dictionary = layout.estaciones
-	for s in SPOTS:
+	for k in SPOTS.size():
+		var s: Array = SPOTS[k]
 		var r := BEDS
 		if st.has(s[0]):
 			var e: Dictionary = st[s[0]]
 			r = Rect2(e.x, e.y, e.w, e.h)
-		_spots[s[0]] = {"rect": r, "name": s[1], "sub": s[2], "game": s[3]}
+		_spots[s[0]] = {"rect": r, "name": s[1], "sub": s[2], "game": s[3], "step": k}
 
 	var bg := Sprite2D.new()
 	bg.texture = load(DIR + "invernadero_base.png")
@@ -175,6 +176,17 @@ func _draw_fx() -> void:
 
 
 func _draw_glow() -> void:
+	# paso actual: contorno que late y flecha que rebota (aunque no tenga el cursor encima)
+	var cur := _current_spot()
+	if cur != "" and cur != _hover:
+		var cr: Rect2 = _spots[cur].rect
+		var pa := 0.45 + 0.45 * sin(_t * 4.0)
+		_glow.draw_rect(cr.grow(3), Color(Style.NEON_YELLOW, pa), false, 3)
+	if cur != "":
+		var cr2: Rect2 = _spots[cur].rect
+		var tip := Vector2(cr2.get_center().x, cr2.position.y - 6 + sin(_t * 6.0) * 6.0)
+		_glow.draw_colored_polygon(PackedVector2Array([tip + Vector2(-14, -18), tip + Vector2(14, -18), tip]), Style.NEON_YELLOW)
+		_glow.draw_polyline(PackedVector2Array([tip + Vector2(-14, -18), tip + Vector2(14, -18), tip, tip + Vector2(-14, -18)]), Style.NAVY, 2)
 	if _hover == "" or _hover == "exit":
 		return
 	var r: Rect2 = _spots[_hover].rect
@@ -204,6 +216,45 @@ func _build_ui() -> void:
 	layer.add_child(_sub)
 	_toast = _top_label(Style.label("", 22, Style.WHITE, 6), 116)
 	layer.add_child(_toast)
+	_build_steps(layer)
+
+
+## Panel de pasos (abajo a la izquierda): cada tarea con su barra; la actual resaltada.
+func _build_steps(layer: CanvasLayer) -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Style.box(Style.NAVY_SOFT, Style.NEON_YELLOW, 3, 12))
+	panel.position = Vector2(150, 600)
+	layer.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	panel.add_child(col)
+	var title := Style.brand_title("GREENHOUSE TASKS", 18, Style.WHITE)
+	col.add_child(title)
+	var step: int = GameState.greenhouse_step
+	for k in SPOTS.size():
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		col.add_child(row)
+		var done := k < step
+		var name := "%d. %s" % [k + 1, SPOTS[k][2]]
+		if SPOTS[k][3] == "":
+			name += "  (soon)"
+		var color := Style.NEON_YELLOW if k == step else (Style.WHITE if done else Color(1, 1, 1, 0.5))
+		var l := Style.label(("✓ " if done else "") + name, 15, color, 0)
+		l.custom_minimum_size = Vector2(250, 0)
+		row.add_child(l)
+		var bar := Style.progress_bar(110, 12)
+		bar.value = 100.0 if done else 0.0
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(bar)
+
+
+## Lugar del paso actual ("" si ya no queda ninguno disponible).
+func _current_spot() -> String:
+	var step: int = GameState.greenhouse_step
+	if step < SPOTS.size():
+		return SPOTS[step][0]
+	return ""
 
 
 func _top_label(l: Label, top: float) -> Label:
@@ -255,7 +306,8 @@ func _set_hover(id: String) -> void:
 	var show := id != "" and id != "exit"
 	if show:
 		_banner.text = _spots[id].name
-		_sub.text = "%s  ·  Click to start" % _spots[id].sub
+		var locked: bool = _spots[id].step > GameState.greenhouse_step
+		_sub.text = "%s  ·  %s" % [_spots[id].sub, "Locked" if locked else "Click to start"]
 	var tw := create_tween().set_parallel()
 	tw.tween_property(_banner, "modulate:a", 1.0 if show else 0.0, 0.15)
 	tw.tween_property(_sub, "modulate:a", 1.0 if show else 0.0, 0.15)
@@ -263,10 +315,18 @@ func _set_hover(id: String) -> void:
 
 func _use(id: String) -> void:
 	var game: String = _spots[id].game
+	var step: int = _spots[id].step
+	if step > GameState.greenhouse_step:  # bloqueado: falta completar el paso anterior
+		_show_toast("Finish step %d first: %s" % [step, SPOTS[step - 1][2]])
+		return
 	if game != "":
 		_go(GAMES % game)
 		return
-	_toast.text = "%s  ·  Coming soon" % _spots[id].name
+	_show_toast("%s  ·  Coming soon" % _spots[id].name)
+
+
+func _show_toast(text: String) -> void:
+	_toast.text = text
 	var tw := create_tween()
 	tw.tween_property(_toast, "modulate:a", 1.0, 0.2)
 	tw.tween_interval(1.2)
