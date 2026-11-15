@@ -100,7 +100,7 @@ func portrait_for(role_id: String, helmet := false) -> Texture2D:
 
 
 ## Multiplicador de una ventaja del rol elegido (1.0 si no aplica).
-## Ej.: GameState.modifier("repair_speed") -> 1.5 para el Ingeniero.
+## Ej.: GameState.modifier("repair_speed") -> 1.25 para el Ingeniero. Claves y significado: data/intro/roles.json.
 func modifier(key: String) -> float:
 	return float(role_data.get("modifiers", {}).get(key, 1.0))
 

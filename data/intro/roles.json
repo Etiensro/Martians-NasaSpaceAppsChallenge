@@ -1,5 +1,5 @@
 {
-  "_comment": "Crew roles for Mission Ares 1. 'modifiers' are multipliers the gameplay scene can read from GameState.role_data (1.0 = normal). 'color' tints the placeholder astronaut sprite.",
+  "_comment": "Crew roles for Mission Ares 1. 'modifiers' are multipliers read with GameState.modifier(key) (1.0 = normal). *_speed, health_recovery and crop_speed: > 1 = faster (task time is divided). energy_drain, medical_energy: energy cost multiplier. harvest_yield: potatoes multiplier. Used by the Mission autoload (docs/SISTEMAS_DE_MISION.md). 'color' tints the placeholder astronaut sprite.",
   "order": ["engineer", "biologist", "medic", "astrophysicist"],
   "roles": {
 	"engineer": {
@@ -12,7 +12,7 @@
         "Consumes 10% less energy"
 	  ],
 	  "fact": "Real Mars bases would run on solar panels, batteries and maybe small nuclear reactors.",
-	  "modifiers": { "repair_speed": 1.25, "energy_drain": 0.90, "research_spped": 1.0, "research_extraction": 1.0, "harvest_yield": 1.0, "crop_speed": 8 , "health_recovery": 1.0, "medical_energy" : 1.0 }
+	  "modifiers": { "repair_speed": 1.25, "energy_drain": 0.90, "research_speed": 1.0, "extraction_speed": 1.0, "harvest_yield": 1.0, "crop_speed": 1.0, "health_recovery": 1.0, "medical_energy": 1.0 }
 	},
 	"biologist": {
 	  "title": "BIOLOGIST",
@@ -24,7 +24,7 @@
         "Crops grow 15% faster"
 	  ],
 	  "fact": "Plants turn carbon dioxide into oxygen. Astronauts have grown lettuce on the ISS!",
-	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_spped": 1.0, "research_extraction": 1.0, "harvest_yield": 1.25, "crop_speed": 6, "health_recovery": 1.0, "medical_energy" : 1.0 }
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_speed": 1.0, "extraction_speed": 1.0, "harvest_yield": 1.25, "crop_speed": 1.15, "health_recovery": 1.0, "medical_energy": 1.0 }
 	},
 	"medic": {
 	  "title": "MEDIC",
@@ -36,7 +36,7 @@
         "Recovers 50% faster"
 	  ],
 	  "fact": "Astronauts lose bone and muscle in low gravity, so they exercise about 2 hours every day.",
-	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_spped": 1.0, "research_extraction": 1.0, "harvest_yield": 1.0, "crop_speed": 8 , "health_recovery": 0.5, "medical_energy" : 0.0 }
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_speed": 1.0, "extraction_speed": 1.0, "harvest_yield": 1.0, "crop_speed": 1.0, "health_recovery": 1.5, "medical_energy": 0.0 }
 	},
 	"astrophysicist": {
 	  "title": "ASTROPHYSICIST",
@@ -48,7 +48,7 @@
         "Increases extraction speed by 25%"
 	  ],
 	  "fact": "NASA watches the Sun every day to warn astronauts about dangerous solar storms.",
-	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_spped": 1.25, "research_extraction": 1.25, "harvest_yield": 1.0, "crop_speed": 8 , "health_recovery": 1.0, "medical_energy" : 1.0 }
+	  "modifiers": { "repair_speed": 1.0, "energy_drain": 1.0, "research_speed": 1.25, "extraction_speed": 1.25, "harvest_yield": 1.0, "crop_speed": 1.0, "health_recovery": 1.0, "medical_energy": 1.0 }
 	}
   }
 }
