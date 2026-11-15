@@ -78,12 +78,16 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 - Sitios del mapa: diccionario `SITES` de `tools/build_world_map.py` y volver a ejecutarlo.
 - Nombres de edificios: `BUILDINGS` de `tools/build_colony.py` y volver a ejecutarlo.
 
-## Arte provisional de la intro
+## Marca NASA Space Apps (menú principal)
 
-| Qué | Dónde se asigna |
+Sigue la guía oficial: https://www.spaceappschallenge.org/brand/
+
+| Qué | Dónde |
 |---|---|
-| Logos NASA / Space Apps | Guardar `assets/ui/logo_nasa.png` y `assets/ui/logo_space_apps.png` |
-| Base vista desde arriba, logo del juego, fuente pixel, suelo | Inspector del nodo raíz de `main_menu.tscn` (`Base Texture`, `Title Texture`, `Title Font`, `Ground Texture`) |
+| Logo (solo el de NASA Space Apps; **no** se usan logos oficiales de NASA) | `assets/ui/logo_space_apps.png` (versión horizontal blanca, del ZIP oficial) |
+| Fuentes: Fira Sans Black (títulos) y Overpass (texto y botones), licencia OFL | `assets/fonts/` |
+| Colores, `brand_title()`, `brand_label()`, `brand_button()`, `brand_gradient()` | `scripts/core/style.gd` (sección "marca NASA Space Apps") |
+| Fondo del menú | La colonia de AP-1 (`colony.gd`), sin jugador ni puertas |
 | Interior de la base (1280×720) | Inspector del nodo raíz de `base_interior.tscn` (`Room Texture`) |
 
 ## Exportar

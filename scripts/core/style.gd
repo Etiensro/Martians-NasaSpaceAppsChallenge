@@ -62,3 +62,86 @@ static func world_hint(text: String, center: Vector2) -> Label:
 	l.z_index = 100
 	l.visible = false
 	return l
+
+
+# ---------------------------------------------------------------- marca NASA Space Apps
+# Guía de marca: https://www.spaceappschallenge.org/brand/
+# - Títulos: Fira Sans Black, en mayúsculas, 5 % de espaciado entre letras.
+# - Texto y botones: Overpass (Regular / SemiBold / Bold).
+# - El texto va sobre Deep Blue, Electric Blue o blanco. Neon Yellow solo para botones y acentos.
+# - No usar logos oficiales de NASA; solo el de NASA Space Apps (assets/ui/logo_space_apps.png).
+
+const DEEP_BLUE := Color("07173f")
+const ELECTRIC_BLUE := Color("0042a6")
+const NEON_BLUE := Color("0960e1")
+const BLUE_YONDER := Color("2e96f5")
+const NEON_YELLOW := Color("eafe07")
+const ROCKET_RED := Color("e43700")
+const MARTIAN_RED := Color("8e1100")
+
+const FONT_TITLE := preload("res://assets/fonts/FiraSans-Black.ttf")
+const FONT_BODY := preload("res://assets/fonts/Overpass.ttf")  # fuente variable (peso 100-900)
+const LOGO_SPACE_APPS := "res://assets/ui/logo_space_apps.png"
+
+
+## Overpass con el peso indicado (400 Regular, 600 SemiBold, 700 Bold).
+static func body_font(weight := 400) -> FontVariation:
+	var f := FontVariation.new()
+	f.base_font = FONT_BODY
+	f.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): weight}
+	return f
+
+
+## Título de marca: Fira Sans Black, mayúsculas y 5 % de espaciado.
+static func brand_title(text: String, font_size := 60, color := WHITE) -> Label:
+	var f := FontVariation.new()
+	f.base_font = FONT_TITLE
+	f.spacing_glyph = roundi(font_size * 0.05)
+	var l := Label.new()
+	l.text = text.to_upper()
+	l.add_theme_font_override("font", f)
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", color)
+	return l
+
+
+## Texto de marca en Overpass (sin contorno: va sobre fondo azul de la marca).
+static func brand_label(text: String, font_size := 20, color := WHITE, weight := 400) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", body_font(weight))
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", color)
+	return l
+
+
+## Botón de marca. Principal: Neon Yellow con texto Deep Blue. Secundario: borde blanco.
+static func brand_button(b: Button, primary := true, font_size := 24) -> void:
+	var fill := NEON_YELLOW if primary else Color(0, 0, 0, 0)
+	var edge := NEON_YELLOW if primary else WHITE
+	var text := DEEP_BLUE if primary else WHITE
+	b.add_theme_stylebox_override("normal", box(fill, edge, 3, 16.0))
+	b.add_theme_stylebox_override("hover", box(WHITE, WHITE, 3, 16.0))
+	b.add_theme_stylebox_override("pressed", box(WHITE.darkened(0.15), WHITE, 3, 16.0))
+	b.add_theme_stylebox_override("focus", box(Color(0, 0, 0, 0), BLUE_YONDER, 3))
+	b.add_theme_stylebox_override("disabled", box(Color(1, 1, 1, 0.15), Color(1, 1, 1, 0.3), 3, 16.0))
+	b.add_theme_font_override("font", body_font(700))
+	b.add_theme_font_size_override("font_size", font_size)
+	for k in ["font_color", "font_focus_color"]:
+		b.add_theme_color_override(k, text)
+	for k in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		b.add_theme_color_override(k, DEEP_BLUE)
+	b.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.5))
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+
+## Degradado de marca: Electric Blue arriba a la izquierda -> Deep Blue abajo a la derecha (45°).
+static func brand_gradient(alpha := 1.0) -> GradientTexture2D:
+	var g := Gradient.new()
+	g.set_color(0, Color(ELECTRIC_BLUE, alpha))
+	g.set_color(1, Color(DEEP_BLUE, alpha))
+	var t := GradientTexture2D.new()
+	t.gradient = g
+	t.fill_from = Vector2(0, 0)
+	t.fill_to = Vector2(1, 1)
+	return t
