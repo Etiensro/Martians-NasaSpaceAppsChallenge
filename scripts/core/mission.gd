@@ -55,7 +55,7 @@ func _ready() -> void:
 	reset()
 
 
-## Empieza una misión nueva (lo llama el menú principal).
+## Empieza una misión nueva (lo llama la pantalla de fin de misión al volver al menú).
 func reset() -> void:
 	hours = 0.0
 	_last_hour = 0
@@ -120,6 +120,10 @@ func _on_hour(hour_index: int) -> void:
 	if (int(rules.clock.start_hour) + hour_index) % 24 == 0:  # medianoche: empieza un sol nuevo
 		_on_new_sol()
 	_update_storm()
+	# por si al empezar la tormenta había un fundido en curso (SceneChanger ignora el cambio) o el
+	# jugador vuelve de una expedición: con encierro, cada hora se comprueba que esté dentro
+	if is_lockdown():
+		_send_inside()
 
 
 func _on_new_sol() -> void:
@@ -222,8 +226,12 @@ func columns() -> int:
 	return int(rules.panels.columns)
 
 
+func rows() -> int:
+	return int(rules.panels.rows)
+
+
 func panel_count() -> int:
-	return int(rules.panels.columns) * int(rules.panels.rows)
+	return columns() * rows()
 
 
 ## Limpieza media de los paneles (0-100), como la barra del documento.
@@ -419,7 +427,10 @@ var _debug_storm := 0
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not OS.is_debug_build() or not event.pressed or event.echo or not event.ctrl_pressed:
+	# solo desde el editor y con la misión en marcha (en el menú o la intro mandaría al jugador a la estación)
+	if not OS.has_feature("editor") or not is_running():
+		return
+	if not event.pressed or event.echo or not event.ctrl_pressed:
 		return
 	match event.keycode:
 		KEY_1:

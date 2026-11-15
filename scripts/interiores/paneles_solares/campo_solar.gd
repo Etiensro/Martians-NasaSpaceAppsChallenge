@@ -57,7 +57,7 @@ func _ready() -> void:
 		if ResourceLoader.exists(ART % key):
 			_art[key] = load(ART % key)
 	for i in Mission.panel_count():
-		var img := Image.create(int(PANEL.x) / CELL, int(PANEL.y) / CELL, false, Image.FORMAT_RGBA8)
+		var img := Image.create(int(PANEL.x / CELL), int(PANEL.y / CELL), false, Image.FORMAT_RGBA8)
 		_dirt.append(img)
 		_dirt_tex.append(ImageTexture.create_from_image(img))
 		_fill_dirt(i, Mission.panels[i].dirt)
@@ -77,6 +77,7 @@ func _ready() -> void:
 
 func _panel_rect(i: int) -> Rect2:
 	var c := i % Mission.columns()
+	@warning_ignore("integer_division")
 	var r := i / Mission.columns()
 	return Rect2(ORIGIN + Vector2(c * (PANEL.x + GAP.x), r * (PANEL.y + GAP.y)), PANEL)
 
@@ -119,9 +120,12 @@ func _fill_dirt(i: int, dirt: float) -> void:
 	noise.seed = randi()
 	noise.frequency = 0.12
 	var base := dirt / 100.0
+	# la amplitud de las manchas baja cerca de 0 y de 100 para no recortar: así la media sigue siendo
+	# `dirt` y entrar al campo no limpia (ni ensucia) los paneles
+	var spread := 0.45 * minf(minf(base, 1.0 - base) * 2.0, 1.0)
 	for y in img.get_height():
 		for x in img.get_width():
-			var a := clampf(base + noise.get_noise_2d(x, y) * 0.45 * minf(base * 2.0, 1.0), 0.0, 1.0)
+			var a := clampf(base + noise.get_noise_2d(x, y) * spread, 0.0, 1.0)
 			img.set_pixel(x, y, _sand(a, x, y))
 	_dirt_tex[i].update(img)
 
@@ -378,7 +382,7 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO)
 
 	# Cajas de conexiones y cable principal hacia la sala de energía
-	var rows := Mission.panel_count() / Mission.columns()
+	var rows := Mission.rows()
 	var bottom := _cable_start(Mission.panel_count() - 1).y
 	draw_line(Vector2(COMBINER_X + 30, _cable_start(0).y), Vector2(COMBINER_X + 30, bottom + 60), Color("1c2333"), 8)
 	draw_line(Vector2(COMBINER_X + 30, bottom + 60), Vector2(1280, bottom + 60), Color("1c2333"), 8)
