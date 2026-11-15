@@ -3,7 +3,8 @@ extends Node2D
 ## La zona de los interruptores de la pared se marca con un rectángulo amarillo; al hacer clic se
 ## abre la placa con un interruptor por sistema y un monitor con el balance de energía.
 ##   - Soporte vital y cápsulas criogénicas: no se pueden apagar (A.R.I.A. explica por qué).
-##   - Invernadero y luces/auxiliares: se encienden y apagan (Mission.set_system).
+##   - Invernadero y luces/auxiliares: se encienden y apagan (Mission.set_system). El invernadero no se
+##     apaga con papas creciendo; los auxiliares piden confirmación (Mission.switch_blocked_reason).
 ## Los sistemas, sus consumos y sus mensajes están en data/mission/rules.json.
 ## Imágenes: assets/interiores/paneles_solares/sala_electrica/ (las genera tools/build_power_room.py).
 ## Flecha de abajo o Esc: volver al vestíbulo de los paneles.
@@ -191,18 +192,64 @@ func _breaker_column(id: String, at: Vector2) -> Control:
 
 func _on_breaker(id: String) -> void:
 	var rule := Mission.system_rule(id)
-	if not Mission.can_switch(id):
-		Mission.notify(rule.get("locked_message", "This system can't be turned off."))
-		var b: TextureButton = _breakers[id]
-		var x := b.position.x
-		var tw := create_tween()
-		for dx in [8.0, -8.0, 5.0, 0.0]:
-			tw.tween_property(b, "position:x", x + dx, 0.05)
+	var blocked := Mission.switch_blocked_reason(id)  # soporte vital, cápsulas, invernadero con papas
+	if blocked != "":
+		Mission.notify(blocked)
+		_shake(_breakers[id])
 		return
 	var on := not Mission.is_on(id)
+	if not on and rule.has("confirm_off"):  # el documento pide confirmar antes de apagar los auxiliares
+		_confirm(rule.confirm_off, _switch.bind(id, on))
+		return
+	_switch(id, on)
+
+
+func _switch(id: String, on: bool) -> void:
+	var rule := Mission.system_rule(id)
 	Mission.set_system(id, on)
 	if not on and rule.has("off_message"):
 		Mission.notify(rule.off_message)
+
+
+func _shake(b: TextureButton) -> void:
+	var x := b.position.x
+	var tw := create_tween()
+	for dx in [8.0, -8.0, 5.0, 0.0]:
+		tw.tween_property(b, "position:x", x + dx, 0.05)
+
+
+## Ventana de confirmación encima de la placa: "TURN OFF" ejecuta `on_yes`, "CANCEL" la cierra.
+func _confirm(text: String, on_yes: Callable) -> void:
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", Style.box(Style.NAVY, Style.NEON_YELLOW, 3, 22.0))
+	box.custom_minimum_size = Vector2(520, 0)
+	box.mouse_filter = Control.MOUSE_FILTER_STOP
+	_overlay.add_child(box)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 16)
+	box.add_child(col)
+	var msg := Style.brand_label(text, 20, Style.WHITE, 500)
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.custom_minimum_size = Vector2(476, 0)
+	col.add_child(msg)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 20)
+	col.add_child(row)
+	var yes := Button.new()
+	yes.text = "TURN OFF"
+	Style.brand_button(yes, true, 18)
+	yes.pressed.connect(func():
+		box.queue_free()
+		on_yes.call())
+	row.add_child(yes)
+	var no := Button.new()
+	no.text = "CANCEL"
+	Style.brand_button(no, false, 18)
+	no.pressed.connect(box.queue_free)
+	row.add_child(no)
+	box.reset_size()
+	box.position = (Vector2(1280, 720) - box.size) / 2.0
 
 
 func _update_overlay() -> void:

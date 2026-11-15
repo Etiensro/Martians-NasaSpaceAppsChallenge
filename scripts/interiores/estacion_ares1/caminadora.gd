@@ -399,6 +399,11 @@ func _complete() -> void:
 	confetti.color_ramp = Fx.ramp(Style.NEON_YELLOW, Color(Style.BLUE_YONDER, 0.0))
 	_clip.add_child(confetti)
 	confetti.emitting = true
+	# la sesión de ejercicio del sol (Mission.crew): +20 de condición física y el reloj avanza las 2 h
+	# (menos lo que ya pasó corriendo en tiempo real)
+	var why: String = await Mission.crew.exercise(RUN_SECONDS / Mission.rules.clock.real_seconds_per_hour)
+	if why != "":
+		Mission.notify(why)
 
 
 func _unhandled_input(event: InputEvent) -> void:
