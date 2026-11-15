@@ -2,7 +2,8 @@ extends CanvasLayer
 ## Viento con polvo en espacio de pantalla (va encima del mundo, debajo de la UI).
 ## "intensity" 0..1 controla velocidad, opacidad de las rachas y la neblina de polvo.
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
+const Fx := preload("res://scripts/core/fx.gd")
 
 @export var intensity := 0.3:
 	set(v):
@@ -10,8 +11,8 @@ const Style := preload("res://scripts/intro/intro_style.gd")
 		_apply()
 
 var _root := Node2D.new()
-var _streaks := CPUParticles2D.new()
-var _grains := CPUParticles2D.new()
+var _streaks: CPUParticles2D
+var _grains: CPUParticles2D
 var _haze := TextureRect.new()      # neblina de polvo en el borde derecho (de donde viene la tormenta)
 var _overlay := ColorRect.new()     # tinte de polvo en toda la pantalla
 
@@ -38,38 +39,18 @@ func _ready() -> void:
 	add_child(_overlay)
 	add_child(_root)  # partículas encima de la neblina
 
-	# Rachas largas (alineadas con la velocidad)
-	_streaks.texture = Style.solid_texture(2, 14, Color.WHITE)
-	_streaks.particle_flag_align_y = true
-	_streaks.amount = 140
-	_streaks.lifetime = 2.0
-	_streaks.preprocess = 2.0
-	_streaks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	_streaks.direction = Vector2(-1, 0.18)
-	_streaks.spread = 4.0
-	_streaks.gravity = Vector2.ZERO
-	_streaks.initial_velocity_min = 700.0
-	_streaks.initial_velocity_max = 1200.0
+	# Rachas largas y granos de arena sueltos, que entran por la derecha
+	_streaks = Fx.particles(Fx.STREAK, 140, 2.0, Vector2(-1, 0.18), 4, 700, 1200)
 	_streaks.scale_amount_min = 1.0
 	_streaks.scale_amount_max = 2.5
 	_streaks.color = Color(Style.DUST.lightened(0.3), 0.55)
-	_root.add_child(_streaks)
-
-	# Granos de arena sueltos, más lentos
-	_grains.texture = Style.solid_texture(3, 3, Color.WHITE)
-	_grains.amount = 220
-	_grains.lifetime = 4.0
-	_grains.preprocess = 4.0
-	_grains.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	_grains.direction = Vector2(-1, 0.25)
-	_grains.spread = 15.0
-	_grains.gravity = Vector2.ZERO
-	_grains.initial_velocity_min = 250.0
-	_grains.initial_velocity_max = 520.0
-	_grains.scale_amount_min = 1.0
-	_grains.scale_amount_max = 2.0
+	_grains = Fx.particles(Fx.DUST, 220, 4.0, Vector2(-1, 0.25), 15, 250, 520)
+	_grains.scale_amount_min = 1.5
+	_grains.scale_amount_max = 3.0
 	_grains.color = Color(Style.DUST.lightened(0.15), 0.7)
-	_root.add_child(_grains)
+	for p in [_streaks, _grains]:
+		p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+		_root.add_child(p)
 
 	get_viewport().size_changed.connect(_layout)
 	_layout()

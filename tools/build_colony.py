@@ -16,10 +16,11 @@ Uso:  python tools/build_colony.py             (genera los recursos del juego)
 import json
 import pathlib
 import sys
-from collections import deque
 
 import numpy as np
 from PIL import Image, ImageDraw
+
+from imgutil import crop_to_mask, downscale_masked, find_sprites, object_mask
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "tools" / "data"
@@ -32,7 +33,7 @@ CELL = 3  # px de mundo por píxel del suelo
 # "door" = puerta en la imagen ORIGINAL de Gemini (px). "width" = ancho en píxeles del suelo.
 BUILDINGS = {
     "estacion": {
-        "name": "Estación Ares 1",
+        "name": "Ares 1 Station",
         "src": "buildings/estacion_gemini.jpg",
         "width": 520, "pos": (400, 385),
         "door": (135, 1150),
@@ -49,7 +50,7 @@ BUILDINGS = {
         ],
     },
     "paneles_grande": {
-        "name": "Paneles solares",
+        "name": "Solar panels",
         "src": "buildings/paneles_grande_gemini.jpg",
         "width": 380, "pos": (1080, 265),
         "door": (885, 1045),
@@ -65,7 +66,7 @@ BUILDINGS = {
         "glints": True,
     },
     "excavadora": {
-        "name": "Excavadora de hielo",
+        "name": "Ice excavator",
         "src": "buildings/excavadora_gemini.jpg",
         "width": 300, "pos": (760, 680),
         "door": (595, 1245),
@@ -82,7 +83,7 @@ BUILDINGS = {
         ],
     },
     "nave": {
-        "name": "Nave espacial",
+        "name": "Spaceship",
         "src": "buildings/nave_gemini.png",
         "width": 230, "pos": (175, 705),
         "door": (310, 540),          # pie de la escalera de la plataforma (no se entra: decoración)
@@ -129,50 +130,16 @@ DUST = np.array([150, 92, 68])
 BAYER = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16
 
 
-def components(mask):
-    """Etiqueta las zonas conectadas de la máscara. Devuelve (etiquetas, número)."""
-    h, w = mask.shape
-    lab = np.zeros((h, w), np.int32)
-    n = 0
-    for y, x in zip(*np.nonzero(mask)):
-        if lab[y, x]:
-            continue
-        n += 1
-        lab[y, x] = n
-        q = deque([(y, x)])
-        while q:
-            cy, cx = q.popleft()
-            for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
-                if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not lab[ny, nx]:
-                    lab[ny, nx] = n
-                    q.append((ny, nx))
-    return lab, n
-
-
 def cut(rgb, mask, width):
-    """Recorta y reduce sin dejar borde naranja (se promedian solo los píxeles del objeto)."""
-    ys, xs = np.nonzero(mask)
-    box = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
-    rgb = rgb[box[1]:box[3], box[0]:box[2]]
-    m = mask[box[1]:box[3], box[0]:box[2]].astype(float)
+    """Recorta y reduce a `width` px de ancho sin dejar borde naranja. Devuelve (sprite, caja, escala)."""
+    rgb, mask, box = crop_to_mask(rgb, mask)
     k = width / rgb.shape[1]
-    size = (width, round(rgb.shape[0] * k))
-
-    def down(a):
-        return np.asarray(Image.fromarray(a.astype(np.float32), mode="F").resize(size, Image.BOX))
-
-    a = down(m)
-    col = np.stack([down(rgb[..., i] * m) for i in range(3)], axis=-1) / np.maximum(a, 1e-6)[..., None]
-    out = np.zeros((size[1], size[0], 4), np.uint8)
-    out[..., :3] = col.clip(0, 255)
-    out[..., 3] = np.where(a > 0.5, 255, 0)
-    return out, box, k
+    return downscale_masked(rgb, mask, (width, round(rgb.shape[0] * k))), box, k
 
 
 def load(src, erase=()):
     rgb = np.asarray(Image.open(DATA / src).convert("RGB")).astype(float)
-    bg = np.median(rgb[:20, :20].reshape(-1, 3), axis=0)
-    mask = np.abs(rgb - bg).sum(2) > 90
+    mask = object_mask(rgb)
     for x0, y0, x1, y1 in erase:  # borrar zonas sobrantes (cajas en px de la imagen original)
         mask[y0:y1, x0:x1] = False
     # Borde: quitar el tinte del fondo verde (despill) en los 4 px junto al fondo
@@ -189,8 +156,6 @@ def load(src, erase=()):
 
 
 def vehicle_frame(src, rc):
-    sys.path.insert(0, str(ROOT / "tools"))
-    from build_character import find_sprites
     rgb = np.asarray(Image.open(DATA / src).convert("RGB")).astype(np.int32)
     mask, rows = find_sprites(rgb)
     x0, y0, x1, y1 = rows[rc[0]][rc[1]]
@@ -243,7 +208,7 @@ class Ground:
                         if r <= half - 2 or (r <= half + 2 and self.thr[y, x] < (half + 2 - r) / 4):
                             self.g[y, x] = PATH if self.noise[y, x] > 0.1 else PATH_DARK
 
-    def cable(self, a, b, rng):
+    def cable(self, a, b):
         """Cable sobre el suelo de a a b: tramo en L con esquina redondeada, contorno oscuro,
         núcleo azul, brillo y pequeñas cajas de conexión."""
         (ax, ay), (bx, by) = a, b
@@ -366,7 +331,7 @@ def main():
         sx, sy = BUILDINGS[bid]["cable"][name]
         return (it["x0"] + (sx - it["box"][0]) * it["k"], it["y0"] + (sy - it["box"][1]) * it["k"])
     for a, b in CABLES:
-        ground.cable(cpoint(a), cpoint(b), None)
+        ground.cable(cpoint(a), cpoint(b))
 
     # 4) sombras, zona bloqueada y sprites
     OUT.mkdir(parents=True, exist_ok=True)
@@ -390,7 +355,7 @@ def main():
             # zonas caminables de la plataforma (arriba + escalera); el resto (borde, laterales) bloquea
             b_ = BUILDINGS[bid]
             if b_.get("walk_ellipse"):
-                wm = Image.new("L", pm.size if False else (it["src_size"][0], it["src_size"][1]), 0)
+                wm = Image.new("L", it["src_size"], 0)
                 dw = ImageDraw.Draw(wm)
                 ecx, ecy, erx, ery = b_["walk_ellipse"]
                 dw.ellipse((ecx - erx, ecy - ery, ecx + erx, ecy + ery), fill=255)
@@ -400,7 +365,6 @@ def main():
                 ys, xs = np.nonzero(wall)
                 ok = (ys + it["y0"] < ground.H) & (xs + it["x0"] < ground.W)
                 blocked[ys[ok] + it["y0"], xs[ok] + it["x0"]] = True
-                # la puerta "de referencia" pasa a ser el pie de la escalera
 
         sm = s[..., 3] > 0
         ground.shadow(sm, it["x0"], it["y0"])

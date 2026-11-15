@@ -37,12 +37,6 @@ BASALTO_CAFE = {
 }
 SOFTEN = 0.6  # 1 = contraste original, 0 = color plano
 
-# Transición entre terrenos por escalones de tono (estilo pixel, bloques cuadrados).
-# STEP_BLOCK = 16 -> un escalón por tile (opción E); 8 -> por medio tile (opción F); 0 = bordes duros
-STEP_BLOCK = 0
-STEP_SIGMA = 0.7   # ancho de la transición (en bloques)
-STEP_LEVELS = 3    # cuántos tonos hay entre un terreno y otro
-
 # zona -> (imagen, columnas, filas, recorte (x0, y0, x1, y1) o None, espejo horizontal)
 # AP-8 y AP-9 reutilizan la misma imagen de AP-1, pero otras partes (y AP-9 en espejo)
 # para no tener que generar más mapas.
@@ -77,42 +71,16 @@ def soft_atlas():
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
 
-def bake(atlas, t, k_of):
-    """Pinta todo el mapa con los tiles que da k_of(x, y)."""
+def bake(atlas, t):
+    """Pinta todo el mapa: cada celda con el tile de su terreno (t[y, x])."""
     rows, cols = t.shape
     out = Image.new("RGBA", (cols * TILE, rows * TILE))
     for y in range(rows):
         for x in range(cols):
             v = (x * 7 + y * 13) % VARIANTS  # variante estable para que no se repita
-            k = k_of(x, y)
+            k = t[y, x]
             out.paste(atlas.crop((v * TILE, k * TILE, (v + 1) * TILE, (k + 1) * TILE)), (x * TILE, y * TILE))
     return np.asarray(out.convert("RGB")).astype(float)
-
-
-def _blur(a, s):
-    r = int(3 * s) + 1
-    g = np.exp(-np.arange(-r, r + 1) ** 2 / (2 * s * s)); g /= g.sum()
-    p = np.pad(a, r, mode="edge")
-    p = np.apply_along_axis(lambda v: np.convolve(v, g, "valid"), 1, p)
-    return np.apply_along_axis(lambda v: np.convolve(v, g, "valid"), 0, p)
-
-
-def stepped(atlas, t):
-    """Mezcla los terrenos por bloques: cerca de un borde el tono va bajando en escalones."""
-    ks = [REGOLITO, POLVO, BASALTO]
-    tex = {k: bake(atlas, t, lambda x, y, k=k: k) for k in ks}
-    H, W = t.shape[0] * TILE, t.shape[1] * TILE
-    b = STEP_BLOCK
-    # terreno de cada bloque = el del píxel central del bloque (sirve aunque b no divida a 16)
-    ys = np.minimum(np.arange(b // 2, H + b, b), H - 1) // TILE
-    xs = np.minimum(np.arange(b // 2, W + b, b), W - 1) // TILE
-    grid = t[np.ix_(ys, xs)]
-    w = {k: _blur((grid == k).astype(float), STEP_SIGMA) for k in ks}
-    tot = sum(w.values()) + 1e-6
-    q = {k: np.round(w[k] / tot * STEP_LEVELS) / STEP_LEVELS for k in ks}
-    qt = sum(q.values()) + 1e-6
-    out = sum(tex[k] * np.kron(q[k] / qt, np.ones((b, b)))[:H, :W, None] for k in ks)
-    return out
 
 
 def main():
@@ -125,7 +93,7 @@ def main():
         if mirror:
             src = src.transpose(Image.FLIP_LEFT_RIGHT)
         t = classify(src, cols, rows)
-        img = stepped(atlas, t) if STEP_BLOCK else bake(atlas, t, lambda x, y: t[y, x])
+        img = bake(atlas, t)
         Image.fromarray(img.clip(0, 255).astype(np.uint8)).save(OUT / f"{zone}_ground.png")
         print(zone, f"{cols}x{rows} tiles", {n: f"{100 * (t == k).mean():.0f}%" for k, n in
                                               [(POLVO, "polvo"), (REGOLITO, "regolito"), (BASALTO, "basalto")]})

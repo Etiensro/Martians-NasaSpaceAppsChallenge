@@ -6,11 +6,10 @@ extends Node2D
 ## - "VIEW REPOSITORY": abre el repo de GitHub.
 ## Todo el arte es provisional; los puntos para enchufar arte final están marcados con @export.
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
 const BaseExterior := preload("res://scripts/intro/base_exterior.gd")
 const Sandstorm := preload("res://scripts/intro/sandstorm.gd")
 const WindLayer := preload("res://scripts/intro/wind_layer.gd")
-const Fader := preload("res://scripts/intro/screen_fader.gd")
 
 const NEXT_SCENE := "res://scenes/intro/base_interior.tscn"
 const REPO_URL := "https://github.com/Etiensro/Martians-NasaSpaceAppsChallenge"
@@ -22,6 +21,7 @@ const LOGO_SLOTS := [
 
 @export var ground_texture: Texture2D = preload("res://assets/zones/ap1_ground.png")
 @export var ground_cell := 3.0             # igual que ap1_zone.tscn
+@export var base_texture: Texture2D        # base vista desde arriba (sustituye el dibujo provisional)
 @export var title_texture: Texture2D       # logo del juego (opcional, sustituye al texto)
 @export var title_font: Font               # fuente pixel (opcional)
 @export var cinematic_duration := 5.5
@@ -38,7 +38,6 @@ const STORM_END_X := 1900.0
 var camera := Camera2D.new()
 var storm: Sandstorm
 var wind: WindLayer
-var fader: Fader
 var ui := Control.new()
 var cine_layer := CanvasLayer.new()
 var _bar_top := ColorRect.new()
@@ -55,10 +54,6 @@ func _ready() -> void:
 	_build_world()
 	_build_ui()
 	_build_cinematic_layer()
-	fader = Fader.new()
-	add_child(fader)
-	fader.set_black(true)
-	fader.fade_in(0.8)
 	_start_btn.grab_focus()
 
 
@@ -79,6 +74,7 @@ func _build_world() -> void:
 	add_child(ground)
 
 	var base := BaseExterior.new()
+	base.base_texture = base_texture
 	add_child(base)
 
 	# Rover estacionado junto a la base (asset del equipo, si está)
@@ -270,8 +266,7 @@ func _go_inside() -> void:
 	var tw := create_tween().set_parallel()
 	tw.tween_property(wind, "intensity", 1.0, 0.9)
 	tw.tween_property(self, "_shake", 14.0, 0.9)
-	await fader.fade_out(1.0)
-	get_tree().change_scene_to_file(NEXT_SCENE)
+	SceneChanger.go_to(NEXT_SCENE, 1.0)
 
 
 func _process(delta: float) -> void:

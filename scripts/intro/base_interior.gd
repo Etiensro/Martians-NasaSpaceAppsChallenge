@@ -5,15 +5,16 @@ extends Node2D
 ##   5. Despedida: los otros 3 entran en las cápsulas de criosueño y se pasa a la jugabilidad
 ##      (GameState.GAMEPLAY_SCENE). El rol elegido queda en GameState.selected_role / role_data / crew.
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
+const Movement := preload("res://scripts/core/movement.gd")
 const Room := preload("res://scripts/intro/interior_room.gd")
 const DialogueBox := preload("res://scripts/intro/dialogue_box.gd")
 const RoleSelect := preload("res://scripts/intro/role_select.gd")
-const Fader := preload("res://scripts/intro/screen_fader.gd")
 
 const DIALOGUE_FILE := "res://data/intro/intro_dialogue.json"
+const CREW_SCALE := 1.4
 const WALK_SPEED := 190.0
-## Dónde está cada tripulante alrededor de la mesa y hacia dónde mira.
+## Dónde está cada tripulante alrededor de la mesa y hacia dónde mira: [posición, dirección, mira a la izquierda]
 const STAND := {
 	"engineer": [Vector2(470, 475), "side", false],
 	"biologist": [Vector2(810, 475), "side", true],
@@ -23,18 +24,17 @@ const STAND := {
 ## Lugar final del jugador, frente a la mesa.
 const PLAYER_SPOT := Vector2(640, 600)
 
-var roles: Dictionary = {}
-var order: Array = []
-var dialogue: Dictionary = {}
+@export var room_texture: Texture2D  # interior final 1280x720 (sustituye el dibujo provisional)
 
+var dialogue: Dictionary = {}
 var room: Room
-var crew := {}            # role_id -> AnimatedSprite2D
+var crew := {}  # role_id -> AnimatedSprite2D
 var camera := Camera2D.new()
 var light := CanvasModulate.new()
 var ui := Control.new()
 var box: DialogueBox
-var fader: Fader
-var _marker: Polygon2D    # flecha sobre quien habla
+var _marker: Polygon2D  # flecha sobre quien habla
+var _aria_face: Texture2D
 
 var _alarm := false
 var _base_light := Color.WHITE
@@ -45,13 +45,12 @@ var _skip := false
 
 
 func _ready() -> void:
-	var roles_data := GameState.load_roles()
-	roles = roles_data.get("roles", {})
-	order = roles_data.get("order", roles.keys())
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(DIALOGUE_FILE))
 	dialogue = parsed if parsed is Dictionary else {}
+	_aria_face = Room.aria_portrait()
 
 	room = Room.new()
+	room.room_texture = room_texture
 	add_child(room)
 	add_child(light)
 	_build_crew()
@@ -69,29 +68,24 @@ func _ready() -> void:
 	box = DialogueBox.new()
 	box.hide()
 	ui.add_child(box)
-
-	fader = Fader.new()
-	add_child(fader)
-	fader.set_black(true)
-	_run(roles_data)
+	_run()
 
 
 func _build_crew() -> void:
-	for id in order:
-		var r: Dictionary = roles[id]
-		# Cada tripulante con su propio sprite (biólogo, ingeniero, médico, astrofísico)
-		var a := Style.make_astronaut(Color.html(r.get("color", "#ffffff")), 1.4)
+	for id in GameState.role_order:
+		var a := AnimatedSprite2D.new()
 		a.sprite_frames = GameState.frames_for(id)
-		a.material = null
+		a.offset = Vector2(0, -47)  # los pies quedan en la posición del nodo
+		a.scale = Vector2.ONE * CREW_SCALE
 		var s: Array = STAND.get(id, [Vector2(640, 500), "down", false])
 		a.position = s[0]
-		a.play("idle_" + s[1])
-		a.flip_h = s[2]
-		var tag := Style.label(str(r.get("crew_name", id)).get_slice(" ", 0), 13, Color.html(r.get("color", "#ffffff")), 4)
+		Movement.animate(a, "idle", s[1], s[2])
+		# Nombre bajo los pies (con escala inversa para que el texto no crezca con el sprite)
+		var tag := Style.label(GameState.first_name(id), 13, GameState.role_color(id), 4)
 		tag.size = Vector2(120, 20)
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tag.scale = Vector2.ONE / a.scale  # que el texto no se escale con el sprite
-		tag.position = Vector2(-60, 4) / a.scale
+		tag.scale = Vector2.ONE / CREW_SCALE
+		tag.position = Vector2(-60, 4) / CREW_SCALE
 		a.add_child(tag)
 		add_child(a)
 		crew[id] = a
@@ -106,19 +100,17 @@ func _build_crew() -> void:
 
 # ---------------------------------------------------------------- secuencia principal
 
-func _run(roles_data: Dictionary) -> void:
-	await fader.fade_in(1.0)
+func _run() -> void:
+	await get_tree().create_timer(1.0).timeout  # deja terminar el fundido de entrada
 
 	# 3) Alerta y conversación
 	await _play_lines(dialogue.get("intro", []))
 	box.hide()
 	_set_speaker("")
-	_alarm = false
-	room.alarm = false
+	_set_alarm(false)
 
 	# 4) Selección de personaje
 	var picker := RoleSelect.new()
-	picker.setup(roles_data)
 	ui.add_child(picker)
 	var role_id: String = await picker.role_chosen
 	GameState.choose_role(role_id)
@@ -136,10 +128,10 @@ func _run(roles_data: Dictionary) -> void:
 	await _play_lines(dialogue.get("ending", []))
 	box.hide()
 	await _final_shot(role_id)
-	get_tree().change_scene_to_file(GameState.GAMEPLAY_SCENE)
+	SceneChanger.go_to(GameState.GAMEPLAY_SCENE, 1.2)
 
 
-## Construye las líneas de despedida sustituyendo "player" y "sleeper" por tripulantes reales.
+## Líneas de despedida: "player" pasa a ser el rol elegido y "sleeper" se reparte entre los que duermen.
 func _build_farewell(role_id: String) -> Array:
 	var out: Array = []
 	var sleeper_lines: Array = dialogue.get("sleeper_lines", ["Good luck, {player}!"])
@@ -151,11 +143,10 @@ func _build_farewell(role_id: String) -> Array:
 				l.speaker = role_id
 				out.append(l)
 			"sleeper":
-				for id in order:
-					if id == role_id:
-						continue
-					out.append({"speaker": id, "text": sleeper_lines[k % sleeper_lines.size()]})
-					k += 1
+				for id in GameState.role_order:
+					if id != role_id:
+						out.append({"speaker": id, "text": sleeper_lines[k % sleeper_lines.size()]})
+						k += 1
 			_:
 				out.append(line)
 	return out
@@ -171,29 +162,25 @@ func _play_lines(lines: Array) -> void:
 			break
 		_run_event(line.get("event", ""))
 		var who: String = line.get("speaker", "aria")
-		_set_speaker(who)
 		var text := _fill(str(line.get("text", "")))
+		_set_speaker(who)
 		if who == "aria":
 			var a: Dictionary = dialogue.get("speakers", {}).get("aria", {})
 			room.aria_talking = true
-			await box.say(a.get("name", "A.R.I.A."), Color.html(a.get("color", "#5ef2e4")), text, Style.aria_portrait())
+			await box.say(a.get("name", "A.R.I.A."), Color.html(a.get("color", "#5ef2e4")), text, _aria_face)
 			room.aria_talking = false
 		else:
-			var r: Dictionary = roles.get(who, {})
-			var col := Color.html(r.get("color", "#ffffff"))
+			var r: Dictionary = GameState.roles.get(who, {})
 			var speaker_name := "%s  ·  %s" % [r.get("crew_name", who), r.get("title", "")]
-			var face := GameState.portrait_for(who)
-			if face:
-				await box.say(speaker_name, col, text, face)
-			else:
-				await box.say(speaker_name, col, text, Style.astronaut_frame(0), Style.suit_material(col))
+			await box.say(speaker_name, GameState.role_color(who), text, GameState.portrait_for(who))
 	_in_dialogue = false
 	room.aria_talking = false
 
 
+## Sustituye {player} y {player_role} por el nombre y la profesión del jugador.
 func _fill(text: String) -> String:
-	var name_ := str(GameState.role_data.get("crew_name", "Commander")).get_slice(" ", 0)
-	return text.format({"player": name_, "player_role": str(GameState.role_data.get("title", "")).capitalize()})
+	var role := str(GameState.role_data.get("title", "")).capitalize()
+	return text.format({"player": GameState.first_name(), "player_role": role})
 
 
 func _set_speaker(id: String) -> void:
@@ -212,74 +199,52 @@ func _set_speaker(id: String) -> void:
 func _run_event(ev: String) -> void:
 	match ev:
 		"alarm_on":
-			_alarm = true
-			room.alarm = true
+			_set_alarm(true)
 			_shake = 8.0
 		"alarm_off":
-			_alarm = false
-			room.alarm = false
+			_set_alarm(false)
 		"shake":
 			_shake = 12.0
 		"lights_dim":
 			create_tween().tween_property(self, "_base_light", Color(0.6, 0.66, 0.9), 1.5)
 
 
+func _set_alarm(on: bool) -> void:
+	_alarm = on
+	room.alarm = on
+
+
 # ---------------------------------------------------------------- criosueño y salida
 
+## Los que duermen caminan a su cápsula (una por rol, en orden) mientras el jugador va al frente.
 func _sleep_sequence(role_id: String) -> void:
 	var longest := 0.0
 	var delay := 0.0
-	for i in order.size():
-		var id: String = order[i]
-		if id == role_id:
-			continue
-		longest = maxf(longest, _send_to_pod(id, i, delay))
-		delay += 0.5
-	# El jugador camina al frente de la mesa mientras tanto
+	for i in GameState.role_order.size():
+		var id: String = GameState.role_order[i]
+		if id != role_id:
+			longest = maxf(longest, _send_to_pod(id, i, delay))
+			delay += 0.5
 	var me: AnimatedSprite2D = crew[role_id]
-	_walk(me, PLAYER_SPOT, 0.8)
+	Movement.walk_to(me, PLAYER_SPOT, WALK_SPEED, 0.8)
 	await get_tree().create_timer(longest + 0.6).timeout
-	me.flip_h = false
-	me.play("idle_down")
+	Movement.animate(me, "idle", "down", false)
 
 
-## Hace caminar al tripulante hasta su cápsula, entrar y cerrarla. Devuelve la duración total.
+## Camina hasta la cápsula, entra y la cápsula se congela. Devuelve cuánto tarda en total.
 func _send_to_pod(id: String, pod: int, delay: float) -> float:
 	var a: AnimatedSprite2D = crew[id]
-	var entry: Vector2 = room.pod_entry(pod)
-	var walk_t := _walk(a, entry, delay)
+	var entry := room.pod_entry(pod)
+	var walk_time := a.position.distance_to(entry) / WALK_SPEED
+	Movement.walk_to(a, entry, WALK_SPEED, delay)
 	var tw := create_tween()
-	tw.tween_interval(delay + walk_t)
+	tw.tween_interval(delay + walk_time)
 	tw.tween_callback(a.play.bind("walk_up"))
 	tw.tween_property(a, "position:y", entry.y - 50, 0.4)
 	tw.parallel().tween_property(a, "modulate:a", 0.0, 0.4)
-	tw.tween_callback(_label_pod.bind(pod, id))
+	tw.tween_callback(room.set_pod_label.bind(pod, GameState.first_name(id)))
 	tw.tween_method(room.set_pod_frost.bind(pod), 0.0, 1.0, 1.0)
-	return delay + walk_t + 1.4
-
-
-## Camina en línea recta con la animación adecuada. Devuelve la duración del trayecto.
-func _walk(a: AnimatedSprite2D, to: Vector2, delay := 0.0) -> float:
-	var d := to - a.position
-	var dur := d.length() / WALK_SPEED
-	var anim := "walk_side"
-	if absf(d.y) > absf(d.x):
-		anim = "walk_down" if d.y > 0 else "walk_up"
-	var tw := create_tween()
-	tw.tween_interval(delay)
-	tw.tween_callback(_start_anim.bind(a, anim, anim == "walk_side" and d.x < 0))
-	tw.tween_property(a, "position", to, dur)
-	tw.tween_callback(a.play.bind("idle_" + anim.trim_prefix("walk_")))
-	return dur
-
-
-func _start_anim(a: AnimatedSprite2D, anim: String, flip: bool) -> void:
-	a.flip_h = flip
-	a.play(anim)
-
-
-func _label_pod(pod: int, id: String) -> void:
-	room.pod_labels[pod] = str(roles[id].get("crew_name", "")).get_slice(" ", 0)
+	return delay + walk_time + 1.4
 
 
 func _final_shot(role_id: String) -> void:
@@ -288,29 +253,28 @@ func _final_shot(role_id: String) -> void:
 	tw.tween_property(camera, "zoom", Vector2.ONE * 1.7, 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(camera, "position", me.position + Vector2(0, -70), 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	me.play("celebrate")
-	var card := Style.label("YOU ARE IN COMMAND", 54, Style.AMBER, 12)
-	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	card.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	card.offset_left = -500
-	card.offset_right = 500
-	card.offset_top = 70
-	card.modulate.a = 0.0
-	ui.add_child(card)
-	var sub := Style.label("Keep Energy, Oxygen, Health and Research in balance until the storm passes.", 20, Style.WHITE, 5)
-	sub.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.offset_left = -600
-	sub.offset_right = 600
-	sub.offset_top = 140
-	sub.modulate.a = 0.0
-	ui.add_child(sub)
+	var card := _centered_label("YOU ARE IN COMMAND", 54, Style.AMBER, 12, 70, 1000)
+	var sub := _centered_label("Keep Energy, Oxygen, Health and Research in balance until the storm passes.",
+		20, Style.WHITE, 5, 140, 1200)
 	var t2 := create_tween()
 	t2.tween_interval(0.8)
 	t2.tween_property(card, "modulate:a", 1.0, 0.6)
 	t2.tween_property(sub, "modulate:a", 1.0, 0.6)
 	t2.tween_interval(2.4)
 	await t2.finished
-	await fader.fade_out(1.2)
+
+
+## Texto centrado arriba, invisible al crearse (para hacerlo aparecer con un tween).
+func _centered_label(text: String, font_size: int, color: Color, outline: int, top: float, width: float) -> Label:
+	var l := Style.label(text, font_size, color, outline)
+	l.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.offset_left = -width / 2.0
+	l.offset_right = width / 2.0
+	l.offset_top = top
+	l.modulate.a = 0.0
+	ui.add_child(l)
+	return l
 
 
 # ---------------------------------------------------------------- por frame / entrada

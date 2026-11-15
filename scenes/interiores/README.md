@@ -27,14 +27,14 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
    `paneles_solares.tscn`, `excavadora.tscn`): son las que abren las puertas del mapa.
    Si hace falta cambiarlas, se cambian también en `tools/build_colony.py` (campo `"interior"`)
    y se vuelve a ejecutar `python tools/build_colony.py`.
-2. **Para salir al mapa** usa lo mismo que las escenas actuales (`scripts/interior.gd`):
-   ```gdscript
-   var gs := get_node_or_null("/root/GameState")
-   get_tree().change_scene_to_file(gs.return_scene if gs and gs.return_scene != "" else "res://scenes/ap1_zone.tscn")
-   ```
-   Así el personaje aparece delante de la puerta por la que entró.
-3. **El personaje elegido** está en `GameState.selected_role`; su sprite con `GameState.frames_for()`
+2. **Cada interior hereda de `scenes/interiores/interior_base.tscn`** (fondo, título y salida
+   con E o Esc ya hechos). Para uno nuevo: *Escena → Nueva escena heredada* y cambiar `title`.
+3. **Para salir a la zona** usa `GameState.leave_building()`: el personaje aparece delante de la
+   puerta por la que entró.
+4. **El personaje elegido** está en `GameState.selected_role`; su sprite con `GameState.frames_for()`
    y su retrato con `GameState.portrait_for(GameState.selected_role)`.
-4. Para ir a un módulo de la estación: `get_tree().change_scene_to_file("res://scenes/interiores/estacion_ares1/modulos/cocina/cocina.tscn")` (por ejemplo).
+5. **Para cambiar de escena** usa siempre `SceneChanger.go_to("res://...tscn")` (hace el fundido).
+   Por ejemplo, para ir a un módulo de la estación:
+   `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/cocina/cocina.tscn")`.
 
-Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E o Esc: salir").
+Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").

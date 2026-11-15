@@ -14,6 +14,8 @@ import pathlib
 import numpy as np
 from PIL import Image
 
+from imgutil import crop_to_mask, object_mask, quantize_rgba, shrink_to
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "tools" / "data" / "world" / "arcadia_region.png"
 OUT = ROOT / "assets" / "world"
@@ -26,15 +28,15 @@ OL = (12, 18, 46)       # contorno, igual que el astronauta y el rover
 
 # Sitios: posición del punto amarillo en la imagen original (791x419)
 SITES = {
-    "AP-1": {"dot": (356.4, 301.4), "title": "AP-1", "subtitle": "BASE ARES 1",
+    "AP-1": {"dot": (356.4, 301.4), "title": "AP-1", "subtitle": "ARES 1 BASE",
              "colors": ((255, 230, 90), (255, 150, 30)), "sub_color": (255, 255, 255), "icon": "capsule",
-             "description": "Sitio de aterrizaje de la mision. Aqui empieza todo."},
-    "AP-8": {"dot": (211.4, 128.4), "title": "AP-8", "subtitle": "ZONA DE INVESTIGACIÓN",
+             "description": "Mission landing site. Everything starts here."},
+    "AP-8": {"dot": (211.4, 128.4), "title": "AP-8", "subtitle": "RESEARCH ZONE",
              "colors": ((255, 120, 80), (200, 40, 30)), "sub_color": (255, 214, 70), "icon": "rocks",
-             "description": "Terreno nudoso y crateres. Peligroso para el rover."},
-    "AP-9": {"dot": (584.4, 261.4), "title": "AP-9", "subtitle": "ZONA DE INVESTIGACIÓN",
+             "description": "Knobby terrain and craters. Dangerous for the rover."},
+    "AP-9": {"dot": (584.4, 261.4), "title": "AP-9", "subtitle": "RESEARCH ZONE",
              "colors": ((180, 240, 255), (70, 160, 240)), "sub_color": (255, 255, 255), "icon": "ice",
-             "description": "Pingos y monticulos: indicios de hielo bajo el suelo."},
+             "description": "Pingos and mounds: signs of ice under the ground."},
 }
 
 # ---------------------------------------------------------------- sprites (ASCII)
@@ -215,20 +217,13 @@ def gemini_icon(path):
     """Recorta un icono de Gemini (fondo naranja liso) y lo reduce a GEMINI_ICON_WIDTH px.
     Se muestra a escala 1 en Godot (no x4) para conservar el detalle."""
     rgb = np.asarray(Image.open(path).convert("RGB")).astype(np.int32)
-    bg = np.median(rgb[:20, :20].reshape(-1, 3), axis=0)
-    mask = np.abs(rgb - bg).sum(2) > 90
-    ys, xs = np.nonzero(mask)
-    y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
-    rgba = np.dstack([rgb, mask * 255]).astype(np.uint8)[y0:y1, x0:x1]
-    im = Image.fromarray(rgba)
-    k = GEMINI_ICON_WIDTH / im.width
-    small = np.asarray(im.resize((GEMINI_ICON_WIDTH, round(im.height * k)), Image.BOX)).copy()
-    small[..., 3] = np.where(small[..., 3] > 140, 255, 0)
-    out = Image.fromarray(small)
-    alpha = out.getchannel("A")
-    out = out.convert("RGB").quantize(40, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGBA")
-    out.putalpha(alpha)
-    return out
+    mask = object_mask(rgb)
+    _, _, box = crop_to_mask(rgb, mask)
+    rgba = np.dstack([rgb, mask * 255]).astype(np.uint8)
+    w, h = box[2] - box[0], box[3] - box[1]
+    k = GEMINI_ICON_WIDTH / w
+    small = shrink_to(rgba, box, (GEMINI_ICON_WIDTH, round(h * k)), trim=False)
+    return quantize_rgba(Image.fromarray(small), 40)
 
 
 def main():

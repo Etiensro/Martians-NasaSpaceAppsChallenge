@@ -1,6 +1,9 @@
 extends Node2D
-## Robot acompañante: sigue al personaje (target) quedándose un poco detrás y a un lado.
-## No se controla; solo acompaña. Si el personaje se oculta (p. ej. sube al rover), el robot también.
+## Robot acompañante (scenes/robot.tscn): sigue al personaje (`target`) un poco detrás y a un lado.
+## No se controla. Si el personaje se oculta (p. ej. sube al rover), el robot también.
+## Todavía no está colocado en ninguna zona: instancia robot.tscn y asígnale `target`.
+
+const Movement := preload("res://scripts/core/movement.gd")
 
 @export var target: Node2D
 @export var offset := Vector2(-60, 12)   # dónde se coloca respecto al personaje
@@ -11,7 +14,7 @@ extends Node2D
 @onready var sprite: AnimatedSprite2D = $Sprite
 
 var facing := "down"
-var _face_left := false
+var face_left := false
 var _t := 0.0
 var _base_offset_y := 0.0
 
@@ -30,33 +33,24 @@ func _process(delta: float) -> void:
 
 	# Se pone del lado contrario hacia donde mira el personaje, para no taparle el paso
 	var side := offset
-	if "facing" in target and target.facing == "side" and not target.get("_face_left"):
-		side.x = -absf(offset.x)
-	elif "facing" in target and target.facing == "side":
-		side.x = absf(offset.x)
-	var goal: Vector2 = target.position + side
-	var to_goal := goal - position
+	if target.get("facing") == "side":
+		side.x = absf(offset.x) * (1.0 if target.get("face_left") else -1.0)
+	var to_goal: Vector2 = target.position + side - position
 	var dist := to_goal.length()
-
 	if dist > teleport_distance:
-		position = goal
+		position += to_goal
 		dist = 0.0
+
 	var moving := dist > stop_distance
 	if moving:
 		var v := speed * clampf(dist / 120.0, 1.0, 3.0)  # más rápido cuanto más lejos
 		position += to_goal.normalized() * minf(v * delta, dist)
-		if absf(to_goal.x) > absf(to_goal.y):
-			facing = "side"
-			_face_left = to_goal.x < 0
-		else:
-			facing = "down" if to_goal.y > 0 else "up"
+		facing = Movement.facing_of(to_goal)
+		if facing == "side":
+			face_left = to_goal.x < 0
 
-	# Flota suavemente
-	sprite.offset.y = _base_offset_y + sin(_t * 4.0) * 1.5
-	sprite.flip_h = facing == "side" and _face_left
-	var anim := ("walk_" if moving else "idle_") + facing
-	if sprite.animation != anim:
-		sprite.play(anim)
+	sprite.offset.y = _base_offset_y + sin(_t * 4.0) * 1.5  # flota suavemente
+	Movement.animate(sprite, "walk" if moving else "idle", facing, face_left)
 
 
 ## Animación de "reparando" (brazo con llave), por ejemplo al arreglar un panel.

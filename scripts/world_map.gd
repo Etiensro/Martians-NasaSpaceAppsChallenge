@@ -1,16 +1,12 @@
 extends Node2D
 ## Mapa general de Arcadia Planitia: selección de sitio (AP-1, AP-8, AP-9).
-## Los recursos los genera tools/build_world_map.py.
+## Los recursos los genera tools/build_world_map.py (assets/world/).
 ## Pasar el ratón por un sitio lo resalta y muestra su descripción; clic para ir a ese sitio.
-## El astronauta aparece junto al sitio donde está el jugador y camina hasta el sitio elegido.
+## El astronauta aparece junto al sitio donde está el jugador y camina hasta el elegido.
 
-## Escena de cada sitio
-const SITE_SCENES := {
-	"AP-1": "res://scenes/ap1_zone.tscn",
-	"AP-8": "res://scenes/ap8_zone.tscn",
-	"AP-9": "res://scenes/ap9_zone.tscn",
-}
-const ASTRO_FRAMES := preload("res://assets/characters/astronaut_frames.tres")
+const Movement := preload("res://scripts/core/movement.gd")
+const Style := preload("res://scripts/core/style.gd")
+const SITES_FILE := "res://assets/world/world_sites.json"
 const ASTRO_SCALE := 0.6
 const WALK_SPEED := 350.0  # px/s al caminar por el mapa
 
@@ -25,12 +21,11 @@ var title_scale := 2.0
 var _hovered := ""
 var _nodes := {}     # id -> {root, rect, stand}
 var _astro: AnimatedSprite2D
-var _arrow: Node2D
 var _travelling := false
 
 
 func _ready() -> void:
-	meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/world/world_sites.json"))
+	meta = JSON.parse_string(FileAccess.get_file_as_string(SITES_FILE))
 	px_scale = meta.scale
 	title_scale = meta.get("title_scale", px_scale)
 	background.scale = Vector2.ONE * px_scale
@@ -68,7 +63,7 @@ func _build_marker(id: String, s: Dictionary) -> void:
 		title.position = Vector2(0, -icon_size.y - title_h / 2.0)
 	root.add_child(title)
 
-	# Animación: el icono flota suavemente
+	# El icono flota suavemente
 	var tw := create_tween().set_loops()
 	tw.tween_property(icon, "position:y", -px_scale * 1.5, 0.8).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(icon, "position:y", 0.0, 0.8).set_trans(Tween.TRANS_SINE)
@@ -82,14 +77,11 @@ func _build_marker(id: String, s: Dictionary) -> void:
 		"stand": root.position + Vector2(-icon_size.x / 2 - 14, 4)}
 
 
-## Astronauta en el sitio actual, con una flecha "TÚ" que rebota encima.
+## Astronauta en el sitio actual, con una flecha que rebota encima.
 func _build_astronaut() -> void:
-	var gs := get_node_or_null("/root/GameState")
-	var current: String = gs.selected_site if gs else "AP-1"
-	if not _nodes.has(current):
-		current = _nodes.keys()[0]
+	var current := GameState.selected_site if _nodes.has(GameState.selected_site) else str(_nodes.keys()[0])
 	_astro = AnimatedSprite2D.new()
-	_astro.sprite_frames = gs.frames_for() if gs and gs.selected_role != "" else ASTRO_FRAMES
+	_astro.sprite_frames = GameState.frames_for()
 	_astro.scale = Vector2.ONE * ASTRO_SCALE
 	_astro.offset = Vector2(0, -47)  # pies en el punto
 	_astro.position = _nodes[current].stand
@@ -97,21 +89,22 @@ func _build_astronaut() -> void:
 	_astro.play("idle_down")
 	add_child(_astro)
 
-	_arrow = Node2D.new()
-	_arrow.position = Vector2(0, -105)
+	var arrow := Node2D.new()
+	arrow.position = Vector2(0, -105)
+	var corners := PackedVector2Array([Vector2(-9, -8), Vector2(9, -8), Vector2(0, 4)])
 	var tri := Polygon2D.new()
-	tri.polygon = PackedVector2Array([Vector2(-9, -8), Vector2(9, -8), Vector2(0, 4)])
-	tri.color = Color(1, 0.84, 0.27)
+	tri.polygon = corners
+	tri.color = Style.AMBER
 	var outline := Line2D.new()
-	outline.points = PackedVector2Array([Vector2(-9, -8), Vector2(9, -8), Vector2(0, 4), Vector2(-9, -8)])
+	outline.points = corners + PackedVector2Array([corners[0]])
 	outline.width = 3
-	outline.default_color = Color(0.05, 0.07, 0.18)
-	_arrow.add_child(tri)
-	_arrow.add_child(outline)
-	_astro.add_child(_arrow)
+	outline.default_color = Style.NAVY
+	arrow.add_child(tri)
+	arrow.add_child(outline)
+	_astro.add_child(arrow)
 	var tw := create_tween().set_loops()
-	tw.tween_property(_arrow, "position:y", -115.0, 0.4).set_trans(Tween.TRANS_SINE)
-	tw.tween_property(_arrow, "position:y", -105.0, 0.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(arrow, "position:y", -115.0, 0.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(arrow, "position:y", -105.0, 0.4).set_trans(Tween.TRANS_SINE)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -148,34 +141,24 @@ func _scale_marker(id: String, s: float) -> void:
 
 func _set_info(id: String) -> void:
 	if id == "":
-		info.text = "ARCADIA PLANITIA, MARTE  ·  Elige un sitio para explorar"
+		info.text = "ARCADIA PLANITIA, MARS  ·  Choose a site to explore"
 	else:
 		var s: Dictionary = meta.sites[id]
-		info.text = "%s  ·  %s  —  %s   (clic para ir)" % [s.title, s.subtitle, s.description]
+		info.text = "%s  ·  %s  —  %s   (click to go)" % [s.title, s.subtitle, s.description]
 
 
+## El astronauta camina hasta el sitio elegido, celebra y se carga la zona.
 func _go_to(id: String) -> void:
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 	_travelling = true
-	# El astronauta camina hasta el sitio elegido antes de entrar
 	var target: Vector2 = _nodes[id].stand
-	var delta := target - _astro.position
-	if delta.length() > 4:
-		if absf(delta.x) > absf(delta.y):
-			_astro.play("walk_side")
-			_astro.flip_h = delta.x < 0
-		else:
-			_astro.play("walk_down" if delta.y > 0 else "walk_up")
-		var tw := create_tween()
-		tw.tween_property(_astro, "position", target, delta.length() / WALK_SPEED)
-		await tw.finished
+	if _astro.position.distance_to(target) > 4:
+		await Movement.walk_to(_astro, target, WALK_SPEED).finished
 		_astro.flip_h = false
 		_astro.play("celebrate")
 		await get_tree().create_timer(0.35).timeout
-	var gs := get_node_or_null("/root/GameState")
-	if gs:
-		gs.selected_site = id
-	get_tree().change_scene_to_file(SITE_SCENES[id])
+	GameState.selected_site = id
+	SceneChanger.go_to(GameState.site_scene(id))
 
 
 func _fit_camera() -> void:

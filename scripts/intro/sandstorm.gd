@@ -3,7 +3,8 @@ extends Node2D
 ## El frente de la tormenta está en x = 0 (local) y el polvo se extiende hacia +x.
 ## Mueve el nodo hacia la izquierda para que la tormenta "avance".
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
+const Fx := preload("res://scripts/core/fx.gd")
 
 @export var height := 7000.0
 @export var depth := 7000.0
@@ -32,26 +33,15 @@ func _ready() -> void:
 
 func _build_particles() -> void:
 	# Nubes de polvo que salen del frente de la tormenta
-	_billow = CPUParticles2D.new()
-	_billow.texture = Style.puff_texture(8)
-	_billow.amount = 260
-	_billow.lifetime = 5.0
-	_billow.preprocess = 5.0
+	_billow = Fx.particles(Fx.PUFF, 260, 5.0, Vector2(-1, 0.1), 25, 120, 380)
 	_billow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 	_billow.emission_rect_extents = Vector2(80, height / 2.0)
-	_billow.direction = Vector2(-1, 0.1)
-	_billow.spread = 25.0
-	_billow.gravity = Vector2.ZERO
-	_billow.initial_velocity_min = 120.0
-	_billow.initial_velocity_max = 380.0
-	_billow.scale_amount_min = 6.0
-	_billow.scale_amount_max = 18.0
+	_billow.scale_amount_min = 12.0
+	_billow.scale_amount_max = 36.0
 	_billow.angular_velocity_min = -40.0
 	_billow.angular_velocity_max = 40.0
-	var ramp := Gradient.new()
-	ramp.set_color(0, Color(Style.DUST, 0.0))
+	var ramp := Fx.ramp(Color(Style.DUST, 0.0), Color(Style.DUST.darkened(0.2), 0.0))
 	ramp.add_point(0.2, Color(Style.DUST, 0.55))
-	ramp.set_color(ramp.get_point_count() - 1, Color(Style.DUST.darkened(0.2), 0.0))
 	_billow.color_ramp = ramp
 	_billow.position = Vector2(120, 0)
 	add_child(_billow)

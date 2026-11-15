@@ -1,19 +1,18 @@
 extends Node2D
-## Zona de pantalla única (p. ej. AP-1): un fondo pixelado y un rectángulo donde se puede caminar.
-## Ofrece la misma interfaz que site_map.gd (local_to_map, map_to_local, is_walkable…)
-## para que el astronauta y el rover funcionen igual que en las zonas con TileMap.
+## Suelo de una zona (nodo "Zona" de zone_base.tscn): la imagen del suelo y dónde se puede caminar.
+## Trabaja en "celdas" = píxeles de la imagen del suelo (cada uno mide `cell` px de mundo).
+## El astronauta y el rover le preguntan is_walkable() antes de moverse.
 
 @export var texture: Texture2D
-@export var cell := 12.0           # cada píxel del fondo mide "cell" px de mundo (AP-1 usa 9)
+@export var cell := 3.0            # px de mundo por píxel del suelo
 @export var margin := 60.0         # distancia mínima al borde visible
-## Rectángulo transitable (en coordenadas de la zona). Si está vacío se calcula
-## a partir de lo que ve la cámara, para que el jugador nunca salga de la pantalla.
+## Rectángulo transitable (coordenadas de la zona). Lo calcula fit_to_camera() para que el
+## jugador nunca salga de la pantalla.
 @export var walk_rect := Rect2()
 ## Máscara opcional (blanco = no se puede caminar), del mismo tamaño que el suelo.
 ## La genera tools/build_colony.py con la base de los edificios.
 @export var blocked_mask: Texture2D
 
-var map_size := Vector2i.ZERO
 var _blocked: Image
 
 @onready var ground: Sprite2D = $Suelo
@@ -23,7 +22,6 @@ func _ready() -> void:
 	ground.texture = texture
 	ground.centered = false
 	ground.scale = Vector2.ONE * cell
-	map_size = texture.get_size()
 	if blocked_mask:
 		_blocked = blocked_mask.get_image()
 
@@ -57,7 +55,3 @@ func is_walkable(c: Vector2i) -> bool:
 	if _blocked and c.x >= 0 and c.y >= 0 and c.x < _blocked.get_width() and c.y < _blocked.get_height():
 		return _blocked.get_pixel(c.x, c.y).r < 0.5
 	return true
-
-
-func terrain_at(c: Vector2i) -> String:
-	return "suelo" if is_walkable(c) else ""

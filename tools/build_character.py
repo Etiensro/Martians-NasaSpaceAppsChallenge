@@ -18,10 +18,11 @@ Uso:  python tools/build_character.py            (todos)
 """
 import pathlib
 import sys
-from collections import deque
 
 import numpy as np
 from PIL import Image
+
+from imgutil import fill_holes, find_sprites, quantize_rgba, shrink_to, write_sprite_frames
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "tools" / "data" / "characters"
@@ -29,7 +30,6 @@ OUT = ROOT / "assets" / "characters"
 
 CELL = 96          # tamaño de cada frame
 TARGET_H = 78      # alto del personaje en el juego (px), igual para todos
-BG_TOLERANCE = 90  # diferencia con el naranja del fondo para considerar "personaje"
 COLORS = 48        # paleta final (limpia el ruido del JPG)
 GLASS = (128, 190, 240)  # color con el que se rellena un visor "transparente" (que deja ver el fondo)
 
@@ -124,82 +124,16 @@ CHARACTERS = {
 }
 
 
-def find_sprites(rgb):
-    """Máscara del personaje (todo lo que no es el fondo) y cajas de cada sprite agrupadas por filas."""
-    bg = np.median(rgb[:20, :20].reshape(-1, 3), axis=0)
-    mask = np.abs(rgb - bg).sum(2) > BG_TOLERANCE
-    h, w = mask.shape
-    seen = np.zeros_like(mask)
-    boxes = []
-    for y in range(h):
-        for x in range(w):
-            if mask[y, x] and not seen[y, x]:
-                q = deque([(y, x)]); seen[y, x] = True; ys, xs = [], []
-                while q:
-                    cy, cx = q.popleft(); ys.append(cy); xs.append(cx)
-                    for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
-                        if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not seen[ny, nx]:
-                            seen[ny, nx] = True; q.append((ny, nx))
-                if len(ys) > 500:
-                    boxes.append((min(xs), min(ys), max(xs) + 1, max(ys) + 1))
-    boxes.sort(key=lambda b: b[1])
-    rows, current = [], [boxes[0]]
-    for b in boxes[1:]:
-        if b[1] - current[0][1] > 100:
-            rows.append(current); current = []
-        current.append(b)
-    rows.append(current)
-    return mask, [sorted(r) for r in rows]
-
-
-def fill_holes(rgb, mask, min_area=800):
-    """Rellena los huecos grandes dentro de un sprite (p. ej. un visor que deja ver el fondo)
-    con color de cristal. Devuelve la máscara y la imagen corregidas."""
-    h, w = mask.shape
-    outside = np.zeros_like(mask)
-    q = deque((y, x) for y in range(h) for x in (0, w - 1) if not mask[y, x])
-    q.extend((y, x) for x in range(w) for y in (0, h - 1) if not mask[y, x])
-    for y, x in q:
-        outside[y, x] = True
-    while q:
-        cy, cx = q.popleft()
-        for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
-            if 0 <= ny < h and 0 <= nx < w and not mask[ny, nx] and not outside[ny, nx]:
-                outside[ny, nx] = True; q.append((ny, nx))
-    holes = ~mask & ~outside
-    seen = np.zeros_like(holes)
-    rgb = rgb.copy()
-    for y, x in zip(*np.nonzero(holes)):
-        if seen[y, x]:
-            continue
-        comp = [(y, x)]; seen[y, x] = True; i = 0
-        while i < len(comp):
-            cy, cx = comp[i]; i += 1
-            for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
-                if holes[ny, nx] and not seen[ny, nx]:
-                    seen[ny, nx] = True; comp.append((ny, nx))
-        if len(comp) >= min_area:
-            ys, xs = zip(*comp)
-            rgb[ys, xs] = GLASS
-            mask[ys, xs] = True
-    return rgb, mask
-
-
-def shrink(rgba, box, downscale):
-    """Reduce el sprite con promedio (BOX) y alfa binaria."""
+def _shrink(rgba, box, downscale):
     x0, y0, x1, y1 = box
-    crop = Image.fromarray(rgba[y0:y1, x0:x1])
-    small = np.asarray(crop.resize((round(crop.width / downscale), round(crop.height / downscale)), Image.BOX)).copy()
-    small[..., 3] = np.where(small[..., 3] > 140, 255, 0)
-    ys, xs = np.nonzero(small[..., 3])
-    return small[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    return shrink_to(rgba, box, (round((x1 - x0) / downscale), round((y1 - y0) / downscale)))
 
 
 def build(cid, cfg):
     rgb = np.asarray(Image.open(DATA / cfg["sheet"]).convert("RGB")).astype(np.int32)
     mask, rows = find_sprites(rgb)
     if cfg.get("fill_visor"):
-        rgb, mask = fill_holes(rgb, mask)
+        rgb, mask = fill_holes(rgb, mask, GLASS)
     rgba = np.dstack([rgb, mask * 255]).astype(np.uint8)
     # misma altura en el juego para todos los personajes (según el sprite de frente quieto)
     r0, c0 = cfg.get("size_ref") or cfg["anims"]["idle_down"][2][0]
@@ -209,7 +143,7 @@ def build(cid, cfg):
     max_frames = max(len(f) for _, (_, _, f) in anims)
     sheet = Image.new("RGBA", (CELL * max_frames, CELL * len(anims)), (0, 0, 0, 0))
     for ai, (name, (_, _, frames)) in enumerate(anims):
-        natives = [shrink(rgba, rows[r][c], downscale) for r, c in frames]
+        natives = [_shrink(rgba, rows[r][c], downscale) for r, c in frames]
         # Todos los frames de una animación comparten la misma línea superior (casco)
         # y se centran por el casco: así el cuerpo no "salta" al mover las piernas.
         anim_h = max(n.shape[0] for n in natives)
@@ -221,25 +155,9 @@ def build(cid, cfg):
             left = int(round(CELL / 2 - cx - 0.5))
             sheet.alpha_composite(Image.fromarray(n), (fi * CELL + left, ai * CELL + top))
 
-    alpha = sheet.getchannel("A")
-    q = sheet.convert("RGB").quantize(COLORS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGBA")
-    q.putalpha(alpha)
-    q.save(OUT / f"{cid}.png")
-
-    lines = ['[gd_resource type="SpriteFrames" format=3]', "",
-             f'[ext_resource type="Texture2D" path="res://assets/characters/{cid}.png" id="1_sheet"]', ""]
-    anim_txt = []
-    for ai, (name, (fps, loop, frames)) in enumerate(anims):
-        refs = []
-        for fi in range(len(frames)):
-            sid = f"AtlasTexture_{name}_{fi}"
-            lines += [f'[sub_resource type="AtlasTexture" id="{sid}"]', 'atlas = ExtResource("1_sheet")',
-                      f"region = Rect2({fi * CELL}, {ai * CELL}, {CELL}, {CELL})", ""]
-            refs.append(f'{{\n"duration": 1.0,\n"texture": SubResource("{sid}")\n}}')
-        anim_txt.append(f'{{\n"frames": [{", ".join(refs)}],\n"loop": {str(loop).lower()},\n'
-                        f'"name": &"{name}",\n"speed": {float(fps)}\n}}')
-    lines += ["[resource]", f"animations = [{', '.join(anim_txt)}]", ""]
-    (OUT / f"{cid}_frames.tres").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    quantize_rgba(sheet, COLORS).save(OUT / f"{cid}.png")
+    write_sprite_frames(OUT / f"{cid}_frames.tres", f"res://assets/characters/{cid}.png",
+                        [(name, fps, loop, len(frames)) for name, (fps, loop, frames) in anims], CELL, CELL)
     print(f"{cid}: filas {[len(r) for r in rows]}, escala 1/{downscale:.2f} -> {OUT / (cid + '.png')}")
 
 

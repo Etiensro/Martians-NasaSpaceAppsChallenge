@@ -1,12 +1,12 @@
 extends PanelContainer
 ## Caja de diálogo estilo RPG con retrato, nombre y texto que se escribe letra a letra.
 ## Uso:
-##   await box.say("A.R.I.A.", Color.CYAN, "Hello!", portrait_tex, portrait_material)
+##   await box.say("A.R.I.A.", Color.CYAN, "Hello!", portrait_texture)
 ## Clic / Espacio / Enter: completa el texto; si ya está completo, pasa a la siguiente línea.
 
 signal advanced
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
 
 @export var chars_per_second := 45.0
 
@@ -65,12 +65,11 @@ func _ready() -> void:
 
 
 ## Muestra una línea y espera a que el jugador avance.
-func say(speaker: String, color: Color, text: String, portrait: Texture2D = null, portrait_material: Material = null) -> void:
+func say(speaker: String, color: Color, text: String, portrait: Texture2D = null) -> void:
 	show()
 	_name.text = speaker
 	_name.add_theme_color_override("font_color", color)
 	_portrait.texture = portrait
-	_portrait.material = portrait_material
 	_text.text = text
 	_text.visible_ratio = 0.0
 	_arrow.visible = false

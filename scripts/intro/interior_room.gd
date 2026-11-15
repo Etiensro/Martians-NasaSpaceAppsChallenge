@@ -8,13 +8,14 @@ extends Node2D
 
 @export var room_texture: Texture2D
 
-const OUTLINE := Color(0.05, 0.07, 0.18)
+const Style := preload("res://scripts/core/style.gd")
+const OUTLINE := Style.NAVY
 const FLOOR_A := Color(0.36, 0.38, 0.44)
 const FLOOR_B := Color(0.32, 0.34, 0.4)
 const WALL := Color(0.2, 0.22, 0.3)
 const WALL_LIGHT := Color(0.3, 0.33, 0.42)
-const CYAN := Color(0.37, 0.95, 0.89)
-const DUST := Color(0.78, 0.45, 0.25)
+const CYAN := Style.CYAN
+const DUST := Style.DUST
 
 const ROOM := Rect2(60, 40, 1160, 640)
 const FLOOR := Rect2(60, 170, 1160, 510)
@@ -44,6 +45,42 @@ func pod_entry(i: int) -> Vector2:
 
 func set_pod_frost(value: float, i: int) -> void:
 	pod_frost[i] = value
+
+
+func set_pod_label(i: int, text: String) -> void:
+	pod_labels[i] = text
+
+
+## Pantalla de A.R.I.A. (la IA de la base) dibujada en pixel art, para retrato del diálogo.
+static func aria_portrait() -> ImageTexture:
+	var rows := [
+		"................",
+		".############...",
+		".#cccccccccc#...",
+		".#c........c#...",
+		".#c.oo..oo.c#...",
+		".#c.oo..oo.c#...",
+		".#c........c#...",
+		".#c..mmmm..c#...",
+		".#c........c#...",
+		".#cccccccccc#...",
+		".############...",
+		"......##........",
+		"....######......",
+		"................",
+	]
+	var pal := {"#": Color(0.55, 0.6, 0.7), "c": Color(0.1, 0.25, 0.3), "o": CYAN, "m": CYAN}
+	var img := Image.create(16, 14, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in rows.size():
+		var row: String = rows[y]
+		for x in row.length():
+			var ch: String = row[x]
+			if pal.has(ch):
+				img.set_pixel(x + 1, y, pal[ch])
+			elif ch == "." and y >= 2 and y <= 9 and x >= 2 and x <= 11:
+				img.set_pixel(x + 1, y, Color(0.03, 0.1, 0.13))
+	return ImageTexture.create_from_image(img)
 
 
 func _draw() -> void:

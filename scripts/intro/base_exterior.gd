@@ -6,14 +6,15 @@ extends Node2D
 @export var base_texture: Texture2D
 @export var texture_scale := 1.0
 
-const OUTLINE := Color(0.05, 0.07, 0.18)
+const Style := preload("res://scripts/core/style.gd")
+const OUTLINE := Style.NAVY
 const HULL := Color(0.86, 0.87, 0.9)
 const HULL_DARK := Color(0.62, 0.64, 0.7)
 const SHADOW := Color(0.25, 0.1, 0.05, 0.35)
 const PANEL := Color(0.12, 0.2, 0.45)
 const PANEL_LINE := Color(0.35, 0.5, 0.85)
 const GLASS_GREEN := Color(0.45, 0.8, 0.55)
-const LIGHT := Color(1, 0.84, 0.27)
+const LIGHT := Style.AMBER
 
 var _t := 0.0
 

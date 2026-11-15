@@ -1,27 +1,19 @@
 extends Control
-## PASO 4: selección de personaje. Muestra las 4 profesiones (data/intro/roles.json)
-## con sus ventajas; el jugador elige una y confirma.
+## PASO 4: selección de personaje. Muestra las 4 profesiones (GameState.roles, de
+## data/intro/roles.json) con sus ventajas; el jugador elige una y confirma.
+## Retrato sin casco; al pasar el ratón o elegirla, con casco.
 ## Emite role_chosen(role_id) al confirmar.
 
 signal role_chosen(role_id: String)
 
-const Style := preload("res://scripts/intro/intro_style.gd")
+const Style := preload("res://scripts/core/style.gd")
 const CARD_SIZE := Vector2(272, 420)
-const PORTRAITS := "res://assets/characters/portraits/%s.png"         # sin casco
-const PORTRAITS_HELMET := "res://assets/characters/portraits/%s_helmet.png"  # con casco
 
-var roles: Dictionary = {}
-var order: Array = []
 var _group := ButtonGroup.new()
 var _cards := {}       # role_id -> Button
 var _portraits := {}   # role_id -> TextureRect
 var _selected := ""
 var _confirm: Button
-
-
-func setup(roles_data: Dictionary) -> void:
-	roles = roles_data.get("roles", {})
-	order = roles_data.get("order", roles.keys())
 
 
 func _ready() -> void:
@@ -52,9 +44,8 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 20)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(row)
-	for id in order:
-		var card := _make_card(id, roles[id])
-		row.add_child(card)
+	for id in GameState.role_order:
+		row.add_child(_make_card(id, GameState.roles[id]))
 
 	_confirm = Button.new()
 	_confirm.text = "CHOOSE A CREW MEMBER"
@@ -67,24 +58,23 @@ func _ready() -> void:
 
 	# Entrada: todo aparece y las tarjetas suben una tras otra
 	modulate.a = 0.0
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 1.0, 0.4)
-	await get_tree().process_frame
+	create_tween().tween_property(self, "modulate:a", 1.0, 0.4)
+	await get_tree().process_frame  # esperar a que el contenedor coloque las tarjetas
 	var i := 0
-	for id in order:
+	for id in GameState.role_order:
 		var c: Button = _cards[id]
-		var target := c.position
+		var target_y := c.position.y
 		c.position.y += 60
 		c.modulate.a = 0.0
 		var ct := create_tween().set_parallel()
-		ct.tween_property(c, "position:y", target.y, 0.45).set_delay(0.1 * i).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		ct.tween_property(c, "position:y", target_y, 0.45).set_delay(0.1 * i).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		ct.tween_property(c, "modulate:a", 1.0, 0.3).set_delay(0.1 * i)
 		i += 1
-	_cards[order[0]].grab_focus()
+	_cards[GameState.role_order[0]].grab_focus()
 
 
 func _make_card(id: String, r: Dictionary) -> Button:
-	var color := Color.html(r.get("color", "#ffffff"))
+	var color := GameState.role_color(id)
 	var card := Button.new()
 	card.toggle_mode = true
 	card.button_group = _group
@@ -112,30 +102,16 @@ func _make_card(id: String, r: Dictionary) -> Button:
 	margin.add_child(v)
 
 	var portrait := TextureRect.new()
-	# Retrato de la persona (sin casco); al pasar el ratón o elegirlo se pone el casco.
-	# Si falta la imagen, se usa el astronauta genérico teñido como antes.
-	if ResourceLoader.exists(PORTRAITS % id):
-		portrait.texture = load(PORTRAITS % id)
-	else:
-		portrait.texture = Style.astronaut_frame(0)
-		portrait.material = Style.suit_material(color)
+	portrait.texture = GameState.portrait_for(id)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.custom_minimum_size = Vector2(0, 110)
-	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	v.add_child(portrait)
 	_portraits[id] = portrait
 
-	var t := Style.label(r.get("title", id.to_upper()), 26, color, 6)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
-	var n := Style.label(r.get("crew_name", ""), 16, Color(1, 1, 1, 0.75), 3)
-	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(n)
-	var tag := Style.label(r.get("tagline", ""), 17, Style.WHITE, 4)
-	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(tag)
+	v.add_child(_card_label(r.get("title", id.to_upper()), 26, color, 6, true))
+	v.add_child(_card_label(r.get("crew_name", ""), 16, Color(1, 1, 1, 0.75), 3, true))
+	v.add_child(_card_label(r.get("tagline", ""), 17, Style.WHITE, 4, true))
 
 	var line := ColorRect.new()
 	line.color = Color(color, 0.6)
@@ -143,20 +119,24 @@ func _make_card(id: String, r: Dictionary) -> Button:
 	v.add_child(line)
 
 	for perk in r.get("perks", []):
-		var p := Style.label("+ " + str(perk), 15, Color(0.75, 1, 0.75), 3)
-		p.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		v.add_child(p)
+		v.add_child(_card_label("+ " + str(perk), 15, Color(0.75, 1, 0.75), 3))
 
 	var fill := Control.new()
 	fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(fill)
 	if r.has("fact"):
-		var f := Style.label("Did you know? " + str(r.fact), 12, Color(0.75, 0.85, 1, 0.85), 3)
-		f.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		v.add_child(f)
+		v.add_child(_card_label("Did you know? " + str(r.fact), 12, Color(0.75, 0.85, 1, 0.85), 3))
 
-	_ignore_mouse(margin)
+	_ignore_mouse(margin)  # que los clics lleguen a la tarjeta (el botón)
 	return card
+
+
+func _card_label(text: String, font_size: int, color: Color, outline: int, centered := false) -> Label:
+	var l := Style.label(text, font_size, color, outline)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if centered:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
 
 
 func _ignore_mouse(n: Node) -> void:
@@ -167,7 +147,8 @@ func _ignore_mouse(n: Node) -> void:
 
 
 func _hover(id: String, on: bool) -> void:
-	_set_portrait(id, on or id == _selected)
+	var helmet := on or id == _selected
+	_portraits[id].texture = GameState.portrait_for(id, helmet)
 	var card: Button = _cards[id]
 	card.pivot_offset = card.size / 2.0
 	create_tween().tween_property(card, "scale", Vector2.ONE * (1.04 if on else 1.0), 0.12)
@@ -183,20 +164,8 @@ func _select(id: String) -> void:
 	_selected = id
 	if prev != "" and prev != id:
 		_hover(prev, false)
-	_set_portrait(id, true)
-	var r: Dictionary = roles[id]
-	var first_name := str(r.get("crew_name", "")).get_slice(" ", 0).to_upper()
-	_confirm.text = "CONFIRM: %s STAYS AWAKE" % first_name
+	_portraits[id].texture = GameState.portrait_for(id, true)
+	_confirm.text = "CONFIRM: %s STAYS AWAKE" % GameState.first_name(id).to_upper()
 	_confirm.disabled = false
 	if get_viewport().gui_get_focus_owner() == _cards[id]:
 		_confirm.grab_focus()  # con teclado: Enter elige y Enter otra vez confirma
-
-
-
-## Con casco al pasar el ratón / al estar elegido; sin casco el resto del tiempo.
-func _set_portrait(id: String, helmet: bool) -> void:
-	var p: TextureRect = _portraits[id]
-	if ResourceLoader.exists(PORTRAITS % id):
-		p.texture = load((PORTRAITS_HELMET if helmet else PORTRAITS) % id)
-	else:  # astronauta genérico: saluda (cuadro "celebrate")
-		p.texture = Style.astronaut_frame(6 if helmet else 0)
