@@ -4,33 +4,33 @@
 	"aria": { "name": "A.R.I.A.", "color": "#2e96f5" }
   },
   "intro": [
-	{ "speaker": "aria", "event": "alarm_on", "text": "WARNING! A massive dust storm is heading toward Ares Base. Estimated arrival: 2 hours." },
-	{ "speaker": "aria", "text": "The dust will block up to 99% of the sunlight that reaches our solar panels." },
-	{ "speaker": "engineer", "text": "Ninety-nine percent?! Those panels power everything: the heaters, the oxygen maker, the water recycler..." },
-	{ "speaker": "astrophysicist", "event": "shake", "text": "Martian dust storms can last for weeks. In 2018 one covered the whole planet, and NASA's Opportunity rover ran out of power." },
-	{ "speaker": "medic", "text": "A.R.I.A., how long can our batteries keep all four of us safe?" },
-	{ "speaker": "aria", "text": "Calculating... Battery reserves support 4 crew members for 9 sols. Storm duration estimate: 35 sols." },
-	{ "speaker": "biologist", "text": "A sol is one Martian day. 9 sols of power for a 35-sol storm... that's not enough. Not even close!" },
-	{ "speaker": "engineer", "event": "alarm_off", "text": "Wait, the cryo pods! Sleeping crew use almost no oxygen, food or heat." },
-	{ "speaker": "medic", "text": "Cryosleep is safe. But someone must stay awake to run the base and watch over the pods." },
-	{ "speaker": "aria", "text": "Confirmed. With 3 crew asleep and 1 awake, reserves last 38 sols. Enough... but only if every choice is a smart one." },
-	{ "speaker": "astrophysicist", "text": "Then it's decided. Three of us sleep. One of us stays." },
-	{ "speaker": "biologist", "text": "So... who stays awake?" },
-	{ "speaker": "aria", "event": "shake", "text": "Commander, the crew is waiting for your decision. Who will keep Ares Base running?" }
+	{ "speaker": "aria", "event": "alarm_on", "text": "WARNING! A massive dust storm is approaching Ares Base. Estimated arrival: 2 hours." },
+	{ "speaker": "aria", "text": "Based on current projections, approximately 75% of our solar panel array will be damaged or rendered inoperable." },
+	{ "speaker": "engineer", "text": "That's a critical loss. Our solar array powers life support, heating, water recycling, and laboratory systems." },
+	{ "speaker": "astrophysicist", "event": "shake", "text": "Global dust storms can engulf the entire planet. The 2018 storm blocked sunlight from reaching NASA's Opportunity rover, eventually ending its mission." },
+	{ "speaker": "medic", "text": "A.R.I.A., how many crew members can the remaining solar capacity sustain?" },
+	{ "speaker": "aria", "text": "Calculating... Current projections indicate that the remaining 25% of our solar array can sustain only one crew member." },
+	{ "speaker": "biologist", "text": "Then we need to reduce our life-support demand immediately. We can't risk losing the entire crew." },
+	{ "speaker": "engineer", "event": "alarm_off", "text": "The cryogenic pods! Placing three crew members in cryosleep would significantly reduce our power and life-support requirements." },
+	{ "speaker": "medic", "text": "The pods can keep them stable, but someone must remain conscious to maintain the base and monitor their vital systems." },
+	{ "speaker": "aria", "text": "Confirmed. With three crew members in cryosleep, available reserves are projected to sustain the remaining crew member for up to 60 sols, provided energy consumption is carefully managed." },
+	{ "speaker": "astrophysicist", "text": "It's our only viable option. Three of us enter cryosleep. One remains on duty." },
+	{ "speaker": "biologist", "text": "Then we need someone capable of keeping the mission alive. Who will stay?" },
+	{ "speaker": "aria", "event": "shake", "text": "Commander, a decision is required. Select the crew member who will remain awake and assume responsibility for Ares Base." }
   ],
   "farewell": [
-	{ "speaker": "player", "text": "I'll stay. As the {player_role}, I can keep this base running until the storm is over." },
+	{ "speaker": "player", "text": "I'll stay. As the {player_role}, I'll do everything I can to keep this base running and complete our mission." },
 	{ "speaker": "sleeper" },
-	{ "speaker": "aria", "event": "lights_dim", "text": "Starting cryosleep sequence. Sleeping crew, please enter your pods." }
+	{ "speaker": "aria", "event": "lights_dim", "text": "Initiating cryosleep sequence. Remaining crew, please enter your pods." }
   ],
   "sleeper_lines": [
-	"We trust you, {player}. Wake us up when the sky is clear!",
-	"Remember: every bit of energy counts. Good luck!",
-	"Don't forget to water my plants... and to eat!",
-    "See you in 35 sols, {player}!"
+	"We trust you, {player}. We'll be waiting when you wake us up!",
+	"Keep an eye on the power supply. Every bit of energy counts!",
+	"Don't forget to take care of yourself while we're asleep.",
+    "We'll see you when the storm is over, {player}. Good luck!"
   ],
   "ending": [
-	{ "speaker": "aria", "text": "Cryosleep sequence complete. Three crew members are safe and sleeping." },
-	{ "speaker": "aria", "text": "{player}, you are now the only one awake on Mars. Ares Base is in your hands." }
+	{ "speaker": "aria", "text": "Cryosleep sequence complete. Three crew members are now safely asleep." },
+	{ "speaker": "aria", "text": "{player}, you are the only crew member awake. Ares Base is now under your care. Good luck, Commander." }
   ]
 }
