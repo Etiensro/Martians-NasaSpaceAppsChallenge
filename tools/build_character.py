@@ -121,6 +121,59 @@ CHARACTERS = {
             "celebrate": (4, True, [(3, 0), (3, 1)]),
         },
     },
+    # Tripulación SIN casco (dentro de la base, en la intro). Mismas animaciones que con casco.
+    "ingeniero_sin_casco": {
+        "sheet": "ingeniero_sin_casco_sheet_gemini.jpg",
+        "fill_visor": False,  # Mark L. Polansky
+        "anims": {
+            "idle_down": (1, True, [(3, 0)]),
+            "idle_side": (1, True, [(3, 3)]),
+            "idle_up":   (1, True, [(1, 0)]),
+            "walk_down": (10, True, [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]),
+            "walk_side": (10, True, [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+            "walk_up":   (10, True, [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]),
+            "celebrate": (4, True, [(3, 0), (3, 1)]),
+        },
+    },
+    "biologo_sin_casco": {
+        "sheet": "biologo_sin_casco_sheet_gemini.jpg",
+        "fill_visor": False,  # Jessica U. Meir
+        "anims": {
+            "idle_down": (1, True, [(3, 2)]),
+            "idle_side": (1, True, [(3, 3)]),
+            "idle_up":   (1, True, [(1, 0)]),
+            "walk_down": (10, True, [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]),
+            "walk_side": (10, True, [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+            "walk_up":   (10, True, [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]),
+            "celebrate": (4, True, [(3, 0), (3, 1)]),
+        },
+    },
+    "medico_sin_casco": {
+        "sheet": "medico_sin_casco_sheet_gemini.jpg",
+        "fill_visor": False,  # Story Musgrave
+        "anims": {
+            "idle_down": (1, True, [(3, 0)]),
+            "idle_side": (1, True, [(3, 3)]),
+            "idle_up":   (1, True, [(1, 0)]),
+            "walk_down": (10, True, [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]),
+            "walk_side": (10, True, [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+            "walk_up":   (10, True, [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]),
+            "celebrate": (4, True, [(3, 1), (3, 2)]),
+        },
+    },
+    "astrofisico_sin_casco": {
+        "sheet": "astrofisico_sin_casco_sheet_gemini.jpg",
+        "fill_visor": False,  # David Saint-Jacques
+        "anims": {
+            "idle_down": (1, True, [(3, 0)]),
+            "idle_side": (1, True, [(3, 3)]),
+            "idle_up":   (1, True, [(1, 0)]),
+            "walk_down": (10, True, [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]),
+            "walk_side": (10, True, [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+            "walk_up":   (10, True, [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]),
+            "celebrate": (4, True, [(3, 1), (3, 2)]),
+        },
+    },
 }
 
 

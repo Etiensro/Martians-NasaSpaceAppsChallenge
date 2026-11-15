@@ -88,7 +88,7 @@ func _ready() -> void:
 func _build_crew() -> void:
 	for id in GameState.role_order:
 		var a := AnimatedSprite2D.new()
-		a.sprite_frames = GameState.frames_for(id)
+		a.sprite_frames = GameState.frames_for(id, false)  # dentro de la base: sin casco
 		a.offset = Vector2(0, -47)  # los pies quedan en la posición del nodo
 		a.scale = Vector2.ONE * CREW_SCALE
 		var s: Array = STAND.get(id, [Vector2(640, 500), "down", false])

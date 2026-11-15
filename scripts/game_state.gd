@@ -23,6 +23,7 @@ func site_scene(site_id: String) -> String:
 const ROLES_FILE := "res://data/intro/roles.json"
 const PORTRAITS := "res://assets/characters/portraits/%s%s.png"  # rol, "" o "_helmet"
 ## Sprites de cada tripulante (mismas animaciones: idle_*, walk_*, celebrate).
+## Con casco (afuera) y sin casco (dentro de la base, en la intro): <id>_frames.tres / <id>_sin_casco_frames.tres
 const ROLE_FRAMES := {
 	"engineer": "res://assets/characters/ingeniero_frames.tres",
 	"biologist": "res://assets/characters/biologo_frames.tres",
@@ -80,9 +81,15 @@ func first_name(role_id := "") -> String:
 
 
 ## SpriteFrames de un rol (o del rol elegido si no se indica). Si no hay, el astronauta genérico.
-func frames_for(role_id := "") -> SpriteFrames:
+## helmet = false: la versión sin casco (si existe).
+func frames_for(role_id := "", helmet := true) -> SpriteFrames:
 	var id := role_id if role_id != "" else selected_role
-	return load(ROLE_FRAMES.get(id, DEFAULT_FRAMES))
+	var path: String = ROLE_FRAMES.get(id, DEFAULT_FRAMES)
+	if not helmet:
+		var bare := path.replace("_frames.tres", "_sin_casco_frames.tres")
+		if ResourceLoader.exists(bare):
+			path = bare
+	return load(path)
 
 
 ## Retrato de un rol (sin casco o con casco), o null si no existe.
