@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/intro/base_interior.gd" id="1_interior"]
+
+[node name="BaseInterior" type="Node2D"]
+script = ExtResource("1_interior")
