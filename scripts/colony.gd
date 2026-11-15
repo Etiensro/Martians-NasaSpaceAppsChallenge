@@ -6,6 +6,16 @@ extends Node2D
 const COLONY := "res://assets/buildings/colony.json"
 const Building := preload("res://scripts/building.gd")
 const Fx := preload("res://scripts/core/fx.gd")
+const SOLAR_ID := "paneles_grande"
+const SOLAR_LOOKS := {
+	"broken": "res://assets/buildings/paneles_averiados.png",
+	"dirt": [  # [limpieza mínima, imagen]
+		[90.0, "res://assets/buildings/paneles_grande.png"],
+		[70.0, "res://assets/buildings/paneles sucios 1.png"],
+		[40.0, "res://assets/buildings/paneles sucios 2.png"],
+		[0.0, "res://assets/buildings/paneles sucios 3.png"],
+	],
+}
 
 @export var player: Node2D
 ## Si está activado, se entra a los edificios con E (y al vehículo, que lleva al mapa general).
@@ -24,18 +34,33 @@ func _ready() -> void:
 	meta = JSON.parse_string(FileAccess.get_file_as_string(COLONY))
 	for id in meta.buildings:
 		var data: Dictionary = meta.buildings[id]
+		if id == SOLAR_ID:
+			data = data.duplicate()
+			data.texture = _solar_texture()
 		var b := Building.new()
 		b.setup(data, meta.cell, player)
 		b.doors_enabled = doors_enabled and data.get("enterable", true)
 		add_child(b)
 		for f in data.fx:
 			_add_fx(f)
-		_glints += data.get("glints", [])
+		if id != SOLAR_ID or Mission.cleanliness() >= 70.0:  # el sol solo brilla en paneles limpios
+			_glints += data.get("glints", [])
 	_add_vehicle()
 	_add_wind()
 	_add_vignette()
 	if not _glints.is_empty():
 		_glint_loop()
+
+
+## Imagen del campo solar según su estado real (autoload Mission): limpio, tres niveles de
+## suciedad o averiado (paneles rotos o cables cortados).
+func _solar_texture() -> String:
+	if Mission.broken_count() + Mission.cut_cable_count() > 0 and Mission.cleanliness() >= 70.0:
+		return SOLAR_LOOKS.broken
+	for look in SOLAR_LOOKS.dirt:
+		if Mission.cleanliness() >= look[0]:
+			return look[1]
+	return SOLAR_LOOKS.dirt[-1][1]
 
 
 ## Punto de aparición del personaje (frente a la estación principal).

@@ -43,6 +43,9 @@ Ejemplo: `feat: selección de personaje con retratos`.
 - **Rol del jugador**: `GameState.selected_role`, `role_data`, `frames_for()`, `portrait_for()`, `role_color()`,
   `first_name()`, `modifier()`. Los roles ya están cargados en `GameState.roles`: no vuelvas a leer `roles.json`.
 - **Entrar/salir de edificios**: `GameState.enter_building()` / `GameState.leave_building()`.
+- **Tiempo, energía, tormentas y paneles**: autoload `Mission` (`advance_hours`, `spend`, `set_extra_load`,
+  `is_on`, `notify`...). Los números están en `data/mission/rules.json`. Ver `docs/PANELES_SOLARES.md`.
+- **Vestíbulo en primera persona con puertas**: `scripts/interiores/lobby.gd` (+ `tools/build_lobbies.py`).
 - **Moverse y animar personajes**: `scripts/core/movement.gd`.
 - **Colores, botones, etiquetas, avisos "E: ..."**: `scripts/core/style.gd`.
 - **Partículas y texturas de efectos**: `scripts/core/fx.gd`.

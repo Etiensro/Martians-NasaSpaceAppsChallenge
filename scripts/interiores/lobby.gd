@@ -4,6 +4,7 @@ extends Node2D
 ## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta del edificio.
 ## Fondo, puertas y efectos: <data_dir>/hub.png y hub.json (los genera tools/build_lobbies.py).
 ## Si la puerta todavía no tiene escena, avisa "Coming soon".
+## Las reglas de la misión (autoload Mission) pueden impedir salir (tormenta) o entrar a una puerta.
 
 const Style := preload("res://scripts/core/style.gd")
 const Fx := preload("res://scripts/core/fx.gd")
@@ -268,6 +269,7 @@ func _build_ui() -> void:
 	_toast.offset_left = -400
 	_toast.offset_right = 400
 	_toast.offset_top = 130
+	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_toast.modulate.a = 0.0
 	layer.add_child(_toast)
 
@@ -320,19 +322,30 @@ func _set_hover(id: String) -> void:
 
 
 func _enter(door: Dictionary) -> void:
-	if ResourceLoader.exists(door.scene):
+	var blocked := Mission.entry_blocked_reason(door.scene)  # p. ej. salir al campo durante una tormenta
+	if blocked != "":
+		_show_toast(blocked)
+	elif ResourceLoader.exists(door.scene):
 		_leaving = true
 		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 		SceneChanger.go_to(door.scene)
-		return
-	_toast.text = "%s  ·  Coming soon" % door.name
+	else:
+		_show_toast("%s  ·  Coming soon" % door.name)
+
+
+func _show_toast(text: String) -> void:
+	_toast.text = text
 	var tw := create_tween()
 	tw.tween_property(_toast, "modulate:a", 1.0, 0.2)
-	tw.tween_interval(1.2)
+	tw.tween_interval(1.2 + text.length() * 0.03)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.4)
 
 
 func _leave() -> void:
+	var blocked := Mission.exit_blocked_reason()  # con tormenta moderada o intensa no se sale
+	if blocked != "":
+		_show_toast(blocked)
+		return
 	_leaving = true
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 	GameState.leave_building()
