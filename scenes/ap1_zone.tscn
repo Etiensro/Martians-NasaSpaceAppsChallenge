@@ -2,7 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/fixed_zone.gd" id="1_ap1"]
 [ext_resource type="Script" path="res://scripts/zone_area.gd" id="2_zone"]
-[ext_resource type="Texture2D" path="res://assets/zones/ap1_ground.png" id="3_ground"]
+[ext_resource type="Texture2D" path="res://assets/zones/ap1_colony_ground.png" id="3_ground"]
+[ext_resource type="Texture2D" path="res://assets/zones/ap1_blocked.png" id="6_blocked"]
+[ext_resource type="Script" path="res://scripts/colony.gd" id="7_colony"]
 [ext_resource type="PackedScene" path="res://scenes/astronaut.tscn" id="4_astro"]
 
 [node name="AP1Zone" type="Node2D"]
@@ -13,6 +15,7 @@ script = ExtResource("1_ap1")
 script = ExtResource("2_zone")
 texture = ExtResource("3_ground")
 cell = 3.0
+blocked_mask = ExtResource("6_blocked")
 
 [node name="Suelo" type="Sprite2D" parent="Zona"]
 centered = false
@@ -21,6 +24,11 @@ centered = false
 map = NodePath("../Zona")
 walk_speed = 200.0
 run_speed = 370.0
+
+[node name="Colonia" type="Node2D" parent="." node_paths=PackedStringArray("player")]
+y_sort_enabled = true
+script = ExtResource("7_colony")
+player = NodePath("../Astronauta")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.33, 0.33)
@@ -45,4 +53,4 @@ offset_right = 1270.0
 offset_bottom = 60.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-text = "WASD mover · Shift correr · Esc: mapa"
+text = "WASD mover · Shift correr · E: entrar · Esc: mapa"

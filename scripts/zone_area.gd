@@ -9,8 +9,12 @@ extends Node2D
 ## Rectángulo transitable (en coordenadas de la zona). Si está vacío se calcula
 ## a partir de lo que ve la cámara, para que el jugador nunca salga de la pantalla.
 @export var walk_rect := Rect2()
+## Máscara opcional (blanco = no se puede caminar), del mismo tamaño que el suelo.
+## La genera tools/build_colony.py con la base de los edificios.
+@export var blocked_mask: Texture2D
 
 var map_size := Vector2i.ZERO
+var _blocked: Image
 
 @onready var ground: Sprite2D = $Suelo
 
@@ -20,6 +24,8 @@ func _ready() -> void:
 	ground.centered = false
 	ground.scale = Vector2.ONE * cell
 	map_size = texture.get_size()
+	if blocked_mask:
+		_blocked = blocked_mask.get_image()
 
 
 func size() -> Vector2:
@@ -46,7 +52,11 @@ func map_to_local(c: Vector2i) -> Vector2:
 
 
 func is_walkable(c: Vector2i) -> bool:
-	return walk_rect.has_point(map_to_local(c))
+	if not walk_rect.has_point(map_to_local(c)):
+		return false
+	if _blocked and c.x >= 0 and c.y >= 0 and c.x < _blocked.get_width() and c.y < _blocked.get_height():
+		return _blocked.get_pixel(c.x, c.y).r < 0.5
+	return true
 
 
 func terrain_at(c: Vector2i) -> String:
