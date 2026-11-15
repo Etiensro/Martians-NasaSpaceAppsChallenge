@@ -20,6 +20,7 @@ scenes/intro/main_menu.tscn ──START──▶ scenes/intro/base_interior.tscn
 |---|---|---|
 | `GameState` | `scripts/game_state.gd` | Roles y tripulación (`roles`, `selected_role`, `frames_for()`, `portrait_for()`, `role_color()`, `first_name()`, `modifier()`), sitio elegido, rutas de escenas (`WORLD_MAP`, `BASE_ZONE`, `GAMEPLAY_SCENE`, `site_scene()`), entrar/salir de edificios (`enter_building()`, `leave_building()`) |
 | `SceneChanger` | `scripts/core/scene_changer.gd` | **Único** sitio donde se cambia de escena: `SceneChanger.go_to(ruta)` (con fundido a negro) |
+| `Mission` | `scripts/core/mission.gd` | Reloj, batería, sistemas, paneles y tormentas, con su HUD (`mission_hud.gd`). Reglas en `data/mission/rules.json`. Ver `docs/PANELES_SOLARES.md` |
 
 ## Módulos compartidos (`scripts/core/`)
 
@@ -42,6 +43,7 @@ Se usan con `const X := preload("res://scripts/core/x.gd")`.
 | `scripts/core/` | Lo compartido (ver arriba) |
 | `scripts/intro/` | Solo lo de la intro |
 | `data/intro/` | `intro_dialogue.json` (diálogos) y `roles.json` (profesiones) |
+| `data/mission/` | `rules.json`: números de la misión (energía, tormentas, paneles) |
 | `assets/` | Imágenes y recursos que usa el juego. **Casi todo lo genera `tools/`**: no se editan a mano |
 | `tools/` | Scripts de Python que convierten las imágenes de Gemini/NASA en assets (Godot ignora esta carpeta) |
 
@@ -69,6 +71,7 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 | `build_zones.py` | Suelos de AP-1, AP-8 y AP-9 |
 | `build_colony.py` | Edificios de AP-1, suelo de la colonia, colisiones y `colony.json` (ejecutar después de `build_zones.py`) |
 | `build_fx.py` | Texturas de efectos de `assets/fx/` |
+| `build_power_room.py` | Sala eléctrica de los paneles: fondo, interruptores, placa y monitor (`assets/interiores/paneles_solares/sala_electrica/`) |
 
 ## Editar textos
 

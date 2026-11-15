@@ -1,0 +1,50 @@
+{
+  "_comment": "Reglas de la misión (documento 'Sistema de Radiación y Salud Celular · Base Ares 1'). Las usa el autoload Mission (scripts/core/mission.gd). Los campos marcados con _proposed no están en el documento: son propuestas del equipo de paneles y se pueden cambiar.",
+  "clock": {
+    "real_seconds_per_hour": 60,
+    "start_sol": 1,
+    "start_hour": 8,
+    "mission_sols": 60
+  },
+  "energy": {
+    "capacity": 1000,
+    "start": 800,
+    "_comment_generation": "EU/h según la limpieza de los paneles: [limpieza mínima, EU/h], de mayor a menor",
+    "generation_by_cleanliness": [[70, 12], [40, 6], [1, 2], [0, 0]],
+    "panel_repair_cost": 10,
+    "systems": {
+      "basic": {"name": "Life support", "detail": "Air, heat, water and pressure", "eu_per_hour": 4, "switchable": false,
+        "locked_message": "Life support can never be turned off: it gives you air, heat and water!"},
+      "cryo": {"name": "Cryo pods", "detail": "Keeps the sleeping crew safe", "eu_per_hour": 1, "switchable": false,
+        "locked_message": "The cryo pods keep your crew alive. They must stay on!"},
+      "greenhouse": {"name": "Greenhouse", "detail": "Lights, heat and water for the plants", "eu_per_hour": 2, "switchable": true,
+        "off_message": "Greenhouse OFF. Plants stop growing, and after a few sols without power they wilt."},
+      "auxiliary": {"name": "Lights & auxiliary", "detail": "Station rooms: work room, gym, infirmary...", "eu_per_hour": 1, "switchable": true,
+        "off_message": "Lights and auxiliary systems OFF. Good idea before an expedition! Turn them on again before entering the station."}
+    }
+  },
+  "panels": {
+    "columns": 4,
+    "rows": 4,
+    "dirt_per_sol": 10,
+    "dirt_per_storm": 20
+  },
+  "storms": {
+    "protection_sols": 3,
+    "daily_chance": 0.15,
+    "warning_hours": 6,
+    "types": {
+      "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false,
+        "_proposed": "broken_panels / cut_cables", "broken_panels": 1, "cut_cables": 0},
+      "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true,
+        "broken_panels": 2, "cut_cables": 1},
+      "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true,
+        "broken_panels": 4, "cut_cables": 3}
+    }
+  },
+  "gusts": {
+    "_proposed": "ráfagas dentro del minijuego de paneles (segundos reales)",
+    "calm": {"every_min": 25, "every_max": 40, "panels": 2, "dirt_min": 6, "dirt_max": 12},
+    "storm": {"every_min": 12, "every_max": 20, "panels": 16, "dirt_min": 8, "dirt_max": 14}
+  }
+}

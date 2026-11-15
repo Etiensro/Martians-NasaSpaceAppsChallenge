@@ -42,12 +42,20 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_hint.visible = _usable()
+	if _hint.visible:  # cerrado ahora (p. ej. sin energía auxiliar): con E, A.R.I.A. explica por qué
+		var blocked := Mission.entry_blocked_reason(info.get("interior", ""))
+		_hint.text = "LOCKED · E: why?" if blocked != "" else hint_text
+		_hint.modulate = Color(1, 0.6, 0.5) if blocked != "" else Color.WHITE
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.pressed and not event.echo and event.keycode == KEY_E and _usable():
 		get_viewport().set_input_as_handled()
 		if info.get("interior", "") != "":
+			var blocked := Mission.entry_blocked_reason(info.interior)
+			if blocked != "":
+				Mission.notify(blocked)
+				return
 			GameState.enter_building(info.interior, _door + Vector2(0, 40))
 		else:
 			used.emit()
