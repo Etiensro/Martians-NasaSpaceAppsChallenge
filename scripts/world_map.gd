@@ -89,7 +89,7 @@ func _build_astronaut() -> void:
 	if not _nodes.has(current):
 		current = _nodes.keys()[0]
 	_astro = AnimatedSprite2D.new()
-	_astro.sprite_frames = ASTRO_FRAMES
+	_astro.sprite_frames = gs.frames_for() if gs and gs.selected_role != "" else ASTRO_FRAMES
 	_astro.scale = Vector2.ONE * ASTRO_SCALE
 	_astro.offset = Vector2(0, -47)  # pies en el punto
 	_astro.position = _nodes[current].stand

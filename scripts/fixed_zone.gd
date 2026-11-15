@@ -13,6 +13,10 @@ const WORLD_MAP := "res://scenes/world_map.tscn"
 
 
 func _ready() -> void:
+	# El jugador es el tripulante que eligió en la intro
+	var gs0 := get_node_or_null("/root/GameState")
+	if gs0 and gs0.selected_role != "":
+		player.get_node("Sprite").sprite_frames = gs0.frames_for()
 	camera.position = zone.center()
 	camera.zoom = Vector2(0.33, 0.33)
 	await get_tree().process_frame  # esperar a que la cámara se aplique

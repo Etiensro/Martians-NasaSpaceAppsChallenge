@@ -45,6 +45,28 @@ func choose_role(role_id: String) -> void:
 		})
 
 
+## Sprites de cada tripulante (mismas animaciones que el astronauta: idle_*, walk_*, celebrate).
+const ROLE_FRAMES := {
+	"engineer": "res://assets/characters/ingeniero_frames.tres",
+	"biologist": "res://assets/characters/biologo_frames.tres",
+	"medic": "res://assets/characters/medico_frames.tres",
+	"astrophysicist": "res://assets/characters/astrofisico_frames.tres",
+}
+const DEFAULT_FRAMES := "res://assets/characters/astronaut_frames.tres"
+
+
+## SpriteFrames de un rol (o del rol elegido si no se indica). Si no hay, el astronauta genérico.
+func frames_for(role_id := "") -> SpriteFrames:
+	var id := role_id if role_id != "" else selected_role
+	return load(ROLE_FRAMES.get(id, DEFAULT_FRAMES))
+
+
+## Retrato de un rol (sin casco o con casco), o null si no existe.
+func portrait_for(role_id: String, helmet := false) -> Texture2D:
+	var path := "res://assets/characters/portraits/%s%s.png" % [role_id, "_helmet" if helmet else ""]
+	return load(path) if ResourceLoader.exists(path) else null
+
+
 ## Multiplicador de una ventaja del rol elegido (1.0 si no aplica).
 ## Ej.: GameState.modifier("repair_speed") -> 1.5 para el Ingeniero.
 func modifier(key: String) -> float:

@@ -4,7 +4,7 @@
   "roles": {
 	"engineer": {
 	  "title": "ENGINEER",
-	  "crew_name": "Sam Reyes",
+	  "crew_name": "Mark L. Polansky",
 	  "color": "#ffb347",
 	  "tagline": "Keeps the machines alive.",
 	  "perks": [
@@ -16,7 +16,7 @@
 	},
 	"biologist": {
 	  "title": "BIOLOGIST",
-	  "crew_name": "Ada Okafor",
+	  "crew_name": "Jessica U. Meir",
 	  "color": "#7ee081",
 	  "tagline": "Grows food and fresh air.",
 	  "perks": [
@@ -28,7 +28,7 @@
 	},
 	"medic": {
 	  "title": "MEDIC",
-	  "crew_name": "Lena Lindqvist",
+	  "crew_name": "Story Musgrave",
 	  "color": "#ff6b81",
 	  "tagline": "Keeps everyone healthy.",
 	  "perks": [
@@ -40,7 +40,7 @@
 	},
 	"astrophysicist": {
 	  "title": "ASTROPHYSICIST",
-	  "crew_name": "Kenji Tanaka",
+	  "crew_name": "David Saint-Jacques",
 	  "color": "#8ab4ff",
 	  "tagline": "Reads the sky and the Sun.",
 	  "perks": [
