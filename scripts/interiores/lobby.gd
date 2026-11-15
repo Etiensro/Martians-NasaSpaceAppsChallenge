@@ -1,16 +1,18 @@
 extends Node2D
-## Centro de la Estación Ares 1 en primera persona (scenes/interiores/estacion_ares1/estacion_ares1.tscn).
-## El jugador elige con el cursor a qué módulo ir: Work Room, Greenhouse, Gym, Infirmary o Crew Quarters.
-## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta de la estación.
-## Fondo y zonas: assets/interiores/estacion_ares1/hub.png / hub.json (los genera tools/build_station_hub.py).
-## Si el módulo todavía no tiene escena, avisa "Coming soon".
+## Vestíbulo en primera persona: el jugador elige con el cursor a qué puerta ir.
+## Lo usan la Estación Ares 1 (5 módulos) y los Paneles solares (campo solar y sala eléctrica).
+## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta del edificio.
+## Fondo, puertas y efectos: <data_dir>/hub.png y hub.json (los genera tools/build_lobbies.py).
+## Si la puerta todavía no tiene escena, avisa "Coming soon".
 
 const Style := preload("res://scripts/core/style.gd")
 const Fx := preload("res://scripts/core/fx.gd")
 const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 
-const BG := preload("res://assets/interiores/estacion_ares1/hub.png")
-const DATA := "res://assets/interiores/estacion_ares1/hub.json"
+## Carpeta con hub.png y hub.json de este vestíbulo.
+@export_dir var data_dir := "res://assets/interiores/estacion_ares1"
+## Texto de ayuda de arriba a la izquierda (lo ve el jugador: en inglés).
+@export var hint := "Ares 1 Station  ·  Click a room to enter  ·  Esc: exit"
 
 var data: Dictionary
 var _add := CanvasItemMaterial.new()
@@ -26,16 +28,20 @@ var _leaving := false
 
 
 func _ready() -> void:
-	data = JSON.parse_string(FileAccess.get_file_as_string(DATA))
+	data = JSON.parse_string(FileAccess.get_file_as_string(data_dir.path_join("hub.json")))
 	_add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 
 	var bg := Sprite2D.new()
-	bg.texture = BG
+	bg.texture = load(data_dir.path_join("hub.png"))
 	bg.centered = false
 	add_child(bg)
 
 	_build_windows()
 	_build_lights()
+	if not data.get("glints", []).is_empty():
+		_glint_loop()
+	if not data.get("sparks", []).is_empty():
+		_spark_loop()
 	_fx.draw.connect(_draw_fx)
 	add_child(_fx)
 	_build_motes()
@@ -47,16 +53,27 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- efectos
 
-## La tormenta pasa por las ventanas del techo: rachas de polvo recortadas a cada ventana.
+## La tormenta pasa por las ventanas: rachas de polvo recortadas a cada ventana (rectángulo o polígono).
 func _build_windows() -> void:
-	for w in data.windows:
-		var r := Rect2(w[0], w[1], w[2] - w[0], w[3] - w[1])
-		var mask := ColorRect.new()
+	var shapes: Array = []
+	for w in data.get("windows", []):
+		shapes.append(PackedVector2Array([Vector2(w[0], w[1]), Vector2(w[2], w[1]), Vector2(w[2], w[3]), Vector2(w[0], w[3])]))
+	for poly in data.get("window_polys", []):
+		var pts := PackedVector2Array()
+		for p in poly:
+			pts.append(Vector2(p[0], p[1]))
+		shapes.append(pts)
+	for pts in shapes:
+		var r := Rect2(pts[0], Vector2.ZERO)
+		for p in pts:
+			r = r.expand(p)
+		var mask := Polygon2D.new()  # solo sirve de máscara (no se dibuja)
 		mask.position = r.position
-		mask.size = r.size
-		mask.color = Color.WHITE  # solo sirve de máscara (no se dibuja)
+		var local := PackedVector2Array()
+		for p in pts:
+			local.append(p - r.position)
+		mask.polygon = local
 		mask.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
-		mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(mask)
 		var p := Fx.particles(Fx.STREAK, 14, r.size.x / 120.0, Vector2(1, 0.15), 4, 100, 160)
 		p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -76,15 +93,62 @@ func _build_windows() -> void:
 		mask.add_child(haze)
 
 
-## Halo de color de la luz de cada puerta (late suave) y halos de las luces de estado.
+## Halo de color de la luz de cada puerta y de las lámparas (laten suave).
 func _build_lights() -> void:
-	for i in data.door_lights.size():
-		var p: Array = data.door_lights[i]
-		var color := Color(data.doors[i].color)
-		var g := _glow(Vector2(p[0], p[1]), color, 1.4)
+	var lights: Array = []
+	var dl: Array = data.get("door_lights", [])
+	for i in dl.size():
+		lights.append([dl[i][0], dl[i][1], data.doors[i].color, 1.4])
+	lights += data.get("lamps", [])
+	for i in lights.size():
+		var l: Array = lights[i]
+		var g := _glow(Vector2(l[0], l[1]), Color(l[2]), l[3])
 		var tw := create_tween().set_loops()
 		tw.tween_property(g, "modulate:a", 0.45, 1.1 + i * 0.13).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(g, "modulate:a", 0.9, 1.1 + i * 0.13).set_trans(Tween.TRANS_SINE)
+
+
+## Destellos del sol en los paneles solares.
+func _glint_loop() -> void:
+	while is_inside_tree():
+		await get_tree().create_timer(randf_range(0.35, 1.0)).timeout
+		var p: Array = data.glints.pick_random()
+		var s := Sprite2D.new()
+		s.texture = Fx.GLINT
+		s.material = _add
+		s.position = Vector2(p[0], p[1])
+		s.modulate = Color(0.9, 0.97, 1.0)
+		s.scale = Vector2.ZERO
+		add_child(s)
+		var tw := create_tween()
+		tw.tween_property(s, "scale", Vector2.ONE * randf_range(1.8, 3.0), 0.18)
+		tw.parallel().tween_property(s, "rotation", 0.5, 0.45)
+		tw.tween_property(s, "scale", Vector2.ZERO, 0.3)
+		tw.tween_callback(s.queue_free)
+
+
+## Chispas eléctricas: de vez en cuando salta un chorro corto de chispas amarillas.
+func _spark_loop() -> void:
+	while is_inside_tree():
+		await get_tree().create_timer(randf_range(0.8, 2.2)).timeout
+		var p: Array = data.sparks.pick_random()
+		var sp := Fx.particles(Fx.DUST, 14, 0.45, Vector2(0, -1), 80, 60, 160, Vector2(0, 420))
+		sp.one_shot = true
+		sp.explosiveness = 0.9
+		sp.preprocess = 0.0
+		sp.position = Vector2(p[0], p[1])
+		sp.scale_amount_min = 1.0
+		sp.scale_amount_max = 2.0
+		sp.color_ramp = Fx.ramp(Color(1, 0.95, 0.5), Color(1, 0.6, 0.1, 0.0))
+		sp.material = _add
+		add_child(sp)
+		sp.emitting = true
+		var flash := _glow(Vector2(p[0], p[1]), Color(1, 0.9, 0.5, 0.8), 0.9)
+		var tw := create_tween()
+		tw.tween_property(flash, "modulate:a", 0.0, 0.25)
+		tw.tween_callback(flash.queue_free)
+		tw.tween_interval(0.6)
+		tw.tween_callback(sp.queue_free)
 
 
 func _glow(at: Vector2, color: Color, size: float) -> Sprite2D:
@@ -113,15 +177,16 @@ func _build_motes() -> void:
 func _draw_fx() -> void:
 	# Luces de cultivo del invernadero (respiran)
 	var grow := 0.18 + 0.1 * sin(_t * 1.6)
-	for r in data.grow_lights:
+	for r in data.get("grow_lights", []):
 		_fx.draw_rect(Rect2(r[0], r[1], r[2] - r[0], r[3] - r[1]), Color(0.85, 0.4, 1.0, grow))
 	# Pantallas: gráficas que avanzan, texto que parpadea y el latido de la enfermería
-	for s in data.screens:
+	for s in data.get("screens", []):
 		var r := Rect2(s[0], s[1], s[2] - s[0], s[3] - s[1])
 		match s[4]:
-			"chart":
-				var x := r.position.x + fmod(_t * 18.0 + r.position.y, r.size.x)
-				_fx.draw_line(Vector2(x, r.position.y + 2), Vector2(x, r.end.y - 2), Color(0.5, 1, 0.9, 0.55), 2)
+			"chart":  # barrido suave que recorre la gráfica, siempre dentro del cristal
+				var inner := r.grow(-2)
+				var x := inner.position.x + fmod(_t * 18.0 + r.position.y, inner.size.x)
+				_fx.draw_rect(Rect2(x, inner.position.y, minf(4.0, inner.end.x - x), inner.size.y), Color(0.6, 1, 0.95, 0.22))
 			"text":
 				if fmod(_t, 1.0) < 0.5:
 					_fx.draw_rect(Rect2(r.position + Vector2(4, r.size.y - 8), Vector2(6, 3)), Color(0.6, 1, 0.9, 0.9))
@@ -132,8 +197,13 @@ func _draw_fx() -> void:
 					var beat := 9.0 if (k + int(_t * 8.0)) % 16 == 7 else (-4.0 if (k + int(_t * 8.0)) % 16 == 8 else 0.0)
 					pts.append(Vector2(x2, r.get_center().y - beat))
 				_fx.draw_polyline(pts, Color(0.4, 1, 0.5, 0.95), 2)
+			"bar":  # batería cargándose: los segmentos se encienden de izquierda a derecha
+				var f := fmod(_t * 0.5, 1.25)
+				var x0 := r.position.x + r.size.x * minf(f, 1.0)
+				if x0 < r.end.x:
+					_fx.draw_rect(Rect2(x0, r.position.y, r.end.x - x0, r.size.y), Color(0.05, 0.1, 0.12, 0.6))
 	# Luces de estado de los marcos de las puertas
-	for i in data.status_lights.size():
+	for i in data.get("status_lights", []).size():
 		var p: Array = data.status_lights[i]
 		if fmod(_t * 0.8 + i * 0.37, 2.0) < 0.6:
 			_fx.draw_circle(Vector2(p[0], p[1]), 3, Color(0.6, 1, 0.8, 0.9))
@@ -169,9 +239,9 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 10
 	add_child(layer)
-	var hint := Style.label("Ares 1 Station  ·  Click a room to enter  ·  Esc: exit", 16, Style.WHITE, 5)
-	hint.position = Vector2(16, 10)
-	layer.add_child(hint)
+	var hint_label := Style.label(hint, 16, Style.WHITE, 5)
+	hint_label.position = Vector2(16, 10)
+	layer.add_child(hint_label)
 
 	_banner = Style.brand_title("", 40, Style.WHITE, 10)
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -1,0 +1,204 @@
+{
+  "pantalla": [
+    1280,
+    720
+  ],
+  "origen": "Imagenes de Gemini 2752x1536: recorte de 10.5 px por lado (16:9 exacto) y reescalado a 1280x720",
+  "factor_escala_desde_original": 0.46869,
+  "huecos_total": 24,
+  "diametro_nucleo_oscuro_px": 30.2,
+  "semilla_sugerida": {
+    "archivo": "semilla_32.png",
+    "ancho_px": 32,
+    "alto_px": 28,
+    "nota": "Centrar el sprite en (x, y) de cada hueco"
+  },
+  "brote_desfase_y_px": -9,
+  "brote_nota": "En fondo_brotes el brote queda ~9 px por encima del centro del hueco (centroide del sprite).",
+  "saco_semillas": "Esta pintado en el fondo, abajo a la derecha de la cama 3 (aprox. x 1190-1260, y 600-690)",
+  "camas": [
+    {
+      "id": "cama_1",
+      "huecos": [
+        {
+          "id": "c1_f1_1",
+          "fila": 1,
+          "col": 1,
+          "x": 220.5,
+          "y": 196.6
+        },
+        {
+          "id": "c1_f1_2",
+          "fila": 1,
+          "col": 2,
+          "x": 333.5,
+          "y": 196.6
+        },
+        {
+          "id": "c1_f2_1",
+          "fila": 2,
+          "col": 1,
+          "x": 220.7,
+          "y": 285.3
+        },
+        {
+          "id": "c1_f2_2",
+          "fila": 2,
+          "col": 2,
+          "x": 333.4,
+          "y": 285.3
+        },
+        {
+          "id": "c1_f3_1",
+          "fila": 3,
+          "col": 1,
+          "x": 220.5,
+          "y": 373.8
+        },
+        {
+          "id": "c1_f3_2",
+          "fila": 3,
+          "col": 2,
+          "x": 333.5,
+          "y": 373.9
+        },
+        {
+          "id": "c1_f4_1",
+          "fila": 4,
+          "col": 1,
+          "x": 220.7,
+          "y": 461.9
+        },
+        {
+          "id": "c1_f4_2",
+          "fila": 4,
+          "col": 2,
+          "x": 333.5,
+          "y": 462.0
+        }
+      ]
+    },
+    {
+      "id": "cama_2",
+      "huecos": [
+        {
+          "id": "c2_f1_1",
+          "fila": 1,
+          "col": 1,
+          "x": 583.3,
+          "y": 196.5
+        },
+        {
+          "id": "c2_f1_2",
+          "fila": 1,
+          "col": 2,
+          "x": 696.2,
+          "y": 196.5
+        },
+        {
+          "id": "c2_f2_1",
+          "fila": 2,
+          "col": 1,
+          "x": 583.3,
+          "y": 285.2
+        },
+        {
+          "id": "c2_f2_2",
+          "fila": 2,
+          "col": 2,
+          "x": 696.2,
+          "y": 285.3
+        },
+        {
+          "id": "c2_f3_1",
+          "fila": 3,
+          "col": 1,
+          "x": 583.4,
+          "y": 373.8
+        },
+        {
+          "id": "c2_f3_2",
+          "fila": 3,
+          "col": 2,
+          "x": 696.2,
+          "y": 373.8
+        },
+        {
+          "id": "c2_f4_1",
+          "fila": 4,
+          "col": 1,
+          "x": 583.6,
+          "y": 461.8
+        },
+        {
+          "id": "c2_f4_2",
+          "fila": 4,
+          "col": 2,
+          "x": 696.5,
+          "y": 461.8
+        }
+      ]
+    },
+    {
+      "id": "cama_3",
+      "huecos": [
+        {
+          "id": "c3_f1_1",
+          "fila": 1,
+          "col": 1,
+          "x": 946.3,
+          "y": 196.6
+        },
+        {
+          "id": "c3_f1_2",
+          "fila": 1,
+          "col": 2,
+          "x": 1059.0,
+          "y": 196.6
+        },
+        {
+          "id": "c3_f2_1",
+          "fila": 2,
+          "col": 1,
+          "x": 946.3,
+          "y": 285.3
+        },
+        {
+          "id": "c3_f2_2",
+          "fila": 2,
+          "col": 2,
+          "x": 1059.0,
+          "y": 285.2
+        },
+        {
+          "id": "c3_f3_1",
+          "fila": 3,
+          "col": 1,
+          "x": 946.3,
+          "y": 373.8
+        },
+        {
+          "id": "c3_f3_2",
+          "fila": 3,
+          "col": 2,
+          "x": 1058.9,
+          "y": 373.8
+        },
+        {
+          "id": "c3_f4_1",
+          "fila": 4,
+          "col": 1,
+          "x": 946.5,
+          "y": 461.8
+        },
+        {
+          "id": "c3_f4_2",
+          "fila": 4,
+          "col": 2,
+          "x": 1059.3,
+          "y": 461.9
+        }
+      ]
+    }
+  ]
+}

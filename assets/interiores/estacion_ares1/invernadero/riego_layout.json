@@ -1,0 +1,263 @@
+{
+  "escala_arte": 2,
+  "pantalla": [
+    1280,
+    720
+  ],
+  "hojas": {
+    "regadera": {
+      "archivo": "regadera.png",
+      "celda": [
+        76,
+        64
+      ],
+      "columnas": 4,
+      "frames": [
+        {
+          "nombre": "reposo",
+          "x": 0,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "nombre": "vertiendo_1",
+          "x": 76,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "nombre": "vertiendo_2",
+          "x": 152,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        },
+        {
+          "nombre": "vertiendo_3",
+          "x": 228,
+          "y": 0,
+          "w": 76,
+          "h": 64
+        }
+      ]
+    },
+    "efectos_riego": {
+      "archivo": "efectos_riego.png",
+      "celda": [
+        80,
+        64
+      ],
+      "columnas": 4,
+      "frames": [
+        {
+          "nombre": "lluvia_1",
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "lluvia_2",
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "lluvia_3",
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "lluvia_4",
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "ondas_1",
+          "x": 0,
+          "y": 64,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "ondas_2",
+          "x": 80,
+          "y": 64,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "ondas_3",
+          "x": 160,
+          "y": 64,
+          "w": 80,
+          "h": 64
+        },
+        {
+          "nombre": "ondas_4",
+          "x": 240,
+          "y": 64,
+          "w": 80,
+          "h": 64
+        }
+      ]
+    },
+    "tierra_mojada": {
+      "archivo": "tierra_mojada.png",
+      "celda": [
+        96,
+        80
+      ],
+      "columnas": 3,
+      "frames": [
+        {
+          "nombre": "humeda",
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 80
+        },
+        {
+          "nombre": "empapada",
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 80
+        },
+        {
+          "nombre": "encharcada",
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 80
+        }
+      ]
+    },
+    "burbujas": {
+      "archivo": "burbujas.png",
+      "celda": [
+        40,
+        40
+      ],
+      "columnas": 3,
+      "frames": [
+        {
+          "nombre": "sed",
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 40
+        },
+        {
+          "nombre": "perfecto",
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 40
+        },
+        {
+          "nombre": "ahogada",
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 40
+        }
+      ]
+    }
+  },
+  "anclas": {
+    "regadera_roseta": [
+      9,
+      21
+    ],
+    "regadera_nota": "Poner la roseta sobre la planta: position = planta - roseta. Se puede rotar el nodo.",
+    "lluvia_planta": [
+      40,
+      56
+    ],
+    "lluvia_nota": "El punto 'lluvia_planta' de la celda va sobre el centro del hueco; la lluvia cae desde arriba.",
+    "ondas_centro": [
+      40,
+      32
+    ],
+    "tierra_mojada_centro": [
+      48,
+      40
+    ],
+    "burbuja_punta": [
+      20,
+      38
+    ],
+    "burbuja_nota": "Poner la punta de la burbuja ~22 px arriba del centro del hueco.",
+    "brote_centro_hueco": [
+      21.6,
+      23.6
+    ],
+    "brote_tamano": [
+      47,
+      39
+    ]
+  },
+  "medidor": {
+    "tamano": [
+      36,
+      152
+    ],
+    "ventana_agua": {
+      "x": 8,
+      "y": 20,
+      "w": 20,
+      "h": 116
+    },
+    "agua_nine_patch": {
+      "archivo": "medidor_agua.png",
+      "margen_arriba": 6,
+      "margen_abajo": 0,
+      "nota": "Estirar en vertical dentro de la ventana, pegada al fondo."
+    },
+    "zona_nine_patch": {
+      "archivos": [
+        "medidor_zona_verde.png",
+        "medidor_zona_roja.png"
+      ],
+      "tamano": [
+        28,
+        24
+      ],
+      "margen_arriba": 4,
+      "margen_abajo": 4,
+      "nota": "Centrar horizontalmente en la ventana (sobresale 4 px a cada lado)."
+    },
+    "flecha": {
+      "archivo": "medidor_flecha.png",
+      "tamano": [
+        16,
+        16
+      ],
+      "punta": [
+        0,
+        8
+      ]
+    },
+    "orden_de_capas": [
+      "marco",
+      "agua",
+      "zona",
+      "brillo",
+      "flecha"
+    ]
+  },
+  "tierra_mojada_estados": {
+    "humeda": "poca agua",
+    "empapada": "cantidad correcta",
+    "encharcada": "demasiada agua",
+    "nota": "Va DEBAJO del brote_1280.png (el brote ya no esta pintado en el fondo vacio)."
+  }
+}

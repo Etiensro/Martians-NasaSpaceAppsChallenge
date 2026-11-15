@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/interiores/estacion_ares1/estacion_hub.gd" id="1_hub"]
+[ext_resource type="Script" path="res://scripts/interiores/lobby.gd" id="1_lobby"]
 
 [node name="EstacionAres1" type="Node2D"]
-script = ExtResource("1_hub")
+script = ExtResource("1_lobby")
