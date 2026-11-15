@@ -28,6 +28,8 @@ func _ready() -> void:
 		player.position = $Colonia.spawn_point()
 	else:
 		player.position = zone.center()
+	if has_node("Robot"):  # el robot acompañante aparece junto al jugador
+		$Robot.snap_to_target()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:

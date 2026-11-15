@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/interior.gd" id="1_interior"]
+[ext_resource type="FontFile" path="res://assets/fonts/FiraSans-Black.ttf" id="9_title_font"]
 
 [node name="Interior" type="Node2D"]
 script = ExtResource("1_interior")
@@ -23,7 +24,8 @@ offset_left = -400.0
 offset_top = -60.0
 offset_right = 400.0
 offset_bottom = 0.0
-theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("9_title_font")
 theme_override_font_sizes/font_size = 40
 text = "INTERIOR"
 horizontal_alignment = 1

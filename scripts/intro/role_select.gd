@@ -33,7 +33,7 @@ func _ready() -> void:
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(col)
 
-	var title := Style.label("WHO STAYS AWAKE?", 46, Style.AMBER, 10)
+	var title := Style.brand_title("WHO STAYS AWAKE?", 46, Style.WHITE, 10)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)
 	var sub := Style.label("Pick the crew member who will run Ares Base during the storm.\nThe other three will sleep safely in the cryo pods.", 18, Style.WHITE, 4)
