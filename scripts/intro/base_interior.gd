@@ -3,7 +3,7 @@ extends Node2D
 ##   3. A.R.I.A. da la alerta y la tripulación decide que 3 deben dormir  (data/intro/intro_dialogue.json)
 ##   4. El jugador elige quién se queda despierto                          (role_select.gd + data/intro/roles.json)
 ##   5. Despedida: los otros 3 entran en las cápsulas de criosueño (se congelan), el robot A.R.I.A.
-##      se va con el que queda despierto y se pasa a la jugabilidad (GameState.GAMEPLAY_SCENE = AP-1).
+##      se va con el que queda despierto y se empieza dentro de la Estación Ares 1 (GameState.GAMEPLAY_SCENE).
 ##      El rol elegido queda en GameState.selected_role / role_data / crew.
 
 const Style := preload("res://scripts/core/style.gd")
@@ -153,7 +153,7 @@ func _run() -> void:
 	_set_speaker("")
 	await _final_shot(role_id)
 	GameState.selected_site = "AP-1"
-	SceneChanger.go_to(GameState.GAMEPLAY_SCENE, 1.2)
+	GameState.start_inside(GameState.GAMEPLAY_SCENE, GameState.BASE_ZONE, "estacion")
 
 
 ## Líneas de despedida: "player" pasa a ser el rol elegido y "sleeper" se reparte entre los que duermen.
