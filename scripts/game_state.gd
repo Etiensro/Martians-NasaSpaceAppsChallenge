@@ -10,7 +10,7 @@ extends Node
 const WORLD_MAP := "res://scenes/world_map.tscn"
 const BASE_ZONE := "res://scenes/ap1_zone.tscn"
 ## Escena a la que salta la intro al terminar. Cámbiala cuando exista la de gestión de recursos.
-const GAMEPLAY_SCENE := WORLD_MAP
+const GAMEPLAY_SCENE := BASE_ZONE  # al terminar la intro se aparece directo en AP-1
 
 
 ## Escena de un sitio del mapa: "AP-8" -> res://scenes/ap8_zone.tscn
