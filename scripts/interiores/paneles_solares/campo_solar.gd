@@ -349,6 +349,7 @@ func _update_status() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	var mouse := get_global_mouse_position()
+	Audio.set_loop("panel_cleaning", _brushing and _drag.is_empty() and _panel_at(mouse) >= 0)
 	if _brushing and _drag.is_empty():
 		var i := _panel_at(mouse)
 		if i >= 0:

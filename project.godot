@@ -21,6 +21,7 @@ GameState="*res://scripts/game_state.gd"
 SceneChanger="*res://scripts/core/scene_changer.gd"
 Mission="*res://scripts/core/mission.gd"
 Guide="*res://scripts/core/guide.gd"
+Audio="*res://scripts/core/audio.gd"
 
 [display]
 

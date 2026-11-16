@@ -1,5 +1,5 @@
 {
-  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2, 'crops:ready' papas listas, 'lab:sample' hay una muestra para analizar, 'storm:warning' aviso de tormenta y 'storm:damage' algo que reparar tras una tormenta. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
   "tasks": [
     { "id": "fix_panels", "text": "Fix the solar panels" },
     { "id": "plant", "text": "Plant potatoes" },
@@ -83,6 +83,63 @@
         { "text": "Day 1 done! Every day: clean panels, water potatoes, exercise, eat and sleep." },
         { "text": "To win, bring samples from AP-1, AP-8 and AP-9 to the WORK ROOM.", "image": "world_map" },
         { "text": "Your superpower: {perk1}!" }
+      ]
+    },
+    {
+      "id": "excavator",
+      "trigger": "scene:res://scenes/interiores/excavadora/excavadora.tscn",
+      "pages": [
+        { "text": "This is the ICE EXCAVATOR. Drill an ice sample here: it's the first part of your RESEARCH!" }
+      ]
+    },
+    {
+      "id": "work_room",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn",
+      "pages": [
+        { "text": "WORK ROOM: put ice samples in the lab. It takes 3 days and works while you do other things." }
+      ]
+    },
+    {
+      "id": "infirmary",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/enfermeria/enfermeria.tscn",
+      "pages": [
+        { "text": "INFIRMARY: a check-up lowers your RADIATION. Come when that bar gets red!" }
+      ]
+    },
+    {
+      "id": "quarters",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/dormitorios/dormitorios.tscn",
+      "pages": [
+        { "text": "CREW QUARTERS: sleep here when your TIREDNESS bar is high." }
+      ]
+    },
+    {
+      "id": "harvest",
+      "trigger": "crops:ready",
+      "pages": [
+        { "text": "Your potatoes are ready! Harvest them in the GREENHOUSE." }
+      ]
+    },
+    {
+      "id": "lab_sample",
+      "trigger": "lab:sample",
+      "pages": [
+        { "text": "You have an ice sample! Take it to the WORK ROOM to analyze it." }
+      ]
+    },
+    {
+      "id": "storm_warning",
+      "trigger": "storm:warning",
+      "where": "any",
+      "pages": [
+        { "text": "A dust storm is coming! Big storms keep you inside, and the panels make less power." }
+      ]
+    },
+    {
+      "id": "storm_damage",
+      "trigger": "storm:damage",
+      "pages": [
+        { "text": "The storm hurt some systems. Open my list and fix them: 2 hours and 10 EU each." }
       ]
     },
     {

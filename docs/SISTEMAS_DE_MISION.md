@@ -15,7 +15,7 @@ cambia el JSON, no el código.
 | `scripts/core/mission/crops.gd` | `Mission.crops`: cultivo de papas (plantar, regar, crecer, cosechar, limpiar la planta muerta). |
 | `scripts/core/mission/research.gd` | `Mission.research`: muestras y análisis en el laboratorio. |
 | `scripts/core/mission/expedition.gd` | `Mission.expedition`: carro explorador, viajes a AP-8/AP-9 y extracción de muestras. |
-| `scripts/core/mission_hud.gd` | HUD: reloj, batería, barras, investigación, tormenta, mensajes de A.R.I.A., cartel de actividad y pantalla final con la puntuación. |
+| `scripts/core/mission_hud.gd` | HUD: reloj, batería, barras, investigación, tormenta, mensajes de A.R.I.A., cartel de actividad y el mensaje de Control de Misión al terminar. |
 | `data/mission/rules.json` | Todas las reglas. Los campos `_proposed` son decisiones nuestras que el documento no fija. |
 | `data/intro/roles.json` | Ventajas de cada rol (`modifiers`), que se leen con `GameState.modifier(clave)`. |
 
@@ -133,14 +133,17 @@ Paneles, cables, tormentas y los minijuegos del edificio de paneles: **`docs/PAN
 
 ## Tormentas (resumen)
 
-Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 % solar, moderada 24 h −45 %,
+Pueden salir desde el **sol 2** (`first_storm_sol`); después de cada tormenta, 3 sols de protección. **40 % por sol**. Aviso ≥ 6 h antes. La animación (`scripts/core/storm_fx.gd`, en AP-1, AP-8, AP-9 y el mapa) tiene más o menos fuerza según la intensidad (`fx`). Leve 12 h −20 % solar, moderada 24 h −45 %,
 intensa 48 h −70 %. Con moderada o intensa hay **encierro**: el jugador va a la estación y no puede
 salir (salvo que esté de expedición: se queda en la zona y no puede volver hasta que pase).
 Mientras dura, la arena ensucia los paneles hora a hora (leve +15, moderada +35, intensa +50 en total); al terminar,
-la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`). La moderada también daña el
-**invernadero** (las papas no crecen hasta repararlo: `await Mission.repair_greenhouse()`, 2 h y 10 EU)
-y la intensa además el **carro** (`await Mission.expedition.repair()`, 4 h y 10 EU).
-`Mission.damaged_systems()` dice qué está dañado.
+la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`).
+**Al terminar se revisan los sistemas dañados** (documento de mecánicas, sección 7): leve → **paneles**;
+moderada → paneles e **invernadero** (las papas no crecen hasta repararlo); intensa → paneles, invernadero
+y **carro**. Cada reparación **2 h y 10 EU**: `await Mission.repair_system("panels" | "greenhouse" | "rover")`.
+Mientras los paneles no se revisan generan un 25 % menos (`storms.unchecked_panels_loss`, propuesta).
+Se reparan desde la sección **STORM REPAIRS** de la lista de A.R.I.A. (en la base); el carro también desde
+su panel. `Mission.damaged_systems()` dice qué está dañado (`Mission.panels_need_check` para los paneles).
 
 ## Cultivo de papas (`Mission.crops`)
 
@@ -205,7 +208,7 @@ Mission.research.percent(); Mission.research.is_analysing(); Mission.research.an
 # Antes de salir (en AP-1)
 await Mission.expedition.inspect()      # 2 h
 await Mission.expedition.maintain()     # 2 h (después de inspeccionar)
-await Mission.expedition.repair()       # 4 h, solo si una tormenta intensa lo dañó
+await Mission.expedition.repair()       # 2 h y 10 EU, solo si una tormenta intensa lo dañó
 await Mission.expedition.load_meals(5)  # 1 h. Máximo 6 comidas
 Mission.expedition.departure_problems("AP-8")   # lista de lo que falta (vacía = se puede salir)
 
@@ -229,11 +232,14 @@ sobrante a la despensa. La muestra de AP-1 se extrae en la base (va directa al l
 ## Puntuación y fin de misión
 
 `P = 10·I + H + (100 − C) + E/10 + F + D` (investigación %, hambre, cansancio, energía, condición física,
-sols restantes). `Mission.score()` devuelve cada parte y `total`.
+sols restantes). `Mission.score()` devuelve cada parte y `total`. **D solo cuenta al ganar** (100 % de
+investigación); en una evacuación vale 0, para que rendirse pronto no dé más puntos que aguantar.
 
-La misión termina (`Mission.mission_over(reason)`, `Mission.end_reason`) con `"complete"` (pasan los 60
-sols), `"energy"`, `"hunger"`, `"fatigue"` o `"radiation"`. La pantalla final enseña el motivo y la
-puntuación; "BACK TO MENU" llama a `Mission.reset()`.
+La misión termina (`Mission.mission_over(reason)`, `Mission.end_reason`) con `"research"` (100 % de
+investigación: victoria), `"complete"` (pasan los 60 sols), `"energy"`, `"hunger"`, `"fatigue"` o
+`"radiation"`. La puntuación se guarda al terminar en `Mission.final_score`. Siempre sigue el regreso a la
+Tierra (mensaje de Control de Misión, despertar a la tripulación, despegue y llegada con la medalla y la
+puntuación): **ver `docs/FINALES.md`**. "BACK TO MENU" llama a `Mission.reset()`.
 
 ## Señales
 
@@ -266,7 +272,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | ~~Enfermería (`modulos/enfermeria/`)~~ | **Hecho**: escáner corporal → `await Mission.crew.medical_checkup(horas_jugadas)` (`escaneo.gd`, ver `docs/LABORATORIO_Y_ENFERMERIA.md`). |
 | ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
 | ~~Invernadero: cosechar~~ | **Hecho**: camas → minijuego de cosechar (`cosechar.gd`) → `await Mission.crops.harvest()`; con la planta muerta, el mismo minijuego → `await Mission.crops.clear()`. |
-| Invernadero: reparar | Falta un sitio para `await Mission.repair_greenhouse()` tras una tormenta moderada o intensa. |
+| ~~Reparaciones tras una tormenta~~ | **Hecho**: sección STORM REPAIRS de la lista de A.R.I.A. (`guide.gd`) → `Mission.repair_system()`. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | `scripts/expedition_site.gd`: paneles pequeños (limpiar con el ratón, `zone_panels_clean.gd`) → `mark_zone_panels_clean()`; excavadora → minijuego del taladro (cada zona distinta) → `start_extraction()`; carro (`zone_rover_panel.gd`): comer, dormir y volver con la muestra. Suelo y posiciones: `tools/build_sites.py`. |
 | ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
@@ -280,6 +286,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
 | Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
+| Ctrl+E | Termina la misión (cada vez con otro final: research, complete, energy...) | | |
 
 ## Decisiones sobre el documento
 
@@ -297,8 +304,12 @@ Confirmadas por el equipo (`_decision` en `rules.json`):
 5. **Comida:** la despensa empieza con 30 comidas.
 6. **Auxiliares apagados:** no se puede entrar a la estación principal (Ares 1). El edificio de paneles
    (con la Power Room, donde se vuelven a encender) sigue accesible.
+7. **Sols restantes (D) en la puntuación:** solo suman al ganar; en una evacuación valen 0.
 
 Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden cambiar):
+
+- La misión termina al llegar al 100 % de investigación (victoria); el sol 60 es la última ventana de
+  regreso. Todos los finales regresan a la Tierra (`docs/FINALES.md`).
 
 - Huecos de la tabla del hambre (61-69, 31-39, 1-9): se usa la fila de abajo.
 - Cada papa cosechada es 1 comida.

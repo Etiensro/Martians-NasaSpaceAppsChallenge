@@ -279,6 +279,7 @@ func _process(delta: float) -> void:
 		_burst(Fx6.DUST, at)
 
 	_update_rover(delta, moving, drilling)
+	Audio.set_loop("excavator", drilling)
 	_update_meters()
 	_holes.queue_redraw()
 	_shaft.queue_redraw()

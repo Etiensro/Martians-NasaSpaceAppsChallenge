@@ -11,7 +11,11 @@ const HEAD_ROOM := 60.0  # la posición del personaje son sus pies y mide ~80 px
 @onready var camera: Camera2D = $Camera2D
 
 
+const StormFx := preload("res://scripts/core/storm_fx.gd")
+
+
 func _ready() -> void:
+	add_child(StormFx.new())  # animación de la tormenta de polvo según su intensidad
 	# El jugador es el tripulante que eligió en la intro
 	player.get_node("Sprite").sprite_frames = GameState.frames_for()
 	camera.position = zone.center()

@@ -59,8 +59,9 @@ const STATION_SCENES := "res://scenes/interiores/estacion_ares1/"
 const PANEL_FIELD := "res://scenes/interiores/paneles_solares/minijuegos/campo_solar/campo_solar.tscn"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 const ICE_DRILL := "res://scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn"
-## Motivos de fin de misión (los usa el HUD para el texto).
-const END_REASONS := ["complete", "energy", "hunger", "fatigue", "radiation"]
+## Motivos de fin de misión: "research" (100 % de investigación, victoria), "complete" (llega el sol 60)
+## y las evacuaciones. Textos de cada final: data/mission/endings.json (ver docs/FINALES.md).
+const END_REASONS := ["research", "complete", "energy", "hunger", "fatigue", "radiation"]
 
 var rules: Dictionary
 var hours := 0.0              # horas de juego desde el inicio de la misión
@@ -70,9 +71,11 @@ var extra_loads := {}         # id -> EU/h
 var panels: Array = []        # [{ "dirt": 0..100, "broken": bool }], fila por fila
 var cables: Array = []        # bool por tramo: índice = fila * columnas + columna (tramo a la derecha del panel)
 var storm := {}               # vacío o { "type", "starts_at", "ends_at", "active" }
+var panels_need_check := false  # una tormenta pasó y los paneles no se han revisado (generan menos)
 var pantry_meals := 0         # comidas en la despensa de la base
 var over := false
 var end_reason := ""
+var final_score := {}         # puntuación al terminar (la enseña la pantalla final del regreso)
 var activity := {}            # actividad en curso: {} o {"label", "total", "left", "state", "rate"}
 
 var crew: Crew
@@ -105,6 +108,7 @@ func reset() -> void:
 	_last_hour = 0
 	over = false
 	end_reason = ""
+	final_score = {}
 	battery = rules.energy.start
 	systems_on.clear()
 	for id in rules.energy.systems:
@@ -120,9 +124,10 @@ func reset() -> void:
 	# ... y algunos rotos: hay que cambiarlos en el campo solar
 	_damage_panels(int(rules.panels.start_broken), int(rules.panels.start_cut_cables))
 	storm = {}
+	panels_need_check = false
 	pantry_meals = int(rules.food.start_meals)
-	# periodo de protección también al empezar, para aprender a jugar antes de la primera tormenta
-	_protected_until = rules.storms.protection_sols * 24.0
+	# al empezar no hay tormentas hasta el sol first_storm_sol (el día 1 es para aprender a jugar)
+	_protected_until = (float(rules.storms.get("first_storm_sol", 2)) - 1.0) * 24.0
 	crew.reset()
 	crops.reset()
 	research.reset()
@@ -147,7 +152,7 @@ func is_running() -> bool:
 
 
 func _process(delta: float) -> void:
-	_hud.visible = is_running() or over
+	_hud.visible = is_running() or _hud.showing_end()
 	if not activity.is_empty():
 		_process_activity(delta)
 	elif is_running() and not get_tree().paused:
@@ -324,6 +329,8 @@ func generation() -> float:
 	rate *= cleanliness() / 100.0
 	if storm_active():
 		rate *= 1.0 - storm_rule().solar_loss
+	if panels_need_check:  # sin revisar tras una tormenta
+		rate *= 1.0 - float(rules.storms.get("unchecked_panels_loss", 0.0))
 	return rate
 
 
@@ -403,14 +410,39 @@ func spend(eu: float) -> bool:
 	return true
 
 
-## Sistemas que una tormenta dejó dañados ("greenhouse", "rover").
+## Sistemas que una tormenta dejó dañados ("panels", "greenhouse", "rover").
 func damaged_systems() -> Array[String]:
 	var out: Array[String] = []
+	if panels_need_check:
+		out.append("panels")
 	if crops.damaged:
 		out.append("greenhouse")
 	if expedition.damaged:
 		out.append("rover")
 	return out
+
+
+## Revisa (repara) un sistema dañado por una tormenta: "panels", "greenhouse" o "rover". 2 h y 10 EU
+## cada uno (rules.json energy.system_repair_*; el carro, expeditions.repair_hours). Corrutina.
+## Devuelve "" o el motivo. La lista de A.R.I.A. (guide.gd) lo usa.
+func repair_system(id: String) -> String:
+	match id:
+		"panels":
+			if not panels_need_check:
+				return "The solar panels are fine."
+			if not spend(rules.energy.system_repair_cost):
+				return "Not enough energy for the repair."
+			panels_need_check = false
+			panels_changed.emit()
+			await run_task("Checking the solar panels", rules.energy.system_repair_hours, "repair")
+			return ""
+		"greenhouse":
+			return await repair_greenhouse()
+		"rover":
+			if expedition.is_away():
+				return "You can only repair the rover at the base."
+			return await expedition.repair()
+	return ""
 
 
 ## Repara el invernadero dañado por una tormenta: 10 EU y 2 h (tarea de reparación). Corrutina.
@@ -519,6 +551,8 @@ func _damage_panels(broken: int, cut: int) -> void:
 func _storm_damage(rule: Dictionary) -> void:
 	_damage_panels(int(rule.broken_panels), int(rule.cut_cables))
 	var damages: Array = rule.get("damages", [])
+	if "panels" in damages:
+		panels_need_check = true
 	if "greenhouse" in damages:
 		crops.damaged = true
 		crops_changed.emit()
@@ -599,9 +633,11 @@ func _update_storm() -> void:
 			text += " The solar panels got a bit dusty."
 		var damages: Array = rule.get("damages", [])
 		if "rover" in damages:
-			text += " Repair the greenhouse and the rover too."
+			text += " Check the panels, the greenhouse and the rover: open my list (2 h and 10 EU each)."
 		elif "greenhouse" in damages:
-			text += " Repair the greenhouse too."
+			text += " Check the panels and the greenhouse: open my list (2 h and 10 EU each)."
+		elif "panels" in damages:
+			text += " Check the panels: open my list (2 h, 10 EU)."
 		notify(text)
 
 
@@ -641,6 +677,8 @@ func gust_rule() -> Dictionary:
 # ---------------------------------------------------------------- puntuación y final
 
 ## Puntuación del documento: P = 10·I + H + (100 − C) + E/10 + F + D. Devuelve cada parte y "total".
+## D (sols restantes) solo cuenta si se gana (100 % de investigación): si no, una evacuación temprana
+## sumaría más puntos que aguantar (decisión del equipo, rules.json -> score._decision_sols_left).
 func score() -> Dictionary:
 	var s := {
 		"research": research.percent() * rules.score.research_weight,
@@ -648,7 +686,7 @@ func score() -> Dictionary:
 		"rest": 100.0 - crew.fatigue,
 		"energy": battery / rules.score.energy_divisor,
 		"fitness": crew.fitness,
-		"sols_left": float(sols_left()),
+		"sols_left": float(sols_left()) if end_reason == "research" else 0.0,
 	}
 	var total := 0.0
 	for k in s:
@@ -662,6 +700,13 @@ func notify(text: String) -> void:
 	_hud.say(text)
 
 
+## Termina la misión (uno de END_REASONS). Research lo llama al llegar al 100 %.
+func end_mission(reason: String) -> void:
+	_end(reason)
+
+
+## Fin de la misión: se congela la escena, Control de Misión manda su mensaje (HUD) y de ahí empieza
+## el regreso a la Tierra (scenes/finales/: despertar a la tripulación, despegue y llegada).
 func _end(reason: String) -> void:
 	if over:
 		return
@@ -669,18 +714,20 @@ func _end(reason: String) -> void:
 	end_reason = reason
 	if not activity.is_empty():
 		_finish_activity()
-	get_tree().paused = true  # la escena se congela detrás de la pantalla final (el HUD sigue activo)
+	final_score = score()
+	get_tree().paused = true  # la escena se congela detrás del mensaje (el HUD sigue activo)
 	mission_over.emit(reason)
-	_hud.show_over(reason, score())
+	_hud.show_end(reason)
 
 
 # ---------------------------------------------------------------- atajos de prueba (solo en el editor)
 # Ctrl+1 tormenta ya (leve -> moderada -> intensa)   Ctrl+2 +1 hora         Ctrl+3 +1 sol
 # Ctrl+4 daños de tormenta intensa                   Ctrl+5 dormir 8 h      Ctrl+6 comer
 # Ctrl+7 chequeo médico                              Ctrl+8 ejercicio       Ctrl+9 muestra de AP-1 guardada (probar el laboratorio)
-# Ctrl+0 imprime el estado en la consola
+# Ctrl+0 imprime el estado en la consola              Ctrl+E termina la misión (cada vez con otro final)
 
 var _debug_storm := 0
+var _debug_end := 0
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -715,6 +762,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			notify("Debug: AP-1 sample stored. Prepare it in the Work Room.")
 		KEY_0:
 			print(debug_text())
+		KEY_E:
+			_end(END_REASONS[_debug_end % END_REASONS.size()])
+			_debug_end += 1
 
 
 ## Estado completo en texto (Ctrl+0 lo imprime). Útil para depurar.
