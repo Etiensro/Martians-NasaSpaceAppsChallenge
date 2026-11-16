@@ -113,8 +113,12 @@ func reset() -> void:
 	panels.clear()
 	cables.clear()
 	for i in panel_count():
-		panels.append({"dirt": 0.0, "broken": false})
+		# la tormenta del aterrizaje (intro) deja los paneles sucios: hay que limpiarlos para tener energía
+		var dirt := randf_range(rules.panels.start_dirt_min, rules.panels.start_dirt_max)
+		panels.append({"dirt": dirt, "broken": false})
 		cables.append(true)
+	# ... y algunos rotos: hay que cambiarlos en el campo solar
+	_damage_panels(int(rules.panels.start_broken), int(rules.panels.start_cut_cables))
 	storm = {}
 	pantry_meals = int(rules.food.start_meals)
 	# periodo de protección también al empezar, para aprender a jugar antes de la primera tormenta
@@ -202,6 +206,9 @@ func _on_hour(hour_index: int) -> void:
 	hour_passed.emit()
 	if (int(rules.clock.start_hour) + hour_index) % 24 == 0:  # medianoche: empieza un sol nuevo
 		_on_new_sol()
+	# durante la tormenta la arena se va acumulando: leve poco, moderada más, intensa mucho
+	if storm_active():
+		add_dirt_all(float(storm_rule().get("dirt", 0)) / float(storm_rule().hours))
 	_update_storm()
 	# por si al empezar la tormenta había un fundido en curso (SceneChanger ignora el cambio) o el
 	# jugador vuelve de una expedición: con encierro, cada hora se comprueba que esté dentro
@@ -483,6 +490,7 @@ func replace_panel(i: int) -> bool:
 	if not panels[i].broken or not spend(rules.energy.panel_repair_cost):
 		return false
 	panels[i].broken = false
+	panels[i].dirt = 0.0  # el panel nuevo llega limpio
 	panels_changed.emit()
 	return true
 
@@ -492,8 +500,8 @@ func repair_cable(k: int) -> void:
 	panels_changed.emit()
 
 
+## Rompe `broken` paneles sanos y corta `cut` cables enteros, al azar.
 func _damage_panels(broken: int, cut: int) -> void:
-	add_dirt_all(rules.panels.dirt_per_storm)
 	var ok := range(panel_count()).filter(func(i): return not panels[i].broken)
 	ok.shuffle()
 	for i in ok.slice(0, broken):
@@ -506,6 +514,7 @@ func _damage_panels(broken: int, cut: int) -> void:
 
 
 ## Daños al terminar una tormenta: paneles y cables, y según su intensidad invernadero y carro.
+## (La suciedad no va aquí: se suma hora a hora mientras dura, en _on_hour.)
 func _storm_damage(rule: Dictionary) -> void:
 	_damage_panels(int(rule.broken_panels), int(rule.cut_cables))
 	var damages: Array = rule.get("damages", [])
@@ -580,12 +589,19 @@ func _update_storm() -> void:
 		_protected_until = hours + rules.storms.protection_sols * 24.0
 		_storm_damage(rule)
 		storm_ended.emit(type)
-		var checks := "the solar panels"
-		if "rover" in rule.get("damages", []):
-			checks = "the solar panels, the greenhouse and the rover"
-		elif "greenhouse" in rule.get("damages", []):
-			checks = "the solar panels and the greenhouse"
-		notify("The storm is over. Check %s: they need cleaning and repairs." % checks)
+		var text := "The storm is over."
+		if int(rule.get("broken_panels", 0)) > 0 or int(rule.get("cut_cables", 0)) > 0:
+			text += " Solar panels are dirty and broken: clean them, replace them and fix the cables."
+		elif float(rule.get("dirt", 0)) >= 30.0:
+			text += " The solar panels are covered in sand: clean them!"
+		else:
+			text += " The solar panels got a bit dusty."
+		var damages: Array = rule.get("damages", [])
+		if "rover" in damages:
+			text += " Repair the greenhouse and the rover too."
+		elif "greenhouse" in damages:
+			text += " Repair the greenhouse too."
+		notify(text)
 
 
 ## Con encierro: lleva al jugador a la estación (salvo que ya esté dentro, de expedición o en una actividad).
@@ -682,6 +698,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_3:
 			advance_hours(24.0)
 		KEY_4:
+			add_dirt_all(rules.storms.types.intense.dirt)
 			_storm_damage(rules.storms.types.intense)
 		KEY_5:
 			crew.sleep(8)

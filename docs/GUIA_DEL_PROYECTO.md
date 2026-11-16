@@ -73,6 +73,7 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 | `build_fx.py` | Texturas de efectos de `assets/fx/` |
 | `build_dormitorios.py` | Dormitorios: cuarto, reloj, manecillas (recortadas del fondo verde) y `dorm.json` (`assets/interiores/estacion_ares1/dormitorios/`) |
 | `build_power_room.py` | Sala eléctrica de los paneles: fondo, interruptores, placa y monitor (`assets/interiores/paneles_solares/sala_electrica/`) |
+| `build_field.py` | Campo solar de los paneles: panel limpio y roto, caja de repuestos, suelo, caja de conexiones y brocha (`assets/interiores/paneles_solares/campo_solar/`) |
 | `build_lobbies.py` | Vestíbulos en primera persona (`hub.png` + `hub.json`): estación Ares 1, paneles solares y excavadora |
 
 ## Editar textos

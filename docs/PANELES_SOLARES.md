@@ -7,10 +7,10 @@ explicados en **`docs/SISTEMAS_DE_MISION.md`**. Aquí solo va lo propio de los p
 
 | | |
 |---|---|
-| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. Cada sol +10 de suciedad; cada tormenta +20. |
+| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. **Empiezan sucios y con 3 rotos** (suciedad 45–75 cada uno; `panels.start_dirt_min/max`, `start_broken`, `start_cut_cables`; `_proposed`: la tormenta del aterrizaje), así que al empezar la generación es baja (~5 EU/h, balance −3 EU/h) y hay que limpiarlos y cambiar los rotos. Cada sol +10 de suciedad. Un panel nuevo llega limpio. |
 | Cables | Cada fila va en serie hasta su caja: un panel da energía si no está roto y el cable hasta la caja está entero. |
 | Generación | Según la limpieza media (70–100: 12 EU/h, 40–69: 6, 1–39: 2, 0: 0) × paneles que funcionan / 16 × (1 − pérdida por tormenta). |
-| Daños de tormenta | Paneles rotos / cables cortados: leve 1/0, moderada 2/1, intensa 4/3 (`_proposed` en `rules.json`). |
+| Tormentas | Tres niveles (`storms.types.<tipo>`, `_proposed_panels`): **leve** ensucia poco (+15), **moderada** ensucia más (+35), **intensa** ensucia (+50) y además rompe 4 paneles y corta 2 cables. La suciedad (`dirt`) se suma hora a hora mientras dura la tormenta (se ve caer la arena si estás en el campo durante una leve); las roturas (`broken_panels`, `cut_cables`) llegan al terminar. |
 | Cambiar un panel | 10 EU (`energy.panel_repair_cost`). |
 
 Limpiar los paneles dura 2 h en el documento: en el campo solar se juega en tiempo real (1 min = 1 h),
@@ -45,23 +45,31 @@ En el mapa de AP-1, el edificio de los paneles cambia de imagen según su estado
 Fuentes en `tools/data/interiores/paneles_solares/`; `python tools/build_power_room.py` genera los recortes
 en `assets/interiores/paneles_solares/sala_electrica/` (fondo transparente) y la zona de los interruptores.
 
-### Pendientes (ahora se dibujan por código)
-Basta con guardarlos con estos nombres en `assets/interiores/paneles_solares/campo_solar/` y la escena los usa sola.
+### Campo solar (hechos por el equipo)
+Fuentes de Gemini (fondo naranja liso) en `tools/data/interiores/paneles_solares/field_*_gemini.jpg`;
+`python tools/build_field.py` (con `--preview` deja una vista previa en `../_previews/`) recorta el fondo,
+reduce cada imagen a su tamaño y las guarda en `assets/interiores/paneles_solares/campo_solar/`.
+`campo_solar.gd` las usa solas; si falta alguna, esa parte se dibuja por código.
 La **arena no necesita imágenes**: es una capa que el juego genera y que la brocha borra; así sirve para
-cualquier nivel de suciedad.
+cualquier nivel de suciedad. Se pinta opaca y con los colores del polvo de `assets/buildings/paneles sucios 1-3.png`
+(`_show_dirt()` en `campo_solar.gd`): con ~60 % de suciedad el panel ya se ve tapado. Solo cambia el dibujo; la
+suciedad que cuenta para `Mission` es la cantidad real de arena.
 
 | Archivo | Qué es | Tamaño final |
 |---|---|---|
-| `field_panel.png` | Panel solar limpio, visto desde arriba | 180×100 |
+| `field_panel.png` | Panel solar limpio, visto desde arriba (solo el marco; el conector del cable lo dibuja el juego) | 180×100 |
 | `field_panel_broken.png` | El mismo panel roto | 180×100 |
-| `field_crate.png` | Caja con paneles de repuesto | 210×92 |
-| `field_ground.png` | (opcional) suelo del campo; ahora usa el suelo de AP-1 | 1280×720 |
+| `field_crate.png` | Caja con paneles de repuesto (centrada, sin deformar) | 210×92 |
+| `field_ground.png` | Suelo del campo | 1280×720 |
+| `field_combiner.png` | Caja de conexiones de cada fila (sin el poste: el cable principal lo dibuja el juego). Su luz la pinta el juego: verde si algún panel de la fila da energía, roja si ninguno | 50 de alto |
+| `field_brush.png` | Brocha que sigue al ratón sobre los paneles | 60 de ancho |
+| `field.json` | `brush_anchor`: punto de la brocha (centro de las cerdas) que va bajo el ratón | — |
 
-Prompts (Gemini). Pedir **fondo naranja liso** como en el resto de assets para recortarlos con `tools/imgutil.py`:
+Para cambiar un asset: generar la imagen nueva con el mismo nombre en `tools/data/...` y volver a ejecutar
+`python tools/build_field.py`. Prompts: vista **cenital y recta** (sin perspectiva), **fondo naranja liso
+#E8742C**, sin naranja en el objeto y sin sombra; el panel limpio y el roto, en la misma conversación.
 
-1. **Panel limpio** — *"16-bit pixel art, single solar panel module seen exactly from above (orthographic top-down, no perspective, no tilt), wide rectangle with 9:5 proportions, dark blue photovoltaic cells in a 6x3 grid with thin light-blue lines, light grey aluminium frame, small junction box on the right edge, crisp pixels, limited palette, no shadow, no text, centered on a solid flat orange background (#E8742C)."*
-2. **Panel roto** — *"Same 16-bit pixel art solar panel module seen exactly from above, same size and frame, but broken: shattered glass with white cracks spreading from an impact point, two burnt black cells, a bent frame corner, small yellow sparks, no perspective, no text, solid flat orange background (#E8742C)."* (pedirlo en la misma conversación que el limpio para que coincidan)
-3. **Caja de repuestos** — *"16-bit pixel art open metal supply crate seen from above, holding three stacked spare solar panels (dark blue cells, grey frame), NASA-style white and grey crate with yellow hazard stripes, crisp pixels, no text, solid flat orange background (#E8742C)."*
-4. **Suelo (opcional)** — *"16-bit pixel art Martian ground seen exactly from above, rusty red-orange regolith with small rocks and subtle wind ripples, seamless, no objects, no buildings, 16:9."*
-
-Si los assets que ya tienen están en horizontal o con perspectiva, no sirven para este minijuego (aquí todo se ve desde arriba y recto); lo mejor es generarlos de nuevo con estos prompts.
+### Brocha y estado de la tripulación
+Limpiar es una tarea de mantenimiento: la brocha quita arena a `1 / Mission.task_multiplier("maintenance")`
+de su velocidad normal. Con hambre, cansancio, radiación o mala condición física limpia más lento, y con el
+ingeniero (`repair_speed` 1.25) más rápido. La línea de estado de abajo lo avisa.
