@@ -60,13 +60,16 @@
 	"protection_sols": 3,
 	"daily_chance": 0.15,
 	"warning_hours": 6,
+	"_decision_damages": "Documento de mecánicas, sección 7: al terminar, se revisan los sistemas dañados. Leve: paneles. Moderada: paneles e invernadero. Intensa: paneles, invernadero y carro. Cada reparación 2 h y 10 EU (energy.system_repair_hours / system_repair_cost). Se hacen desde la lista de A.R.I.A.; el carro también desde su panel.",
+	"_proposed_unchecked_panels": "Mientras los paneles no se revisan tras una tormenta, generan un 25 % menos (unchecked_panels_loss).",
+	"unchecked_panels_loss": 0.25,
 	"_proposed_panels": "Efecto en los paneles (decisión del equipo de paneles): 'dirt' = suciedad que se suma a cada panel, repartida hora a hora mientras dura la tormenta; 'broken_panels' / 'cut_cables' = se rompen al terminar. Leve ensucia poco, moderada ensucia más, intensa ensucia y rompe.",
 	"types": {
-	  "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false, "damages": [],
+	  "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false, "damages": ["panels"],
 		"dirt": 15, "broken_panels": 0, "cut_cables": 0},
-	  "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true, "damages": ["greenhouse"],
+	  "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true, "damages": ["panels", "greenhouse"],
 		"dirt": 35, "broken_panels": 0, "cut_cables": 0},
-	  "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true, "damages": ["greenhouse", "rover"],
+	  "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true, "damages": ["panels", "greenhouse", "rover"],
 		"dirt": 50, "broken_panels": 4, "cut_cables": 2}
 	}
   },
@@ -187,7 +190,7 @@
 	"sample_slots": 1,
 	"inspection_hours": 2,
 	"maintenance_hours": 2,
-	"repair_hours": 4,
+	"repair_hours": 2,
 	"prepare_hours": 1,
 	"_decision_extraction": "El taladro trabaja solo y durante la extracción se puede dormir en la mini base (confirmado por el equipo)",
 	"zone_panels_before_extraction": true
