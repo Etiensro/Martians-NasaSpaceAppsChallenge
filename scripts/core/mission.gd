@@ -123,8 +123,8 @@ func reset() -> void:
 	storm = {}
 	panels_need_check = false
 	pantry_meals = int(rules.food.start_meals)
-	# periodo de protección también al empezar, para aprender a jugar antes de la primera tormenta
-	_protected_until = rules.storms.protection_sols * 24.0
+	# al empezar no hay tormentas hasta el sol first_storm_sol (el día 1 es para aprender a jugar)
+	_protected_until = (float(rules.storms.get("first_storm_sol", 2)) - 1.0) * 24.0
 	crew.reset()
 	crops.reset()
 	research.reset()

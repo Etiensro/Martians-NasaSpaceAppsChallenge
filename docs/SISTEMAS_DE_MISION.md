@@ -133,7 +133,7 @@ Paneles, cables, tormentas y los minijuegos del edificio de paneles: **`docs/PAN
 
 ## Tormentas (resumen)
 
-Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 % solar, moderada 24 h −45 %,
+Pueden salir desde el **sol 2** (`first_storm_sol`); después de cada tormenta, 3 sols de protección. **40 % por sol**. Aviso ≥ 6 h antes. La animación (`scripts/core/storm_fx.gd`, en AP-1, AP-8, AP-9 y el mapa) tiene más o menos fuerza según la intensidad (`fx`). Leve 12 h −20 % solar, moderada 24 h −45 %,
 intensa 48 h −70 %. Con moderada o intensa hay **encierro**: el jugador va a la estación y no puede
 salir (salvo que esté de expedición: se queda en la zona y no puede volver hasta que pase).
 Mientras dura, la arena ensucia los paneles hora a hora (leve +15, moderada +35, intensa +50 en total); al terminar,

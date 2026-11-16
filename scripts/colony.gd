@@ -49,7 +49,7 @@ func _ready() -> void:
 			_solar_look = data.texture
 		for f in data.fx:
 			_add_fx(f)
-		if id != SOLAR_ID or (Mission.cleanliness() >= 70.0 and Mission.broken_count() == 0):  # el sol solo brilla en paneles limpios y sanos
+		if id != SOLAR_ID or data.texture == SOLAR_LOOKS.dirt[0][1]:  # el sol solo brilla en paneles limpios y sanos
 			_glints += data.get("glints", [])
 	_add_vehicle()
 	_add_wind()
@@ -70,6 +70,8 @@ func _refresh_solar() -> void:
 ## Imagen del campo solar según su estado real (autoload Mission): limpio, tres niveles de
 ## suciedad o averiado (paneles rotos o cables cortados).
 func _solar_texture() -> String:
+	if not Mission.is_running():  # en la intro la colonia se ve recién instalada: paneles limpios
+		return SOLAR_LOOKS.dirt[0][1]
 	if Mission.broken_count() + Mission.cut_cable_count() > 0 and Mission.cleanliness() >= SOLAR_LOOKS.dirt[1][0]:
 		return SOLAR_LOOKS.broken
 	for look in SOLAR_LOOKS.dirt:
