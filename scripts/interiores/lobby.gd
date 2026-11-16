@@ -3,7 +3,9 @@ extends Node2D
 ## Lo usan la Estación Ares 1 (5 módulos) y los Paneles solares (campo solar y sala eléctrica).
 ## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta del edificio (o a `exit_scene`).
 ## Fondo, puertas y efectos: <data_dir>/hub.png y hub.json (los genera tools/build_lobbies.py).
-## Si la puerta todavía no tiene escena, avisa "Coming soon".
+## Las puertas sin escena todavía (p. ej. el microscopio) no se pueden elegir: no se resaltan ni responden.
+## La puerta que toca usar late con un contorno amarillo (como en el invernadero): si el vestíbulo tiene una
+## sola puerta, siempre; si tiene varias, la que pide A.R.I.A. en el tutorial (Guide.tutorial_target()).
 ## Las reglas de la misión (autoload Mission) pueden impedir salir (tormenta) o entrar a una puerta.
 
 const Style := preload("res://scripts/core/style.gd")
@@ -33,6 +35,7 @@ var _leaving := false
 
 func _ready() -> void:
 	data = JSON.parse_string(FileAccess.get_file_as_string(data_dir.path_join("hub.json")))
+	data.doors = data.doors.filter(func(d): return ResourceLoader.exists(d.scene))  # sin las "coming soon"
 	_add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 
 	var bg := Sprite2D.new()
@@ -214,6 +217,15 @@ func _draw_fx() -> void:
 
 
 func _draw_hover() -> void:
+	for door in data.doors:  # puerta que toca usar: contorno amarillo que late y flecha encima
+		if door.id != _hovered and _should_pulse(door):
+			var pr := _rect(door)
+			var pa := 0.45 + 0.45 * sin(_t * 4.0)
+			_hover_box.draw_rect(pr.grow(3), Color(Style.NEON_YELLOW, pa), false, 3)
+			var tip := Vector2(pr.get_center().x, pr.position.y - 6 + sin(_t * 6.0) * 6.0)
+			var tri := PackedVector2Array([tip + Vector2(-14, -18), tip + Vector2(14, -18), tip])
+			_hover_box.draw_colored_polygon(tri, Style.NEON_YELLOW)
+			_hover_box.draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]), Style.NAVY, 2)
 	if _hovered == "" or _hovered == "exit":
 		return
 	var door := _door(_hovered)
@@ -228,6 +240,14 @@ func _draw_hover() -> void:
 		var dy := 18.0 if corner.y == r.position.y else -18.0
 		_hover_box.draw_line(corner, corner + Vector2(dx, 0), Style.WHITE, 4)
 		_hover_box.draw_line(corner, corner + Vector2(0, dy), Style.WHITE, 4)
+
+
+## ¿Esta puerta es la que toca usar? Con una sola puerta, siempre; si no, la del tutorial de A.R.I.A.
+func _should_pulse(door: Dictionary) -> bool:
+	if data.doors.size() == 1:
+		return true
+	var target: String = Guide.tutorial_target()
+	return target != "" and str(door.scene).begins_with(target)
 
 
 # ---------------------------------------------------------------- flecha de salida (animada)

@@ -14,6 +14,10 @@ extends CanvasLayer
 ##   - Cambia según dónde estés: en una expedición (AP-8 / AP-9) la lista enseña los pasos de la zona
 ##     (paneles, taladro, esperar la muestra, volver) y las lecciones de la base (tareas del día 1, el
 ##     polvo de cada mañana...) esperan a que vuelvas. Cada lección puede llevar "where": "base" o "zone".
+##   - Tutorial del día 1: solo se puede entrar a donde lleva la tarea actual (Mission.entry_blocked_reason
+##     pregunta a tutorial_block()) y la puerta que toca late en amarillo en los vestíbulos (tutorial_target()).
+##     El botón SKIP TUTORIAL del globo (con confirmación, por si se pulsa sin querer) lo quita todo:
+##     sin bloqueos ni lecciones del tutorial.
 ## Textos y disparadores: data/guide/guide.json. Capturas: assets/ui/guide/ (tools/build_guide_shots.py).
 
 const Style := preload("res://scripts/core/style.gd")
@@ -39,10 +43,20 @@ const SYSTEM_NAMES := {"panels": "solar panels", "greenhouse": "greenhouse", "ro
 const SHOW_DELAY := 1.0       # espera tras cambiar de escena (que termine el fundido)
 const CHARS_PER_SECOND := 45.0
 const BUTTON := Vector2(76, 86)
+const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
+## Tutorial del día 1: tarea -> [puerta que se resalta, escenas a las que se puede entrar (prefijos)].
+## La estación siempre está abierta (es la casa).
+const TUTORIAL := {
+	"fix_panels": ["res://scenes/interiores/paneles_solares/minijuegos/campo_solar/", ["res://scenes/interiores/paneles_solares/"]],
+	"plant": ["res://scenes/interiores/estacion_ares1/modulos/invernadero/", ["res://scenes/interiores/estacion_ares1/modulos/invernadero/"]],
+	"water": ["res://scenes/interiores/estacion_ares1/modulos/invernadero/", ["res://scenes/interiores/estacion_ares1/modulos/invernadero/"]],
+	"exercise": ["res://scenes/interiores/estacion_ares1/modulos/gimnasio/", ["res://scenes/interiores/estacion_ares1/modulos/gimnasio/"]],
+}
 
 var data: Dictionary
 var seen := {}                # id de lección -> true
 var done := {}                # id de tarea del día 1 -> true (se queda hecha)
+var skipped := false          # el jugador saltó el tutorial
 var _queue: Array = []
 var _pages: Array = []
 var _page := 0
@@ -70,6 +84,9 @@ var _bubble: PanelContainer
 var _text: Label
 var _image: TextureRect
 var _next: Button
+var _skip: Button
+var _confirm: Control         # "¿Seguro que quieres saltar el tutorial?"
+var _confirm_no: Button
 var _typing: Tween
 var _t := 0.0
 
@@ -261,7 +278,17 @@ func _build_bubble() -> void:
 	_next.size_flags_horizontal = Control.SIZE_SHRINK_END
 	Style.brand_button(_next, true, 15)
 	_next.pressed.connect(_advance)
-	col.add_child(_next)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_END
+	buttons.add_theme_constant_override("separation", 10)
+	col.add_child(buttons)
+	_skip = Button.new()
+	_skip.text = "SKIP TUTORIAL"
+	_skip.custom_minimum_size = Vector2(130, 32)
+	Style.brand_button(_skip, false, 14)
+	_skip.pressed.connect(_ask_skip)
+	buttons.add_child(_skip)
+	buttons.add_child(_next)
 	_image = TextureRect.new()
 	_image.custom_minimum_size = Vector2(256, 144)
 	_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -269,6 +296,65 @@ func _build_bubble() -> void:
 	_image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(_image)
+	_build_confirm()
+
+
+## Confirmación de SKIP TUTORIAL: oscurece la pantalla y pregunta antes de saltarlo.
+func _build_confirm() -> void:
+	_confirm = ColorRect.new()
+	(_confirm as ColorRect).color = Color(Style.DEEP_BLUE, 0.75)
+	_confirm.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_confirm.visible = false
+	add_child(_confirm)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_confirm.add_child(center)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Style.box(Style.NAVY_SOFT, Style.NEON_YELLOW, 4, 26))
+	panel.custom_minimum_size = Vector2(620, 0)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 16)
+	panel.add_child(col)
+	var title := Style.brand_title("SKIP THE TUTORIAL?", 38, Style.NEON_YELLOW)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(title)
+	var text := Style.label("Are you sure? A.R.I.A. won't guide you step by step anymore, and every room will be open.", 20, Style.WHITE, 0)
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.custom_minimum_size = Vector2(560, 0)
+	col.add_child(text)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	col.add_child(row)
+	_confirm_no = Button.new()
+	_confirm_no.text = "NO, KEEP THE TUTORIAL"
+	_confirm_no.custom_minimum_size = Vector2(250, 48)
+	Style.brand_button(_confirm_no, true, 18)
+	_confirm_no.pressed.connect(_cancel_skip)
+	row.add_child(_confirm_no)
+	var yes := Button.new()
+	yes.text = "YES, SKIP IT"
+	yes.custom_minimum_size = Vector2(200, 48)
+	Style.brand_button(yes, false, 18)
+	yes.pressed.connect(_confirm_skip)
+	row.add_child(yes)
+
+
+func _ask_skip() -> void:
+	_confirm.visible = true
+	_confirm_no.grab_focus()  # Enter por accidente = seguir con el tutorial
+
+
+func _cancel_skip() -> void:
+	_confirm.visible = false
+	_next.grab_focus()
+
+
+func _confirm_skip() -> void:
+	_confirm.visible = false
+	skip_tutorial()
 
 
 # ---------------------------------------------------------------- estado
@@ -315,6 +401,7 @@ func _process(delta: float) -> void:
 
 
 func _reset() -> void:
+	skipped = false
 	if seen.is_empty() and done.is_empty():
 		return
 	seen.clear()
@@ -345,7 +432,56 @@ func _tasks() -> Array:
 
 
 func _day1() -> bool:
-	return Mission.sol() <= 1 and done.size() < _tasks().size() and not _away()
+	return Mission.sol() <= 1 and done.size() < _tasks().size() and not _away() and not skipped
+
+
+# ---------------------------------------------------------------- tutorial del día 1
+
+## Tarea del tutorial que toca ahora ({} si no hay tutorial: saltado, terminado o ya no es el sol 1).
+func tutorial_task() -> Dictionary:
+	if not _day1():
+		return {}
+	for t in _tasks():
+		if not done.has(t.id):
+			return t
+	return {}
+
+
+## Prefijo de la escena a la que lleva la tarea actual ("" sin tutorial). Los vestíbulos resaltan esa puerta.
+func tutorial_target() -> String:
+	var t := tutorial_task()
+	return TUTORIAL[t.id][0] if TUTORIAL.has(t.get("id", "")) else ""
+
+
+## Motivo por el que el tutorial no deja entrar a `scene_path` ("" si se puede).
+func tutorial_block(scene_path: String) -> String:
+	var t := tutorial_task()
+	if not TUTORIAL.has(t.get("id", "")) or scene_path == STATION:
+		return ""
+	for prefix in TUTORIAL[t.id][1]:
+		if scene_path.begins_with(prefix):
+			return ""
+	return "A.R.I.A.: Not yet! First: %s. (You can skip the tutorial in my messages.)" % str(t.text).to_lower()
+
+
+## Salta el tutorial: sin bloqueos y sin las lecciones de entrar a lugares ni de las tareas del día 1.
+## Siguen saliendo los avisos de cosas que pasan (tormentas, cosecha, muestras...).
+func skip_tutorial() -> void:
+	skipped = true
+	for l in data.get("lessons", []):
+		if _is_tutorial(l):
+			seen[l.id] = true
+	_queue = _queue.filter(func(l): return not _is_tutorial(l))
+	_close()
+
+
+## Lección del tutorial: las de entrar a un lugar, completar tareas del día 1, el final del día 1 y las
+## marcadas con "tutorial": true. Las de AP-8 / AP-9 son de entrar a un lugar, pero se quedan (explican la zona).
+func _is_tutorial(l: Dictionary) -> bool:
+	if str(l.get("where", "")) == "zone":
+		return false
+	var trig := str(l.trigger)
+	return trig.begins_with("scene:") or trig.begins_with("task:") or trig == "all_tasks" or l.get("tutorial", false)
 
 
 ## Marca las tareas del día 1 que ya se cumplieron (una vez hechas, se quedan hechas).
@@ -572,6 +708,7 @@ func _show_page() -> void:
 	_image.visible = img != ""
 	_image.texture = load(img) if img != "" else null
 	_next.text = "NEXT ▶" if _page < _pages.size() - 1 else "OK!"
+	_skip.visible = _day1()
 	_text.visible_ratio = 0.0
 	if _typing:
 		_typing.kill()
@@ -601,6 +738,11 @@ func _close() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _confirm.visible:  # la confirmación de saltar el tutorial manda: Esc = no saltarlo
+		get_viewport().set_input_as_handled()
+		if event.is_action_pressed("ui_cancel"):
+			_cancel_skip()
+		return
 	if not _bubble.visible:
 		return
 	if event.is_action_pressed("ui_accept"):

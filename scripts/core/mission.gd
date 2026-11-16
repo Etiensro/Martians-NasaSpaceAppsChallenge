@@ -653,6 +653,9 @@ func _send_inside() -> void:
 
 ## Motivo por el que no se puede entrar a una escena ahora ("" si se puede).
 func entry_blocked_reason(scene_path: String) -> String:
+	var tutorial: String = Guide.tutorial_block(scene_path)  # día 1: solo a donde lleva A.R.I.A.
+	if tutorial != "":
+		return tutorial
 	if scene_path.begins_with(STATION_SCENES) and not is_on("auxiliary"):
 		return "Auxiliary power is OFF. Turn it on in the Power Room first."
 	if scene_path == PANEL_FIELD and is_lockdown():

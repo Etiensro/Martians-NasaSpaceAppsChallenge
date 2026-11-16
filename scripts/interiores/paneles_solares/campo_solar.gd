@@ -32,6 +32,7 @@ const CRATE := Rect2(40, 612, 210, 92)
 const CELL := 4                       # px por "grano" de arena en pantalla
 const BRUSH_RADIUS := 26.0
 const BRUSH_POWER := 2.5              # cuánta arena quita por segundo (además del movimiento)
+const SNAP_CLEAN := 3.0               # % de arena por debajo del cual el panel queda limpio del todo
 const PLUG_RADIUS := 30.0             # distancia para enganchar un cable a su conector
 const GUST_WARNING := 3.0             # segundos de aviso antes de la ráfaga
 
@@ -201,6 +202,9 @@ func _brush(i: int, p: Vector2, amount: float) -> bool:
 				img.set_pixel(x, y, c)
 				changed = true
 	if changed:
+		if _mean_dirt(i) < SNAP_CLEAN:  # casi limpio: se quita lo que queda (granos sueltos que no se ven)
+			img.fill(Color(0, 0, 0, 0))
+			toast("Panel clean!", Style.NEON_YELLOW)
 		_show_dirt(i)
 		_write_dirt(i)
 	return changed
@@ -275,6 +279,10 @@ func _schedule_gust() -> void:
 
 
 func _update_gust(delta: float) -> void:
+	if Guide.tutorial_task().get("id", "") == "fix_panels":  # la primera vez, sin ráfagas: solo aprender
+		_wind.speed_scale = 1.0
+		_wind.modulate.a = 0.45
+		return
 	_gust_in -= delta
 	if not _gust_warned and _gust_in <= GUST_WARNING:
 		_gust_warned = true
@@ -302,7 +310,9 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 10
 	add_child(layer)
-	var hint := Style.label("Solar Field  ·  Hold click: brush the sand  ·  Drag a spare panel onto a BROKEN one  ·  Drag loose cables to their plug  ·  Esc: back", 15, Style.WHITE, 5)
+	var cables_cut := Mission.cut_cable_count() > 0  # la pista de los cables solo si hay alguno cortado
+	var hint := Style.label("Solar Field  ·  Hold click: brush the sand  ·  Drag a spare panel onto a BROKEN one%s  ·  Esc: back" % [
+		"  ·  Drag loose cables to their plug" if cables_cut else ""], 15, Style.WHITE, 5)
 	hint.position = Vector2(16, 10)
 	layer.add_child(hint)
 	_status = Style.label("", 17, Style.WHITE, 5)
@@ -336,10 +346,10 @@ func _update_status() -> void:
 	_status.text = "Clean: %d %%   ·   Working: %d / %d   ·   Power in: %.1f EU/h\nNew panel: %d EU%s" % [
 		Mission.cleanliness(), Mission.working_panels(), Mission.panel_count(), Mission.generation(),
 		Mission.rules.energy.panel_repair_cost, speed_text]
-	var all_good := Mission.cleanliness() >= 95.0 and Mission.working_panels() == Mission.panel_count()
+	var all_good := Mission.cleanliness() >= 99.5 and Mission.working_panels() == Mission.panel_count()
 	if all_good and not _celebrated:
 		_celebrated = true
-		toast("All panels clean and working. Great job!", Style.NEON_YELLOW)
+		toast("All panels CLEAN and WORKING. Great job!", Style.NEON_YELLOW)
 	elif not all_good:
 		_celebrated = false
 
