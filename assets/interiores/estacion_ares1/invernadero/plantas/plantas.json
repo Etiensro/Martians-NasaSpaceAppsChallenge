@@ -1,0 +1,13 @@
+{
+  "_comment": "Lo genera tools/build_plantas.py. Etapas: 0 sana, 1 débil (-10 %), 2 marchita (-25 / -50 %), 3 muerta.",
+  "planta": {
+    "centro_hueco": [
+      31,
+      38
+    ],
+    "tamano": [
+      57,
+      50
+    ]
+  }
+}
