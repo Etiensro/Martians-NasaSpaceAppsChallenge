@@ -114,6 +114,8 @@ func reset() -> void:
 	for i in panel_count():
 		panels.append({"dirt": 0.0, "broken": false})
 		cables.append(true)
+	for i in rules.panels.get("start_broken", []):  # sol 1: la tormenta de la intro dejó paneles rotos
+		panels[int(i)].broken = true
 	storm = {}
 	pantry_meals = int(rules.food.start_meals)
 	# periodo de protección también al empezar, para aprender a jugar antes de la primera tormenta

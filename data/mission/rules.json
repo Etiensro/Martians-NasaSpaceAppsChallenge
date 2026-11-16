@@ -49,7 +49,9 @@
 	"columns": 4,
 	"rows": 4,
 	"dirt_per_sol": 10,
-	"dirt_per_storm": 20
+	"dirt_per_storm": 20,
+    "start_broken": [1, 6, 9, 14],
+    "_start_broken_proposed": "Paneles rotos al empezar (sol 1): la tormenta de la intro los dañó y el tutorial enseña a arreglarlos"
   },
 
   "storms": {
