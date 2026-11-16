@@ -1,0 +1,178 @@
+{
+ "ice_1": [
+  66,
+  70
+ ],
+ "ice_2": [
+  68,
+  58
+ ],
+ "ice_3": [
+  66,
+  60
+ ],
+ "ice_4": [
+  66,
+  62
+ ],
+ "ice_5": [
+  54,
+  54
+ ],
+ "ice_6": [
+  36,
+  38
+ ],
+ "bubble": [
+  20,
+  18
+ ],
+ "plate_off": [
+  233,
+  184
+ ],
+ "plate_empty": [
+  255,
+  303
+ ],
+ "plate_ice": [
+  263,
+  333
+ ],
+ "plate_melting": [
+  263,
+  333
+ ],
+ "plate_boiling": [
+  260,
+  425
+ ],
+ "beaker_pour": [
+  283,
+  288
+ ],
+ "dish_empty": [
+  341,
+  178
+ ],
+ "dish_sample": [
+  290,
+  180
+ ],
+ "hand_open": [
+  415,
+  148
+ ],
+ "hand_closed": [
+  415,
+  144
+ ],
+ "txt_objective": [
+  690,
+  44
+ ],
+ "txt_do_not_drop": [
+  456,
+  50
+ ],
+ "txt_ice_melted": [
+  248,
+  50
+ ],
+ "txt_warning": [
+  234,
+  56
+ ],
+ "txt_failed": [
+  204,
+  58
+ ],
+ "txt_try_again": [
+  226,
+  49
+ ],
+ "txt_stage_complete": [
+  180,
+  87
+ ],
+ "txt_well_done": [
+  243,
+  48
+ ],
+ "txt_sample_analyzed": [
+  254,
+  104
+ ],
+ "digit_0": [
+  39,
+  46
+ ],
+ "digit_1": [
+  34,
+  46
+ ],
+ "digit_2": [
+  38,
+  48
+ ],
+ "digit_3": [
+  39,
+  46
+ ],
+ "digit_4": [
+  39,
+  46
+ ],
+ "digit_5": [
+  40,
+  43
+ ],
+ "digit_6": [
+  40,
+  42
+ ],
+ "digit_7": [
+  37,
+  43
+ ],
+ "digit_8": [
+  40,
+  43
+ ],
+ "digit_9": [
+  42,
+  43
+ ],
+ "digit_slash": [
+  40,
+  46
+ ],
+ "digit_plus": [
+  40,
+  38
+ ],
+ "digit_percent": [
+  42,
+  48
+ ],
+ "digit_s": [
+  35,
+  38
+ ],
+ "txt_waiting": [
+  410,
+  42
+ ],
+ "plate_beaker_off": [
+  255,
+  303
+ ],
+ "tip_open": [
+  413,
+  44
+ ],
+ "tip_closed": [
+  412,
+  53
+ ]
+}

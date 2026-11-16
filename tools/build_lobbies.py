@@ -73,6 +73,47 @@ LOBBIES = {
         "sparks": [[1345, 600], [1440, 560], [1300, 540]],
         "exit": [1000, 1010],
     },
+    # Módulos de la estación con un lugar donde hacer clic (vuelven al centro de la estación: exit_scene
+    # en su .tscn). Fuentes en tools/data/interiores/<módulo>/.
+    "estacion_ares1/sala_trabajo": {
+        "src": "sala_trabajo/laboratorio_gemini.webp",
+        "scenes": "res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/%s.tscn",
+        "doors": [
+            ("analisis", "BIOSAFETY CABINET", "5aa8ff", [1010, 185, 1376, 640]),
+            ("microscopio", "MICROSCOPE", "9ad7ff", [175, 300, 335, 590]),
+        ],
+        "status_lights": [[505, 216], [580, 216], [760, 216], [1068, 268], [1092, 268]],
+        "screens": [[320, 268, 420, 360, "chart"], [712, 340, 852, 432, "chart"]],
+        "lamps": [[688, 172, "dff3ff", 1.6], [1145, 150, "dff3ff", 1.4]],
+        "exit": [688, 735],
+    },
+    "estacion_ares1/enfermeria": {
+        "src": "enfermeria/enfermeria_gemini.webp",
+        "scenes": "res://scenes/interiores/estacion_ares1/modulos/enfermeria/%s.tscn",
+        "doors": [
+            ("escaneo", "BODY SCANNER", "3dff7a", [430, 280, 720, 600]),
+        ],
+        "status_lights": [[580, 216], [760, 216], [1052, 432], [1052, 448]],
+        "screens": [[1022, 302, 1092, 352, "heart"], [1122, 250, 1196, 300, "heart"]],
+        "lamps": [[575, 380, "7ff7ff", 2.2], [688, 172, "dff3ff", 1.6]],
+        "exit": [688, 735],
+    },
+    # Excavadora de hielo: la consola de control abre el minijuego (el rover se maneja a distancia)
+    "excavadora": {
+        "src": "excavadora_hub_gemini.jpg",
+        "scenes": "res://scenes/interiores/excavadora/minijuegos/%s/%s.tscn",
+        "doors": [
+            ("extraccion_hielo", "ICE DRILL CONTROL", "eafe07", [2060, 520, 2480, 1150]),
+        ],
+        "lamps": [[310, 536, "ff3b30", 1.2], [526, 580, "ff3b30", 1.2], [1090, 280, "ffe9b0", 1.6],
+                  [1666, 280, "ffe9b0", 1.6], [2300, 660, "7fe8ff", 2.4]],
+        "status_lights": [[2282, 306], [2330, 380], [2440, 700], [2440, 760], [2314, 1200], [2314, 1230],
+                          [578, 880], [1232, 720], [1232, 740]],
+        "screens": [[1044, 680, 1192, 766, "chart"], [2214, 822, 2386, 928, "chart"],
+                    [2084, 812, 2176, 896, "text"], [1916, 616, 2096, 716, "text"]],
+        "glints": [[2300, 640], [2270, 700], [2330, 610], [2250, 660]],
+        "exit": [1376, 1400],
+    },
 }
 
 
@@ -89,7 +130,7 @@ def build(lid, cfg, preview):
     img, s, ox, oy = cover(ROOT / "tools/data/interiores" / cfg["src"])
     pt = lambda p: [round(p[0] * s - ox), round(p[1] * s - oy)]
     rect = lambda r: pt(r[:2]) + pt(r[2:4]) + list(r[4:])
-    data = {"doors": [{"id": i, "name": n, "color": c, "rect": rect(r), "scene": cfg["scenes"] % (i, i)}
+    data = {"doors": [{"id": i, "name": n, "color": c, "rect": rect(r), "scene": cfg["scenes"].replace("%s", i)}
                       for i, n, c, r in cfg["doors"]]}
     for key in ("door_lights", "status_lights", "glints", "sparks"):
         data[key] = [pt(p) for p in cfg.get(key, [])]
@@ -122,7 +163,7 @@ def build(lid, cfg, preview):
             d.ellipse([p[0] - 4, p[1] - 4, p[0] + 4, p[1] + 4], outline="magenta", width=2)
         prev = ROOT.parent / "_previews"
         prev.mkdir(exist_ok=True)
-        pv.save(prev / f"lobby_{lid}.png")
+        pv.save(prev / f"lobby_{lid.replace('/', '_')}.png")
 
 
 def main():

@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interiores/lobby.gd" id="1_lobby"]
+
+[node name="SalaTrabajo" type="Node2D"]
+script = ExtResource("1_lobby")
+data_dir = "res://assets/interiores/estacion_ares1/sala_trabajo"
+hint = "Work Room  ·  Prepare samples in the biosafety cabinet  ·  Esc: back"
+exit_scene = "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"

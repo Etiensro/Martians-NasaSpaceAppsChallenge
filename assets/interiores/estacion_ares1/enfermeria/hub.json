@@ -1,0 +1,74 @@
+{
+ "doors": [
+  {
+   "id": "escaneo",
+   "name": "BODY SCANNER",
+   "color": "3dff7a",
+   "rect": [
+    398,
+    262,
+    670,
+    562
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/enfermeria/escaneo.tscn"
+  }
+ ],
+ "door_lights": [],
+ "status_lights": [
+  [
+   539,
+   202
+  ],
+  [
+   708,
+   202
+  ],
+  [
+   981,
+   405
+  ],
+  [
+   981,
+   420
+  ]
+ ],
+ "glints": [],
+ "sparks": [],
+ "lamps": [
+  [
+   534,
+   356,
+   "7ff7ff",
+   2.2
+  ],
+  [
+   640,
+   161,
+   "dff3ff",
+   1.6
+  ]
+ ],
+ "windows": [],
+ "screens": [
+  [
+   953,
+   283,
+   1019,
+   330,
+   "heart"
+  ],
+  [
+   1047,
+   234,
+   1116,
+   281,
+   "heart"
+  ]
+ ],
+ "grow_lights": [],
+ "window_polys": [],
+ "exit": [
+  640,
+  689
+ ]
+}
