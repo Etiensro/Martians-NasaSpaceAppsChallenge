@@ -43,19 +43,25 @@ PANELS_WIDTH = 240          # px del suelo (los paneles quedan del tamaño de lo
 PANELS_DOOR = (1180, 1215)  # delante de la rampa del módulo, en px de la imagen original
 
 # zona -> posiciones (px del suelo, punto donde tocan el suelo, abajo al centro)
+# La cámara de estas zonas se acerca (ZOOM): solo se ve un recuadro de 853x480 px del suelo alrededor de
+# "view" (centro, px del suelo). Todo lo importante va dentro de ese recuadro.
+ZOOM = 0.5
+
 SITES = {
     "AP-8": {
-        "ground": "ap8", "seed": 8,
-        "excavator": (760, 600), "panels": (1100, 380), "vehicle": (250, 470),
+        "ground": "ap8", "seed": 8, "view": (840, 420),
+        "excavator": (760, 610), "panels": (1120, 400), "vehicle": (520, 480),
         # cráteres: (x, y, radio x, radio y)
-        "craters": [(420, 190, 95, 52), (1180, 600, 80, 44), (180, 660, 70, 38), (640, 330, 46, 26), (1240, 160, 60, 32)],
-        "rocks": 70,
+        "craters": [(560, 262, 80, 42), (1150, 594, 70, 36), (895, 268, 42, 22), (462, 628, 50, 26),
+                    (1235, 205, 40, 20), (300, 420, 90, 48)],
+        "rocks": 60,
     },
     "AP-9": {
-        "ground": "ap9", "seed": 9,
-        "excavator": (620, 610), "panels": (300, 380), "vehicle": (1090, 470),
+        "ground": "ap9", "seed": 9, "view": (700, 420),
+        "excavator": (640, 610), "panels": (400, 400), "vehicle": (980, 480),
         # pingos (montículos con hielo dentro): (x, y, radio x, radio y)
-        "pingos": [(820, 210, 92, 50), (160, 560, 74, 40), (1220, 640, 68, 36), (560, 160, 52, 28), (1010, 380, 44, 24)],
+        "pingos": [(820, 252, 80, 42), (1062, 300, 46, 24), (330, 606, 60, 30), (1082, 622, 58, 30),
+                   (585, 232, 44, 22), (1250, 420, 70, 36)],
         "frost": 0.22,
     },
 }
@@ -245,6 +251,7 @@ def main():
         es, ps, vs = exc.shape, clean.shape, veh.shape
         meta[site] = {
             "cell": CELL,
+            "view": world(cfg["view"]), "zoom": ZOOM,
             "spawn": world((ve[0] + 60, ve[1] + 10)),
             "excavator": {
                 "name": "Ice drill", "texture": "res://assets/buildings/excavadora.png",

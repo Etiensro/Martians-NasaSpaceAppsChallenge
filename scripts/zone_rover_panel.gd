@@ -2,7 +2,7 @@ extends CanvasLayer
 ## Panel del carro en AP-8 / AP-9 (lo crea expedition_site.gd). Aparece al acercarse al carro:
 ##   EAT A MEAL      come de lo que se cargó en el carro (Mission.crew.eat, espera de 5 h entre comidas)
 ##   SLEEP 8 h       dormir dentro del carro mientras el taladro trabaja (Mission.crew.sleep)
-##   DRIVE BACK (E)  volver a la base, solo cuando la muestra está lista (Mission.expedition)
+##   DRIVE BACK (E)  volver directo a Ares 1, solo cuando la muestra está lista (Mission.expedition)
 
 const Style := preload("res://scripts/core/style.gd")
 const SLEEP_HOURS := 8.0
