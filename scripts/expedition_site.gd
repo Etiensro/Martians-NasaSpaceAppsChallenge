@@ -96,12 +96,7 @@ func _on_panels_cleaned(done: bool) -> void:
 		return
 	Mission.expedition.mark_zone_panels_clean()
 	Mission.notify("Panels clean! The drill has power. Go to the ICE DRILL.")
-	# cambiar a la imagen limpia sin recargar la escena
-	var data: Dictionary = site.panels
-	for holder in _panels.get_children():
-		for s in holder.get_children():
-			if s is Sprite2D:
-				s.texture = load(data.texture)
+	_panels.set_texture(load(site.panels.texture))  # imagen limpia sin recargar la escena
 	_glints = _panel_glints
 
 
