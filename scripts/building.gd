@@ -71,6 +71,15 @@ func _usable() -> bool:
 		and player.position.distance_to(_door) <= door_range
 
 
+## Cambia la imagen sin rehacer las franjas (la nueva debe tener el mismo tamaño y silueta).
+## colony.gd lo usa para el campo solar según su suciedad.
+func set_texture(tex: Texture2D) -> void:
+	for holder in get_children():
+		for s in holder.get_children():
+			if s is Sprite2D:
+				s.texture = tex
+
+
 ## Profundidad correcta: la imagen se corta en franjas verticales y cada tramo continuo de
 ## cada franja se ordena (y_sort) por su propio punto más bajo. Así el personaje queda delante
 ## de un módulo trasero y detrás de uno delantero, aunque sean parte de la misma imagen.

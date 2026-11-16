@@ -7,9 +7,10 @@ explicados en **`docs/SISTEMAS_DE_MISION.md`**. Aquí solo va lo propio de los p
 
 | | |
 |---|---|
-| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. **Empiezan sucios y con 3 rotos** (suciedad 45–75 cada uno; `panels.start_dirt_min/max`, `start_broken`, `start_cut_cables`; `_proposed`: la tormenta del aterrizaje), así que al empezar la generación es baja (~5 EU/h, balance −3 EU/h) y hay que limpiarlos y cambiar los rotos. Cada sol +10 de suciedad. Un panel nuevo llega limpio. |
+| Paneles | 16 paneles (4×4) con suciedad 0–100 y roto/sano. **Empiezan cubiertos de polvo y con 3 rotos** (suciedad 100 cada uno; `panels.start_dirt_min/max`, `start_broken`, `start_cut_cables`; `_proposed`: la tormenta del aterrizaje), así que al empezar la generación es 0 EU/h (balance −8 EU/h) y hay que limpiarlos y cambiar los rotos. Cada sol +10 de suciedad. Un panel nuevo llega limpio. |
 | Cables | Cada fila va en serie hasta su caja: un panel da energía si no está roto y el cable hasta la caja está entero. |
-| Generación | Según la limpieza media (70–100: 12 EU/h, 40–69: 6, 1–39: 2, 0: 0) × paneles que funcionan / 16 × (1 − pérdida por tormenta). |
+| Generación | 12 EU/h (`energy.max_generation`) × paneles que funcionan / 16 × limpieza media / 100 × (1 − pérdida por tormenta). Ej.: 13 sanos y 50 % limpios → 12 × 13/16 × 0.5 ≈ 4.9 EU/h. |
+| Imagen en el mapa (AP-1) | `colony.gd` cambia la imagen del campo solar según la limpieza media: ≥95 limpio (`paneles_grande.png`, o `paneles_averiados.png` si hay rotos o cables cortados), 66–94 `paneles sucios 1.png`, 33–65 `paneles sucios 2.png`, 0–32 `paneles sucios 3.png`. Se actualiza en vivo (tormentas, polvo de cada sol). |
 | Tormentas | Tres niveles (`storms.types.<tipo>`, `_proposed_panels`): **leve** ensucia poco (+15), **moderada** ensucia más (+35), **intensa** ensucia (+50) y además rompe 4 paneles y corta 2 cables. La suciedad (`dirt`) se suma hora a hora mientras dura la tormenta (se ve caer la arena si estás en el campo durante una leve); las roturas (`broken_panels`, `cut_cables`) llegan al terminar. |
 | Cambiar un panel | 10 EU (`energy.panel_repair_cost`). |
 

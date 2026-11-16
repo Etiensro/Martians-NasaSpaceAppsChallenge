@@ -111,7 +111,7 @@ expedición, de las comidas cargadas en el carro. Cada papa cosechada es una com
 | | |
 |---|---|
 | Batería | 0-1000 EU, empieza en 800. Nunca pasa de 1000. Si llega a 0, termina la misión. |
-| Generación | Por limpieza media de los paneles: 70-100 → 12 EU/h, 40-69 → 6, 1-39 → 2, 0 → 0. × paneles que funcionan / 16 × (1 − pérdida por tormenta). |
+| Generación | 12 EU/h (`max_generation`) × paneles que funcionan / 16 × limpieza media / 100 × (1 − pérdida por tormenta). |
 | Consumo | Soporte vital 4 + cápsulas 1 + invernadero 2 + luces/auxiliares 1 = 8 EU/h, + laboratorio 4 EU/h mientras analiza. × `energy_drain` del rol (ingeniero 0.9). |
 | Gastos puntuales | Chequeo médico 20 EU, cambiar un panel 10 EU, reparar invernadero o carro 10 EU. |
 
@@ -272,5 +272,6 @@ Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden camb
 - Viaje entre AP-8 y AP-9: se suman las dos idas, como si se pasara por la base.
 - Las actividades adelantan el reloj en unos segundos (no 1 min real por hora).
 - El análisis y la extracción fijan su duración al empezar, con las penalizaciones de ese momento.
-- Los paneles empiezan sucios (45-75 cada uno) y 3 rotos por la tormenta del aterrizaje.
+- Los paneles empiezan cubiertos de polvo (suciedad 100) y 3 rotos por la tormenta del aterrizaje.
+- Generación proporcional: máximo × paneles que funcionan / total × limpieza / 100.
 - Efecto de cada tormenta en los paneles (leve y moderada ensucian, intensa ensucia y rompe), y ráfagas del minijuego de paneles (`docs/PANELES_SOLARES.md`).
