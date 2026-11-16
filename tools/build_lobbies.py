@@ -73,6 +73,22 @@ LOBBIES = {
         "sparks": [[1345, 600], [1440, 560], [1300, 540]],
         "exit": [1000, 1010],
     },
+    # Excavadora de hielo: la consola de control abre el minijuego (el rover se maneja a distancia)
+    "excavadora": {
+        "src": "excavadora_hub_gemini.jpg",
+        "scenes": "res://scenes/interiores/excavadora/minijuegos/%s/%s.tscn",
+        "doors": [
+            ("extraccion_hielo", "ICE DRILL CONTROL", "eafe07", [2060, 520, 2480, 1150]),
+        ],
+        "lamps": [[310, 536, "ff3b30", 1.2], [526, 580, "ff3b30", 1.2], [1090, 280, "ffe9b0", 1.6],
+                  [1666, 280, "ffe9b0", 1.6], [2300, 660, "7fe8ff", 2.4]],
+        "status_lights": [[2282, 306], [2330, 380], [2440, 700], [2440, 760], [2314, 1200], [2314, 1230],
+                          [578, 880], [1232, 720], [1232, 740]],
+        "screens": [[1044, 680, 1192, 766, "chart"], [2214, 822, 2386, 928, "chart"],
+                    [2084, 812, 2176, 896, "text"], [1916, 616, 2096, 716, "text"]],
+        "glints": [[2300, 640], [2270, 700], [2330, 610], [2250, 660]],
+        "exit": [1376, 1400],
+    },
 }
 
 

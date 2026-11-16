@@ -58,6 +58,7 @@ const PAUSED_SCENES := "res://scenes/intro/"
 const STATION_SCENES := "res://scenes/interiores/estacion_ares1/"
 const PANEL_FIELD := "res://scenes/interiores/paneles_solares/minijuegos/campo_solar/campo_solar.tscn"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
+const ICE_DRILL := "res://scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn"
 ## Motivos de fin de misión (los usa el HUD para el texto).
 const END_REASONS := ["complete", "energy", "hunger", "fatigue", "radiation"]
 
@@ -603,6 +604,8 @@ func entry_blocked_reason(scene_path: String) -> String:
 		return "Auxiliary power is OFF. Turn it on in the Power Room first."
 	if scene_path == PANEL_FIELD and is_lockdown():
 		return "It's too dangerous to go outside during the storm."
+	if scene_path == ICE_DRILL:
+		return expedition.extract_blocked_reason()  # ya hay muestra de AP-1 o el taladro está trabajando
 	return ""
 
 

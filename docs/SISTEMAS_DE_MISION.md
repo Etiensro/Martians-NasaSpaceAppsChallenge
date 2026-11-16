@@ -182,6 +182,7 @@ await Mission.expedition.travel("AP-8")  # 6.5 h fuera; después la escena cambi
 # En la zona
 Mission.expedition.mark_zone_panels_clean()   # falta el minijuego de limpiar los paneles de la mini base
 Mission.expedition.start_extraction()          # "" o el motivo. 24 h; mientras, dormir en la mini base
+Mission.expedition.start_extraction(0.5)       # si el minijuego ya duró 0.5 h reales, se restan
 ```
 
 Requisitos para salir: carro inspeccionado y con mantenimiento (y reparado), comida para todo el viaje
@@ -231,7 +232,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
-| Excavadora (AP-1) | Muestra de AP-1: `Mission.expedition.start_extraction()` estando en AP-1. |
+| ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
 
 ## Atajos de prueba (solo ejecutando desde el editor, con la misión en marcha)
 

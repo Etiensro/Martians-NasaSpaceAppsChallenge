@@ -1,0 +1,222 @@
+{
+  "hielo_depositos.png": {
+    "celda": [
+      72,
+      56
+    ],
+    "columnas": 5,
+    "filas": 3,
+    "columnas_orden": [
+      "entero",
+      "grieta_1",
+      "grieta_2",
+      "partido",
+      "esquirlas"
+    ],
+    "filas_orden": [
+      "chico",
+      "mediano",
+      "grande"
+    ],
+    "frames": {
+      "chico_entero": [
+        0,
+        0,
+        72,
+        56
+      ],
+      "chico_grieta_1": [
+        72,
+        0,
+        72,
+        56
+      ],
+      "chico_grieta_2": [
+        144,
+        0,
+        72,
+        56
+      ],
+      "chico_partido": [
+        216,
+        0,
+        72,
+        56
+      ],
+      "chico_esquirlas": [
+        288,
+        0,
+        72,
+        56
+      ],
+      "mediano_entero": [
+        0,
+        56,
+        72,
+        56
+      ],
+      "mediano_grieta_1": [
+        72,
+        56,
+        72,
+        56
+      ],
+      "mediano_grieta_2": [
+        144,
+        56,
+        72,
+        56
+      ],
+      "mediano_partido": [
+        216,
+        56,
+        72,
+        56
+      ],
+      "mediano_esquirlas": [
+        288,
+        56,
+        72,
+        56
+      ],
+      "grande_entero": [
+        0,
+        112,
+        72,
+        56
+      ],
+      "grande_grieta_1": [
+        72,
+        112,
+        72,
+        56
+      ],
+      "grande_grieta_2": [
+        144,
+        112,
+        72,
+        56
+      ],
+      "grande_partido": [
+        216,
+        112,
+        72,
+        56
+      ],
+      "grande_esquirlas": [
+        288,
+        112,
+        72,
+        56
+      ]
+    },
+    "nota": "Los depósitos están alineados abajo-centro de cada celda. Godot: Sprite2D hframes=5, vframes=3."
+  },
+  "hielo_esquirlas.png": {
+    "celda": [
+      8,
+      8
+    ],
+    "columnas": 8,
+    "filas": 1,
+    "nota": "8 variantes de fragmento para partículas"
+  },
+  "efectos.png": {
+    "celda": [
+      24,
+      24
+    ],
+    "columnas": 6,
+    "filas": 3,
+    "filas_orden": [
+      "polvo",
+      "chispas",
+      "destello_hielo"
+    ],
+    "nota": "Cada fila es una animación de 6 cuadros (no se repite); polvo al avanzar/taladrar, chispas al golpear roca, destello al soltar hielo."
+  },
+  "taladro.png": {
+    "celda": [
+      40,
+      20
+    ],
+    "columnas": 4,
+    "filas": 1,
+    "nota": "Broca apuntando a la derecha, 4 cuadros de giro en bucle. Colócala en la punta del brazo del rover; para ir a la izquierda usa flip_h. Punto de montaje: borde izquierdo, centro vertical."
+  },
+  "ui.png": {
+    "regiones": {
+      "marco_medidor": [
+        0,
+        0,
+        104,
+        16
+      ],
+      "relleno_hielo": [
+        0,
+        18,
+        96,
+        8
+      ],
+      "relleno_calor": [
+        0,
+        28,
+        96,
+        8
+      ],
+      "icono_hielo": [
+        0,
+        38,
+        16,
+        14
+      ],
+      "icono_taladro": [
+        20,
+        38,
+        16,
+        14
+      ],
+      "icono_gota": [
+        40,
+        38,
+        16,
+        14
+      ]
+    },
+    "nota": "Pon el relleno detrás del marco (interior transparente) y recórtalo con region_rect o un TextureProgressBar. Offset del relleno dentro del marco: (4,4)."
+  },
+  "rover.png": {
+    "celda": [
+      80,
+      64
+    ],
+    "columnas": 6,
+    "filas": 4,
+    "filas_orden": [
+      "avanzar",
+      "retroceder",
+      "taladrar_derecha",
+      "taladrar_izquierda"
+    ],
+    "nota": "Rover de perfil, ruedas tocando el suelo en y=62 de cada celda. Filas: avanzar (mira a la derecha), retroceder (mira a la izquierda), taladrar_derecha y taladrar_izquierda (broca bajada hasta el suelo, frente al rover). Cada fila son 6 cuadros en bucle. Godot: Sprite2D/AnimatedSprite2D con hframes=6, vframes=4.",
+    "punta_broca_taladrando": {
+      "derecha": [
+        65,
+        62
+      ],
+      "izquierda": [
+        14,
+        62
+      ]
+    }
+  },
+  "broca_vertical.png": {
+    "celda": [
+      11,
+      48
+    ],
+    "columnas": 4,
+    "filas": 1,
+    "nota": "Broca que apunta hacia abajo, 4 cuadros de giro. Colócala en la punta de la broca del rover al taladrar y alárgala o muévela hacia abajo con código para entrar en el subsuelo."
+  }
+}
