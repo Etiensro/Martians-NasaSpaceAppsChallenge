@@ -72,6 +72,7 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 | `build_colony.py` | Edificios de AP-1, suelo de la colonia, colisiones y `colony.json` (ejecutar después de `build_zones.py`) |
 | `build_fx.py` | Texturas de efectos de `assets/fx/` |
 | `build_power_room.py` | Sala eléctrica de los paneles: fondo, interruptores, placa y monitor (`assets/interiores/paneles_solares/sala_electrica/`) |
+| `build_lobbies.py` | Vestíbulos en primera persona (`hub.png` + `hub.json`): estación Ares 1, paneles solares y excavadora |
 
 ## Editar textos
 
