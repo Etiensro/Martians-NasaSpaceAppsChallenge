@@ -71,6 +71,7 @@ var extra_loads := {}         # id -> EU/h
 var panels: Array = []        # [{ "dirt": 0..100, "broken": bool }], fila por fila
 var cables: Array = []        # bool por tramo: índice = fila * columnas + columna (tramo a la derecha del panel)
 var storm := {}               # vacío o { "type", "starts_at", "ends_at", "active" }
+var panels_need_check := false  # una tormenta pasó y los paneles no se han revisado (generan menos)
 var pantry_meals := 0         # comidas en la despensa de la base
 var over := false
 var end_reason := ""
@@ -123,9 +124,10 @@ func reset() -> void:
 	# ... y algunos rotos: hay que cambiarlos en el campo solar
 	_damage_panels(int(rules.panels.start_broken), int(rules.panels.start_cut_cables))
 	storm = {}
+	panels_need_check = false
 	pantry_meals = int(rules.food.start_meals)
-	# periodo de protección también al empezar, para aprender a jugar antes de la primera tormenta
-	_protected_until = rules.storms.protection_sols * 24.0
+	# al empezar no hay tormentas hasta el sol first_storm_sol (el día 1 es para aprender a jugar)
+	_protected_until = (float(rules.storms.get("first_storm_sol", 2)) - 1.0) * 24.0
 	crew.reset()
 	crops.reset()
 	research.reset()
@@ -327,6 +329,8 @@ func generation() -> float:
 	rate *= cleanliness() / 100.0
 	if storm_active():
 		rate *= 1.0 - storm_rule().solar_loss
+	if panels_need_check:  # sin revisar tras una tormenta
+		rate *= 1.0 - float(rules.storms.get("unchecked_panels_loss", 0.0))
 	return rate
 
 
@@ -406,14 +410,39 @@ func spend(eu: float) -> bool:
 	return true
 
 
-## Sistemas que una tormenta dejó dañados ("greenhouse", "rover").
+## Sistemas que una tormenta dejó dañados ("panels", "greenhouse", "rover").
 func damaged_systems() -> Array[String]:
 	var out: Array[String] = []
+	if panels_need_check:
+		out.append("panels")
 	if crops.damaged:
 		out.append("greenhouse")
 	if expedition.damaged:
 		out.append("rover")
 	return out
+
+
+## Revisa (repara) un sistema dañado por una tormenta: "panels", "greenhouse" o "rover". 2 h y 10 EU
+## cada uno (rules.json energy.system_repair_*; el carro, expeditions.repair_hours). Corrutina.
+## Devuelve "" o el motivo. La lista de A.R.I.A. (guide.gd) lo usa.
+func repair_system(id: String) -> String:
+	match id:
+		"panels":
+			if not panels_need_check:
+				return "The solar panels are fine."
+			if not spend(rules.energy.system_repair_cost):
+				return "Not enough energy for the repair."
+			panels_need_check = false
+			panels_changed.emit()
+			await run_task("Checking the solar panels", rules.energy.system_repair_hours, "repair")
+			return ""
+		"greenhouse":
+			return await repair_greenhouse()
+		"rover":
+			if expedition.is_away():
+				return "You can only repair the rover at the base."
+			return await expedition.repair()
+	return ""
 
 
 ## Repara el invernadero dañado por una tormenta: 10 EU y 2 h (tarea de reparación). Corrutina.
@@ -522,6 +551,8 @@ func _damage_panels(broken: int, cut: int) -> void:
 func _storm_damage(rule: Dictionary) -> void:
 	_damage_panels(int(rule.broken_panels), int(rule.cut_cables))
 	var damages: Array = rule.get("damages", [])
+	if "panels" in damages:
+		panels_need_check = true
 	if "greenhouse" in damages:
 		crops.damaged = true
 		crops_changed.emit()
@@ -602,9 +633,11 @@ func _update_storm() -> void:
 			text += " The solar panels got a bit dusty."
 		var damages: Array = rule.get("damages", [])
 		if "rover" in damages:
-			text += " Repair the greenhouse and the rover too."
+			text += " Check the panels, the greenhouse and the rover: open my list (2 h and 10 EU each)."
 		elif "greenhouse" in damages:
-			text += " Repair the greenhouse too."
+			text += " Check the panels and the greenhouse: open my list (2 h and 10 EU each)."
+		elif "panels" in damages:
+			text += " Check the panels: open my list (2 h, 10 EU)."
 		notify(text)
 
 

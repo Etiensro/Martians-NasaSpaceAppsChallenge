@@ -119,6 +119,7 @@ func _process(delta: float) -> void:
 	_t += delta
 	var m := get_viewport().get_mouse_position()
 	var over := Rect2(_view.position, _view.size).has_point(m) and not _done
+	Audio.set_loop("panel_cleaning", _brushing and over)
 	_brush_sprite.visible = over
 	_ring.visible = over
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if over else Input.MOUSE_MODE_VISIBLE

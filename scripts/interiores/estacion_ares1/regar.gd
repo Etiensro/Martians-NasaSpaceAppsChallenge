@@ -334,6 +334,7 @@ func _hide_can() -> void:
 
 
 func _start_pour(i: int) -> void:
+	Audio.play("regar")
 	_sel = i
 	var row: Dictionary = rows[i]
 	for k in row.plants:

@@ -27,6 +27,7 @@ var _travelling := false
 
 
 func _ready() -> void:
+	add_child(preload("res://scripts/core/storm_fx.gd").new())  # tormenta de polvo según su intensidad
 	meta = JSON.parse_string(FileAccess.get_file_as_string(SITES_FILE))
 	px_scale = meta.scale
 	title_scale = meta.get("title_scale", px_scale)
@@ -175,6 +176,8 @@ func _go_to(id: String) -> void:
 		_astro.flip_h = false
 		_astro.play("celebrate")
 		await get_tree().create_timer(0.35).timeout
+	if id != Mission.expedition.site:
+		Audio.play("driving")
 	var why: String = await Mission.expedition.travel(id)  # el reloj avanza las horas de viaje
 	if why != "":
 		Mission.notify(why)

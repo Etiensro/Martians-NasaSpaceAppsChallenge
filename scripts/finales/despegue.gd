@@ -108,6 +108,7 @@ func _flash(text: String, s: float) -> void:
 ## Motor encendido: fuego y brillo bajo la nave (suben con ella) y humo que se queda en el suelo.
 func _ignite() -> void:
 	_shake = 14.0
+	Audio.play("space_rocket_launch")
 	var fire := Fx.particles(Fx.PUFF, 40, 0.5, Vector2(0, 1), 18, 260, 420)
 	fire.scale_amount_min = 4.0
 	fire.scale_amount_max = 7.0

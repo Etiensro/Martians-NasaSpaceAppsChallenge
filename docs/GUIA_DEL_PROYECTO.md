@@ -26,6 +26,7 @@ Finales: `docs/FINALES.md`.
 | `GameState` | `scripts/game_state.gd` | Roles y tripulación (`roles`, `selected_role`, `frames_for()`, `portrait_for()`, `role_color()`, `first_name()`, `modifier()`), sitio elegido, rutas de escenas (`WORLD_MAP`, `BASE_ZONE`, `GAMEPLAY_SCENE`, `site_scene()`), entrar/salir de edificios (`enter_building()`, `leave_building()`) |
 | `SceneChanger` | `scripts/core/scene_changer.gd` | **Único** sitio donde se cambia de escena: `SceneChanger.go_to(ruta)` (con fundido a negro) |
 | `Guide` | `scripts/core/guide.gd` | Robot A.R.I.A. (abajo a la izquierda): tareas del día 1 con barra de progreso, lecciones para niños con capturas (`data/guide/guide.json`, capturas con `tools/capture_guide_shots.gd` + `tools/build_guide_shots.py`) y ayuda al hacer clic. Pausa el juego mientras habla |
+| `Audio` | `scripts/core/audio.gd` | Música de ambiente siempre (`assets/music/`) y efectos (`assets/sounds/`): `Audio.play("regar")` para uno suelto, `Audio.set_loop("excavator", true)` cada frame para uno continuo (se apaga solo). Sonido de la tormenta según su intensidad, más bajo dentro de la estación |
 | `Mission` | `scripts/core/mission.gd` (+ módulos en `scripts/core/mission/`) | El sistema base: reloj, actividades, energía, hambre, cansancio, radiación, condición física, cultivos, investigación, expediciones, tormentas y puntuación, con su HUD (`mission_hud.gd`). Reglas en `data/mission/rules.json`. **Ver `docs/SISTEMAS_DE_MISION.md`** |
 
 ## Módulos compartidos (`scripts/core/`)

@@ -212,6 +212,7 @@ func _start() -> void:
 
 
 func _process(delta: float) -> void:
+	Audio.set_loop("scanning", state == State.SCANNING)
 	var mouse := get_global_mouse_position()
 	_exit.hovered = _exit.hit(mouse)
 	var over := state == State.IDLE and _pad_rect().has_point(mouse)

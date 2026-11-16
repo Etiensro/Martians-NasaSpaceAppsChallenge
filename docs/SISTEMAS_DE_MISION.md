@@ -133,14 +133,17 @@ Paneles, cables, tormentas y los minijuegos del edificio de paneles: **`docs/PAN
 
 ## Tormentas (resumen)
 
-Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 % solar, moderada 24 h −45 %,
+Pueden salir desde el **sol 2** (`first_storm_sol`); después de cada tormenta, 3 sols de protección. **40 % por sol**. Aviso ≥ 6 h antes. La animación (`scripts/core/storm_fx.gd`, en AP-1, AP-8, AP-9 y el mapa) tiene más o menos fuerza según la intensidad (`fx`). Leve 12 h −20 % solar, moderada 24 h −45 %,
 intensa 48 h −70 %. Con moderada o intensa hay **encierro**: el jugador va a la estación y no puede
 salir (salvo que esté de expedición: se queda en la zona y no puede volver hasta que pase).
 Mientras dura, la arena ensucia los paneles hora a hora (leve +15, moderada +35, intensa +50 en total); al terminar,
-la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`). La moderada también daña el
-**invernadero** (las papas no crecen hasta repararlo: `await Mission.repair_greenhouse()`, 2 h y 10 EU)
-y la intensa además el **carro** (`await Mission.expedition.repair()`, 4 h y 10 EU).
-`Mission.damaged_systems()` dice qué está dañado.
+la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`).
+**Al terminar se revisan los sistemas dañados** (documento de mecánicas, sección 7): leve → **paneles**;
+moderada → paneles e **invernadero** (las papas no crecen hasta repararlo); intensa → paneles, invernadero
+y **carro**. Cada reparación **2 h y 10 EU**: `await Mission.repair_system("panels" | "greenhouse" | "rover")`.
+Mientras los paneles no se revisan generan un 25 % menos (`storms.unchecked_panels_loss`, propuesta).
+Se reparan desde la sección **STORM REPAIRS** de la lista de A.R.I.A. (en la base); el carro también desde
+su panel. `Mission.damaged_systems()` dice qué está dañado (`Mission.panels_need_check` para los paneles).
 
 ## Cultivo de papas (`Mission.crops`)
 
@@ -205,7 +208,7 @@ Mission.research.percent(); Mission.research.is_analysing(); Mission.research.an
 # Antes de salir (en AP-1)
 await Mission.expedition.inspect()      # 2 h
 await Mission.expedition.maintain()     # 2 h (después de inspeccionar)
-await Mission.expedition.repair()       # 4 h, solo si una tormenta intensa lo dañó
+await Mission.expedition.repair()       # 2 h y 10 EU, solo si una tormenta intensa lo dañó
 await Mission.expedition.load_meals(5)  # 1 h. Máximo 6 comidas
 Mission.expedition.departure_problems("AP-8")   # lista de lo que falta (vacía = se puede salir)
 
@@ -269,7 +272,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | ~~Enfermería (`modulos/enfermeria/`)~~ | **Hecho**: escáner corporal → `await Mission.crew.medical_checkup(horas_jugadas)` (`escaneo.gd`, ver `docs/LABORATORIO_Y_ENFERMERIA.md`). |
 | ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
 | ~~Invernadero: cosechar~~ | **Hecho**: camas → minijuego de cosechar (`cosechar.gd`) → `await Mission.crops.harvest()`; con la planta muerta, el mismo minijuego → `await Mission.crops.clear()`. |
-| Invernadero: reparar | Falta un sitio para `await Mission.repair_greenhouse()` tras una tormenta moderada o intensa. |
+| ~~Reparaciones tras una tormenta~~ | **Hecho**: sección STORM REPAIRS de la lista de A.R.I.A. (`guide.gd`) → `Mission.repair_system()`. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | `scripts/expedition_site.gd`: paneles pequeños (limpiar con el ratón, `zone_panels_clean.gd`) → `mark_zone_panels_clean()`; excavadora → minijuego del taladro (cada zona distinta) → `start_extraction()`; carro (`zone_rover_panel.gd`): comer, dormir y volver con la muestra. Suelo y posiciones: `tools/build_sites.py`. |
 | ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
