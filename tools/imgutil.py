@@ -135,6 +135,70 @@ def quantize_rgba(img, colors):
     return q
 
 
+# ---------------------------------------------------------------- hojas con fondo magenta
+
+def magenta_to_alpha(rgb, opaque_below=18, noise=0.06):
+    """Quita un fondo magenta (#FF00FF) sin perder las transparencias. Lo que tiene poco magenta
+    (min(R, B) - G < opaque_below) queda opaco con su color; el vidrio, el vapor y los bordes suaves
+    (mezcla de magenta con un color claro) quedan semitransparentes y se les quita el tinte rosa.
+    `noise` descarta el ruido del JPG cerca del magenta. Devuelve un array RGBA uint8."""
+    p = rgb.astype(np.float32)
+    magenta = np.minimum(p[..., 0], p[..., 2]) - p[..., 1]
+    a = 1.0 - np.clip((magenta - opaque_below) / (255.0 - opaque_below), 0.0, 1.0)
+    a = np.clip((a - noise) / (1.0 - noise), 0.0, 1.0)
+    key = np.array([255.0, 0.0, 255.0])
+    fg = (p - key * (1.0 - a[..., None])) / np.maximum(a[..., None], 1e-3)
+    out = np.zeros(rgb.shape[:2] + (4,), np.uint8)
+    out[..., :3] = np.where(a[..., None] >= 0.999, p, fg).clip(0, 255)
+    out[..., 3] = (a * 255).round()
+    return out
+
+
+def sprite_labels(alpha, scale=4, dilate=0, threshold=90):
+    """Etiqueta cada sprite de una hoja: zonas conectadas de la máscara (alfa > threshold), calculadas
+    en una copia reducida `scale` veces y engordada `dilate` px (para unir las letras de una palabra).
+    Devuelve el mapa de etiquetas reducido (0 = fondo)."""
+    h, w = alpha.shape
+    small = np.asarray(Image.fromarray(((alpha > threshold) * 255).astype(np.uint8))
+                       .resize((w // scale, h // scale), Image.BOX)) > 40
+    grown = small.copy()
+    for dy in range(-dilate, dilate + 1):
+        for dx in range(-dilate, dilate + 1):
+            grown |= np.roll(np.roll(small, dy, 0), dx, 1)
+    labels = np.zeros(grown.shape, np.int32)
+    for i, (ys, xs) in enumerate(components(grown), 1):
+        labels[ys, xs] = i
+    return labels
+
+
+def cut_sprite(rgba, labels, seeds, scale=4, factor=1.0, pad=2):
+    """Recorta el sprite (o la unión de sprites) que contiene cada punto de `seeds` (px de la hoja),
+    sin coger trozos de los vecinos, y lo reduce por `factor`. Devuelve una Image RGBA."""
+    ids = set()
+    for x, y in seeds:
+        lab = labels[min(y // scale, labels.shape[0] - 1), min(x // scale, labels.shape[1] - 1)]
+        if lab == 0:  # el punto cayó en un hueco: la etiqueta más cercana
+            ys, xs = np.nonzero(labels)
+            k = np.argmin((ys - y // scale) ** 2 + (xs - x // scale) ** 2)
+            lab = labels[ys[k], xs[k]]
+        ids.add(lab)
+    region = np.isin(labels, list(ids))
+    region = np.asarray(Image.fromarray((region * 255).astype(np.uint8))
+                        .resize((rgba.shape[1], rgba.shape[0]), Image.NEAREST)) > 0
+    ys, xs = np.nonzero(region & (rgba[..., 3] > 0))
+    y0, y1 = max(ys.min() - pad, 0), ys.max() + 1 + pad
+    x0, x1 = max(xs.min() - pad, 0), xs.max() + 1 + pad
+    crop = rgba[y0:y1, x0:x1].copy()
+    crop[..., 3] = np.where(region[y0:y1, x0:x1], crop[..., 3], 0)
+    img = Image.fromarray(crop)
+    if factor != 1.0:
+        img = img.resize((max(1, round(img.width * factor)), max(1, round(img.height * factor))), Image.LANCZOS)
+        a = np.asarray(img).copy()
+        a[..., 3] = np.where(a[..., 3] < 20, 0, a[..., 3])  # sin velos casi invisibles
+        img = Image.fromarray(a)
+    return img
+
+
 # ---------------------------------------------------------------- recursos de Godot
 
 def write_sprite_frames(path, texture_res, anims, cell_w, cell_h):

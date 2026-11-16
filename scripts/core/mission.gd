@@ -676,7 +676,7 @@ func _end(reason: String) -> void:
 # ---------------------------------------------------------------- atajos de prueba (solo en el editor)
 # Ctrl+1 tormenta ya (leve -> moderada -> intensa)   Ctrl+2 +1 hora         Ctrl+3 +1 sol
 # Ctrl+4 daños de tormenta intensa                   Ctrl+5 dormir 8 h      Ctrl+6 comer
-# Ctrl+7 chequeo médico                              Ctrl+8 ejercicio       Ctrl+9 muestra de AP-1 al laboratorio
+# Ctrl+7 chequeo médico                              Ctrl+8 ejercicio       Ctrl+9 muestra de AP-1 guardada (probar el laboratorio)
 # Ctrl+0 imprime el estado en la consola
 
 var _debug_storm := 0
@@ -711,9 +711,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			crew.exercise()
 		KEY_9:
 			research.store(["AP-1"])
-			var why := research.start_analysis()
-			if why != "":
-				notify(why)
+			notify("Debug: AP-1 sample stored. Prepare it in the Work Room.")
 		KEY_0:
 			print(debug_text())
 

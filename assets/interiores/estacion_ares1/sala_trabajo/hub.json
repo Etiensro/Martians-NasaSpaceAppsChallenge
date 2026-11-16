@@ -1,0 +1,90 @@
+{
+ "doors": [
+  {
+   "id": "analisis",
+   "name": "BIOSAFETY CABINET",
+   "color": "5aa8ff",
+   "rect": [
+    942,
+    173,
+    1285,
+    600
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/analisis.tscn"
+  },
+  {
+   "id": "microscopio",
+   "name": "MICROSCOPE",
+   "color": "9ad7ff",
+   "rect": [
+    159,
+    281,
+    309,
+    553
+   ],
+   "scene": "res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/microscopio.tscn"
+  }
+ ],
+ "door_lights": [],
+ "status_lights": [
+  [
+   468,
+   202
+  ],
+  [
+   539,
+   202
+  ],
+  [
+   708,
+   202
+  ],
+  [
+   996,
+   251
+  ],
+  [
+   1019,
+   251
+  ]
+ ],
+ "glints": [],
+ "sparks": [],
+ "lamps": [
+  [
+   640,
+   161,
+   "dff3ff",
+   1.6
+  ],
+  [
+   1068,
+   141,
+   "dff3ff",
+   1.4
+  ]
+ ],
+ "windows": [],
+ "screens": [
+  [
+   295,
+   251,
+   389,
+   338,
+   "chart"
+  ],
+  [
+   662,
+   319,
+   794,
+   405,
+   "chart"
+  ]
+ ],
+ "grow_lights": [],
+ "window_polys": [],
+ "exit": [
+  640,
+  689
+ ]
+}

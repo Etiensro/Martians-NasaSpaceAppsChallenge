@@ -91,7 +91,9 @@ Mission.crew.eat_blocked_reason()        # para desactivar un botón
 await Mission.crew.sleep(8)              # 1-24 h. Bajo techo: cuenta como interior
 await Mission.crew.exercise(0.25)        # al terminar la caminadora. "" o "You already trained today..."
 Mission.crew.can_exercise()
-await Mission.crew.medical_checkup()     # 20 EU (médico: 0), 4 h (médico: más rápido), radiación −30
+await Mission.crew.medical_checkup(0.1)  # 20 EU (médico: 0), 4 h (médico: más rápido), radiación −30
+                                         # (0.1 h ya jugadas en el minijuego del escáner)
+Mission.crew.checkup_blocked_reason()    # "" o el motivo (sin energía)
 Mission.crew.value_of("fatigue")         # valor de una barra por nombre
 ```
 
@@ -228,8 +230,8 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 |---|---|
 | ~~Dormitorios (`modulos/dormitorios/`)~~ | **Hecho**: litera → reloj para elegir las horas (1-24) → `await Mission.crew.sleep(h)` (`scripts/interiores/estacion_ares1/dormitorios.gd`). |
 | Comer (¿cocina/comedor en la estación?) | `Mission.crew.eat()` (y `eat_blocked_reason()` para el botón). |
-| Enfermería (`modulos/enfermeria/`) | `await Mission.crew.medical_checkup()`. |
-| Work Room / laboratorio (`modulos/sala_trabajo/`) | `Mission.research.start_analysis()` y el progreso. |
+| ~~Enfermería (`modulos/enfermeria/`)~~ | **Hecho**: escáner corporal → `await Mission.crew.medical_checkup(horas_jugadas)` (`escaneo.gd`, ver `docs/LABORATORIO_Y_ENFERMERIA.md`). |
+| ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
@@ -242,7 +244,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+1 | Tormenta ya (leve → moderada → intensa) | Ctrl+6 | Comer |
 | Ctrl+2 | +1 hora | Ctrl+7 | Chequeo médico |
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
-| Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Muestra de AP-1 al laboratorio y analizar |
+| Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
 
 ## Decisiones sobre el documento
