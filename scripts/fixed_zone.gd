@@ -26,6 +26,9 @@ func _ready() -> void:
 		player.position = back
 	elif has_node("Colonia"):  # AP-1: frente a la estación principal
 		player.position = $Colonia.spawn_point()
+	elif has_node("Sitio"):  # AP-8 / AP-9: llega en el carro y se baja junto a él
+		player.position = $Sitio.spawn_point()
+		$Sitio.arrive()
 	else:
 		player.position = zone.center()
 	if has_node("Robot"):  # el robot acompañante aparece junto al jugador

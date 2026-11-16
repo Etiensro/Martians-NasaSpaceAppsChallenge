@@ -236,7 +236,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
-| AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
+| AP-8 / AP-9 | `scripts/expedition_site.gd`: paneles pequeños (limpiar con el ratón, `zone_panels_clean.gd`) → `mark_zone_panels_clean()`; excavadora → minijuego del taladro (cada zona distinta) → `start_extraction()`; carro (`zone_rover_panel.gd`): comer, dormir y volver con la muestra. Suelo y posiciones: `tools/build_sites.py`. |
 | ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
 
 ## Atajos de prueba (solo ejecutando desde el editor, con la misión en marcha)

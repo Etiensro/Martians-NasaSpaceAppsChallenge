@@ -78,6 +78,22 @@
       ]
     },
     {
+      "id": "ap8",
+      "trigger": "scene:res://scenes/ap8_zone.tscn",
+      "pages": [
+        { "text": "AP-8 has big craters. Don't fall in!" },
+        { "text": "1. Clean the dusty panels. 2. Use the ICE DRILL. Rest in the rover while it works." }
+      ]
+    },
+    {
+      "id": "ap9",
+      "trigger": "scene:res://scenes/ap9_zone.tscn",
+      "pages": [
+        { "text": "AP-9 has ice mounds: lots of ice under the ground!" },
+        { "text": "1. Clean the dusty panels. 2. Use the ICE DRILL. Rest in the rover while it works." }
+      ]
+    },
+    {
       "id": "day2",
       "trigger": "sol:2",
       "pages": [
