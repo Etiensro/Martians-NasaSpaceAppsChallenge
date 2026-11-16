@@ -1,6 +1,8 @@
 [gd_scene format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/interiores/interior_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/interiores/lobby.gd" id="1_lobby"]
 
-[node name="Interior" instance=ExtResource("1_base")]
-title = "ICE EXCAVATOR"
+[node name="Excavadora" type="Node2D"]
+script = ExtResource("1_lobby")
+data_dir = "res://assets/interiores/excavadora"
+hint = "Ice Excavator  ·  Click the control console to drill  ·  Esc: exit"

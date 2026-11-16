@@ -1,10 +1,11 @@
 extends Node2D
-## Colonia de AP-1: coloca los edificios y el vehículo (building.gd) y todos los efectos
+## Colonia de AP-1: coloca los edificios y el vehículo (building.gd, con su panel rover_panel.gd) y todos los efectos
 ## (luces, destellos de los paneles, viento con polvo, humo, vapor y rociadores).
 ## Lee assets/buildings/colony.json (lo genera tools/build_colony.py).
 
 const COLONY := "res://assets/buildings/colony.json"
 const Building := preload("res://scripts/building.gd")
+const RoverPanel := preload("res://scripts/rover_panel.gd")
 const Fx := preload("res://scripts/core/fx.gd")
 const SOLAR_ID := "paneles_grande"
 const SOLAR_LOOKS := {
@@ -81,6 +82,11 @@ func _add_vehicle() -> void:
 	_vehicle.hint_height = v.door[1] - v.pos[1] + v.size[1] + 55
 	_vehicle.used.connect(_drive_away)
 	add_child(_vehicle)
+	if doors_enabled:  # botones para preparar el carro antes de una expedición
+		var panel := RoverPanel.new()
+		panel.vehicle = _vehicle
+		panel.drive = _drive_away
+		add_child(panel)
 	# sombra (va con el vehículo, así no se queda en el suelo cuando se va)
 	var shadow := Sprite2D.new()
 	shadow.texture = load(v.texture)

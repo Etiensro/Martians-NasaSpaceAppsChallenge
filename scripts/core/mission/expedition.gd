@@ -206,7 +206,7 @@ func extraction_progress() -> float:
 
 func extract_blocked_reason() -> String:
 	if is_extracting():
-		return "The drill is already working."
+		return "The drill is already working (%d h left)." % ceili(extraction.hours_left)
 	if extracted_here or Mission.research.has_sample_of(site):
 		return "You already have the sample from %s." % site
 	if is_away() and _r().zone_panels_before_extraction and not zone_panels_clean:
@@ -218,14 +218,18 @@ func extract_blocked_reason() -> String:
 
 ## Pone el taladro a extraer la muestra de la zona actual: 24 h (tarea de excavación, fijada al
 ## empezar). Trabaja solo; al terminar, la muestra va al carro (o directa al laboratorio en AP-1).
+## `already_played_hours`: horas que ya pasaron jugando el minijuego de extracción (se restan).
 ## Devuelve "" o el motivo.
-func start_extraction() -> String:
+func start_extraction(already_played_hours := 0.0) -> String:
 	var reason := extract_blocked_reason()
 	if reason != "":
 		return reason
-	var hours := Mission.task_hours(Mission.rules.research.extraction_hours, "excavation")
+	var hours := maxf(Mission.task_hours(Mission.rules.research.extraction_hours, "excavation") - already_played_hours, 1.0)
 	extraction = {"site": site, "hours_left": hours, "hours_total": hours}
-	Mission.notify("The drill is working. The sample will be ready in %d hours: rest in the mini base meanwhile." % ceili(hours))
+	if is_away():
+		Mission.notify("The drill is working. The sample will be ready in %d hours: rest in the mini base meanwhile." % ceili(hours))
+	else:
+		Mission.notify("The drill is working. The AP-1 sample will be ready in %d hours: you can do other tasks meanwhile." % ceili(hours))
 	Mission.expedition_changed.emit()
 	return ""
 

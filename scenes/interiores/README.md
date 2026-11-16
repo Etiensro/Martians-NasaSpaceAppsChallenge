@@ -21,6 +21,10 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
 
 `estacion_ares1.tscn` es la entrada: un menú en primera persona donde se elige con el cursor a qué módulo ir o la flecha EXIT para salir a AP-1.
 
+Hechos: `invernadero`, `gimnasio` y `dormitorios` (con sus minijuegos), `sala_trabajo` (laboratorio:
+preparar muestras) y `enfermeria` (escáner). Estos dos últimos son vestíbulos con `lobby.gd` y
+`exit_scene` hacia la estación; ver `docs/LABORATORIO_Y_ENFERMERIA.md`.
+
 ## Reglas para que todo siga funcionando
 
 1. **No cambies el nombre ni la ruta** de las tres escenas de entrada (`estacion_ares1.tscn`,
@@ -37,7 +41,12 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
    Por ejemplo, para ir a un módulo de la estación:
    `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn")`.
 
-Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").
+La estación, los paneles solares y la excavadora ya son vestíbulos en primera persona (`scripts/interiores/lobby.gd`).
+
+## Excavadora: extracción de hielo
+
+`excavadora.tscn` es un vestíbulo con una sola puerta, la consola **ICE DRILL CONTROL**, que abre
+`scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn`. Detalles en `docs/EXCAVADORA.md`.
 
 ## Tiempo, energía y barras del jugador
 

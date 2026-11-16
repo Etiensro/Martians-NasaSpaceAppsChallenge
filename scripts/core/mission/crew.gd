@@ -152,13 +152,23 @@ func checkup_energy() -> float:
 	return _r().radiation.checkup_energy * GameState.modifier("medical_energy")
 
 
+## Motivo por el que ahora no se puede hacer el chequeo ("" si se puede).
+func checkup_blocked_reason() -> String:
+	if Mission.battery < checkup_energy():
+		return "Not enough energy for the medical scanner (%d EU)." % checkup_energy()
+	return ""
+
+
 ## Chequeo médico en la enfermería: cuesta energía, tarda 4 h (con penalizaciones; el médico se
 ## recupera más rápido: "health_recovery") y baja la radiación 30. Corrutina; devuelve "" o el motivo.
-func medical_checkup() -> String:
-	if not Mission.spend(checkup_energy()):
-		return "Not enough energy for the medical scanner (%d EU)." % checkup_energy()
+## `already_played_hours`: horas de juego que ya pasaron durante el minijuego del escáner.
+func medical_checkup(already_played_hours := 0.0) -> String:
+	var reason := checkup_blocked_reason()
+	if reason != "":
+		return reason
+	Mission.spend(checkup_energy())
 	var hours: float = Mission.task_hours(_r().radiation.checkup_hours, "medical") / GameState.modifier("health_recovery")
-	await Mission.run_activity("Medical check-up", hours)
+	await Mission.run_activity("Medical check-up", hours - already_played_hours)
 	radiation = clampf(radiation - _r().radiation.checkup_reduction, 0.0, 100.0)
 	_check_warnings()
 	Mission.crew_changed.emit()

@@ -48,21 +48,26 @@
   "panels": {
 	"columns": 4,
 	"rows": 4,
-	"dirt_per_sol": 10,
-	"dirt_per_storm": 20
+	"_proposed_start": "La tormenta de arena del aterrizaje (intro) deja los paneles sucios (suciedad al azar entre min y max en cada uno) y algunos rotos (al azar)",
+	"start_dirt_min": 45,
+	"start_dirt_max": 75,
+	"start_broken": 3,
+	"start_cut_cables": 0,
+	"dirt_per_sol": 10
   },
 
   "storms": {
 	"protection_sols": 3,
 	"daily_chance": 0.15,
 	"warning_hours": 6,
+	"_proposed_panels": "Efecto en los paneles (decisión del equipo de paneles): 'dirt' = suciedad que se suma a cada panel, repartida hora a hora mientras dura la tormenta; 'broken_panels' / 'cut_cables' = se rompen al terminar. Leve ensucia poco, moderada ensucia más, intensa ensucia y rompe.",
 	"types": {
 	  "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false, "damages": [],
-		"_proposed": "broken_panels / cut_cables", "broken_panels": 1, "cut_cables": 0},
+		"dirt": 15, "broken_panels": 0, "cut_cables": 0},
 	  "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true, "damages": ["greenhouse"],
-		"broken_panels": 2, "cut_cables": 1},
+		"dirt": 35, "broken_panels": 0, "cut_cables": 0},
 	  "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true, "damages": ["greenhouse", "rover"],
-		"broken_panels": 4, "cut_cables": 3}
+		"dirt": 50, "broken_panels": 4, "cut_cables": 2}
 	}
   },
 
