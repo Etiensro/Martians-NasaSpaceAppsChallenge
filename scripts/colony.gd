@@ -9,6 +9,7 @@ const Building := preload("res://scripts/building.gd")
 const RoverPanel := preload("res://scripts/rover_panel.gd")
 const Fx := preload("res://scripts/core/fx.gd")
 const SOLAR_ID := "paneles_grande"
+const SHIP_ID := "nave"  # su sombra la dibuja el juego (no está pintada en el suelo): así se va con ella
 const SOLAR_LOOKS := {
 	"broken": "res://assets/buildings/paneles_averiados.png",  # limpios pero con paneles rotos o cables cortados
 	"dirt": [  # [limpieza mínima, imagen]: limpio y los 3 niveles de suciedad
@@ -55,8 +56,12 @@ func _ready() -> void:
 		for f in data.fx:
 			_add_fx(f)
 		fx_nodes[id] = get_children().slice(before)
+		if id == SHIP_ID:
+			_add_shadow(b, data)
 		if id != SOLAR_ID or data.texture == SOLAR_LOOKS.dirt[0][1]:  # el sol solo brilla en paneles limpios y sanos
 			_glints += data.get("glints", [])
+	for f in meta.get("ground_fx", []):  # luces que se quedan en el suelo (p. ej. las de la plataforma de la nave)
+		_add_fx(f)
 	_add_vehicle()
 	_add_wind()
 	_add_vignette()
@@ -140,6 +145,18 @@ func _add_vehicle() -> void:
 	# faros encendidos, parpadeo suave (también se van con el vehículo)
 	var lamp := _light(_vehicle.position + Vector2(-v.size[0] * 0.18, -v.size[1] * 0.32), Color("fff07a"), 1.6, "pulse", 2.5)
 	lamp.reparent(_vehicle)
+
+
+## Sombra de un edificio que puede moverse (la nave): va con él, debajo de su imagen.
+func _add_shadow(b: Node2D, data: Dictionary) -> void:
+	var shadow := Sprite2D.new()
+	shadow.texture = load(data.texture)
+	shadow.centered = false
+	shadow.scale = Vector2.ONE * meta.cell
+	shadow.position = Vector2(-data.size[0] / 2.0, -data.size[1]) + Vector2(10, 6) * meta.cell
+	shadow.modulate = Color(0.12, 0.04, 0.02, 0.4)
+	b.add_child(shadow)
+	b.move_child(shadow, 0)
 
 
 ## Botones junto al carro: en AP-1, prepararlo antes de una expedición (expedition_site.gd lo cambia).
