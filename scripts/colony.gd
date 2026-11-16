@@ -11,7 +11,7 @@ const SOLAR_ID := "paneles_grande"
 const SOLAR_LOOKS := {
 	"broken": "res://assets/buildings/paneles_averiados.png",
 	"dirt": [  # [limpieza mínima, imagen]
-		[90.0, "res://assets/buildings/paneles_grande.png"],
+		[95.0, "res://assets/buildings/paneles_grande.png"],  # recién limpios; al día siguiente ya se ven sucios
 		[70.0, "res://assets/buildings/paneles sucios 1.png"],
 		[40.0, "res://assets/buildings/paneles sucios 2.png"],
 		[0.0, "res://assets/buildings/paneles sucios 3.png"],
@@ -44,7 +44,7 @@ func _ready() -> void:
 		add_child(b)
 		for f in data.fx:
 			_add_fx(f)
-		if id != SOLAR_ID or Mission.cleanliness() >= 70.0:  # el sol solo brilla en paneles limpios
+		if id != SOLAR_ID or (Mission.cleanliness() >= 70.0 and Mission.broken_count() == 0):  # el sol solo brilla en paneles limpios y sanos
 			_glints += data.get("glints", [])
 	_add_vehicle()
 	_add_wind()
