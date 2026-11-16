@@ -147,6 +147,7 @@ func _build_bubble() -> void:
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_text.custom_minimum_size = Vector2(250, 60)
+	_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_text.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING
 	col.add_child(_text)
 	_next = Button.new()
@@ -160,6 +161,7 @@ func _build_bubble() -> void:
 	_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(_image)
 
 
@@ -191,7 +193,7 @@ func _process(delta: float) -> void:
 	_robot.offset.y = -47 + sin(_t * (8.0 if _bubble.visible else 3.0)) * 1.5  # cuando habla se mueve más
 	if _wait > 0.0:
 		_wait -= delta
-	elif not _bubble.visible and not _queue.is_empty() and Mission.is_running() and not Mission.is_busy() \
+	elif not _bubble.visible and not _queue.is_empty() and Mission.is_running() and not Mission.is_busy() and not SceneChanger.is_busy() \
 			and not get_tree().paused and not hidden:
 		_open(_queue.pop_front().pages)
 
