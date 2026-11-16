@@ -194,6 +194,7 @@ func _check_warnings() -> void:
 		var crossed: bool = v <= w[2] if w[1] == "down" else v >= w[2]
 		if crossed and not _warned.has(i):
 			_warned[i] = true
-			Mission.notify(w[3])
+			# 5.º texto opcional: el aviso durante una expedición (en AP-8 / AP-9 no hay estación ni enfermería)
+			Mission.notify(w[4] if w.size() > 4 and Mission.expedition.is_away() else w[3])
 		elif not crossed:
 			_warned.erase(i)

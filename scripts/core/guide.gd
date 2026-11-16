@@ -7,6 +7,9 @@ extends CanvasLayer
 ##     (solo sale dentro de la base principal, la Estación Ares 1; espera de rules.json crew.hunger.meal_cooldown_hours entre comidas).
 ##   - Lecciones muy cortas (con capturas del juego) que salen una sola vez cuando pasa algo:
 ##     entrar a una escena, completar una tarea, terminar el día 1... Mientras habla, el juego se pausa.
+##   - Cambia según dónde estés: en una expedición (AP-8 / AP-9) la lista enseña los pasos de la zona
+##     (paneles, taladro, esperar la muestra, volver) y las lecciones de la base (tareas del día 1, el
+##     polvo de cada mañana...) esperan a que vuelvas. Cada lección puede llevar "where": "base" o "zone".
 ## Textos y disparadores: data/guide/guide.json. Capturas: assets/ui/guide/ (tools/build_guide_shots.py).
 
 const Style := preload("res://scripts/core/style.gd")
@@ -241,7 +244,10 @@ func _process(delta: float) -> void:
 		_wait -= delta
 	elif not _bubble.visible and not _queue.is_empty() and Mission.is_running() and not Mission.is_busy() and not SceneChanger.is_busy() \
 			and not get_tree().paused and not hidden:
-		_open(_queue.pop_front().pages)
+		for i in _queue.size():  # la primera lección que corresponde a donde estás; las demás esperan
+			if _fits_here(_queue[i]):
+				_open(_queue.pop_at(i).pages)
+				break
 
 
 func _reset() -> void:
@@ -253,12 +259,29 @@ func _reset() -> void:
 	_close()
 
 
+## ¿Estás de expedición (AP-8 / AP-9 o viajando)? Entonces la guía habla de la zona, no de la base.
+func _away() -> bool:
+	return Mission.expedition.is_away()
+
+
+## ¿Esta lección corresponde a donde estás ahora? "where": "base", "zone" o "any". Sin "where", las
+## lecciones de entrar a una escena valen allí mismo y las demás (tareas, mañanas) son de la base.
+func _fits_here(lesson: Dictionary) -> bool:
+	var where: String = lesson.get("where", "any" if str(lesson.trigger).begins_with("scene:") else "base")
+	match where:
+		"base":
+			return not _away()
+		"zone":
+			return _away()
+	return true
+
+
 func _tasks() -> Array:
 	return data.get("tasks", [])
 
 
 func _day1() -> bool:
-	return Mission.sol() <= 1 and done.size() < _tasks().size()
+	return Mission.sol() <= 1 and done.size() < _tasks().size() and not _away()
 
 
 ## Marca las tareas del día 1 que ya se cumplieron (una vez hechas, se quedan hechas).
@@ -307,10 +330,30 @@ func _routine_ok(id: String) -> bool:
 	return true
 
 
+## Pasos de la expedición en la zona: ¿ya está hecho?
+func _step_done(id: String) -> bool:
+	var ex := Mission.expedition
+	match id:
+		"panels":
+			return ex.zone_panels_clean or ex.extracted_here
+		"drill":
+			return ex.is_extracting() or ex.extracted_here
+		"sample":
+			return ex.extracted_here
+	return false
+
+
 ## [[texto, hecho]] de lo que se enseña en la lista.
 func _items() -> Array:
 	var out := []
-	if _day1():
+	if _away():  # expedición: los pasos de la zona y cuidarse con lo que hay en el carro
+		for st in data.get("expedition", []):
+			out.append([str(st.text), _step_done(st.id)])
+		if Mission.crew.value_of("hunger") < 70.0:
+			out.append(["Eat a meal in your rover", false])
+		if Mission.crew.value_of("fatigue") >= 50.0:
+			out.append(["Sleep in your rover", false])
+	elif _day1():
 		for t in _tasks():
 			out.append([str(t.text), done.has(t.id)])
 	else:
@@ -332,7 +375,12 @@ func _update_button() -> void:
 func _fill_list() -> void:
 	var items := _items()
 	var ok := items.filter(func(i): return i[1]).size()
-	_list_title.text = "DAY 1  ·  %d / %d" % [ok, items.size()] if _day1() else "TODAY  ·  SOL %d" % Mission.sol()
+	if _away():
+		_list_title.text = "%s MISSION  ·  %d / %d" % [Mission.expedition.site, ok, items.size()]
+	elif _day1():
+		_list_title.text = "DAY 1  ·  %d / %d" % [ok, items.size()]
+	else:
+		_list_title.text = "TODAY  ·  SOL %d" % Mission.sol()
 	_list_bar.value = 100.0 * ok / maxi(items.size(), 1)
 	while _list_rows.get_child_count() < items.size():
 		_list_rows.add_child(Style.label("", 15, Style.WHITE, 0))
