@@ -7,6 +7,8 @@ extends CanvasLayer
 
 var _curtain := ColorRect.new()
 var _busy := false
+var _target := ""      # escena a la que va el fundido en marcha
+var _pending := []     # [ruta, duración] pedida durante un fundido: se hace al terminar
 
 
 func _ready() -> void:
@@ -21,8 +23,13 @@ func _ready() -> void:
 
 func go_to(path: String, duration := 0.35) -> void:
 	if _busy:
+		# Antes se ignoraba, y la escena que lo pidió se quedaba esperando para siempre (p. ej. la
+		# estación con Esc mientras aún aparecía tras la intro: ya no respondía a los clics).
+		if path != _target:
+			_pending = [path, duration]
 		return
 	_busy = true
+	_target = path
 	_curtain.mouse_filter = Control.MOUSE_FILTER_STOP  # sin clics durante el fundido
 	await _fade(1.0, duration)
 	get_tree().change_scene_to_file(path)
@@ -30,6 +37,11 @@ func go_to(path: String, duration := 0.35) -> void:
 	await _fade(0.0, duration)
 	_curtain.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_busy = false
+	_target = ""
+	if not _pending.is_empty():
+		var next: Array = _pending
+		_pending = []
+		go_to(next[0], next[1])
 
 
 func _fade(alpha: float, duration: float) -> void:
