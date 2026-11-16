@@ -1,14 +1,22 @@
 {
-  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas.",
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
   "tasks": [
     { "id": "fix_panels", "text": "Fix the solar panels" },
     { "id": "plant", "text": "Plant potatoes" },
     { "id": "water", "text": "Water the potatoes" },
     { "id": "exercise", "text": "Exercise at the gym" }
   ],
+  "expedition": [
+    { "id": "panels", "text": "Clean the dusty panels" },
+    { "id": "drill", "text": "Use the ICE DRILL" },
+    { "id": "sample", "text": "Wait for the sample (rest in your rover)" },
+    { "id": "home", "text": "Drive back to Ares 1" }
+  ],
   "routine": [
     { "id": "panels", "ok": "Solar panels are clean", "todo": "Clean the solar panels" },
-    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes" },
+    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes",
+      "plant": "Plant potatoes", "water": "Water the potatoes", "harvest": "Harvest the potatoes",
+      "clear": "Clear the dead plants", "dead": "Dead plants: wait for the cycle to end" },
     { "id": "exercise", "ok": "You exercised today", "todo": "Exercise at the gym" },
     { "id": "food", "ok": "You are not hungry", "todo": "Eat something" },
     { "id": "sleep", "ok": "You are rested", "todo": "Sleep in the crew quarters" },
@@ -79,7 +87,7 @@
     },
     {
       "id": "ap8",
-      "trigger": "scene:res://scenes/ap8_zone.tscn",
+      "trigger": "scene:res://scenes/ap8_zone.tscn", "where": "zone",
       "pages": [
         { "text": "AP-8 has big craters. Don't fall in!" },
         { "text": "1. Clean the dusty panels. 2. Use the ICE DRILL. Rest in the rover while it works." }
@@ -87,7 +95,7 @@
     },
     {
       "id": "ap9",
-      "trigger": "scene:res://scenes/ap9_zone.tscn",
+      "trigger": "scene:res://scenes/ap9_zone.tscn", "where": "zone",
       "pages": [
         { "text": "AP-9 has ice mounds: lots of ice under the ground!" },
         { "text": "1. Clean the dusty panels. 2. Use the ICE DRILL. Rest in the rover while it works." }
@@ -97,7 +105,7 @@
       "id": "day2",
       "trigger": "sol:2",
       "pages": [
-        { "text": "Good morning! The panels got dusty. Time to clean them!", "image": "panel_states" }
+        { "text": "A new day! Dust covered the panels again. Clean them every day!", "image": "panel_states" }
       ]
     }
   ]

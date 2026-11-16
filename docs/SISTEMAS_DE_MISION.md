@@ -12,7 +12,7 @@ cambia el JSON, no el código.
 |---|---|
 | `scripts/core/mission.gd` | Autoload `Mission` (registrado en `project.godot`). Reloj, actividades, tareas, energía, sistemas, paneles, tormentas, despensa, puntuación y fin de misión. Atajos de prueba. |
 | `scripts/core/mission/crew.gd` | `Mission.crew`: hambre, cansancio, radiación, condición física. Comer, dormir, ejercicio, chequeo médico. Avisos de A.R.I.A. |
-| `scripts/core/mission/crops.gd` | `Mission.crops`: cultivo de papas (plantar, regar, crecer, cosechar). |
+| `scripts/core/mission/crops.gd` | `Mission.crops`: cultivo de papas (plantar, regar, crecer, cosechar, limpiar la planta muerta). |
 | `scripts/core/mission/research.gd` | `Mission.research`: muestras y análisis en el laboratorio. |
 | `scripts/core/mission/expedition.gd` | `Mission.expedition`: carro explorador, viajes a AP-8/AP-9 y extracción de muestras. |
 | `scripts/core/mission_hud.gd` | HUD: reloj, batería, barras, investigación, tormenta, mensajes de A.R.I.A., cartel de actividad y pantalla final con la puntuación. |
@@ -146,18 +146,49 @@ y la intensa además el **carro** (`await Mission.expedition.repair()`, 4 h y 10
 
 Plantar 1 h → regar cada sol (30 min) → 8 sols creciendo (biólogo: más rápido) → cosechar 1 h: 24 papas
 (biólogo ×1.25). Sols seguidos sin regar: 1 → −10 %, 2 → −25 %, 3 → −50 %, 4 → muere. El rendimiento
-se calcula al cosechar con la peor racha.
+se calcula al cosechar con la peor racha (regar otra vez no lo recupera).
+
+**Planta muerta** (propuesta): se queda seca en las camas y **no se puede quitar ni volver a plantar
+hasta que termina su ciclo** (los 8 sols de crecer contados desde la siembra; con el biólogo, 7).
+Entonces el paso 3 del invernadero es **limpiar las camas** (1 h, `clear_hours`) y se puede sembrar otra
+vez. Mientras la planta muerta ocupa las camas el invernadero **sí se puede apagar** (no es una
+plantación activa, y así se ahorran 2 EU/h).
 
 ```gdscript
+Mission.crops.next_task()        # "plant", "water", "harvest", "clear" o "" (no hay nada que hacer)
 await Mission.crops.plant()      # lo llama sembrar.gd al terminar
 await Mission.crops.water()      # lo llama regar.gd al terminar
-await Mission.crops.harvest()    # falta el minijuego de cosechar; usar cuando is_ready()
-Mission.crops.is_growing(); Mission.crops.is_ready(); Mission.crops.needs_water(); Mission.crops.progress()
+await Mission.crops.harvest()    # lo llama cosechar.gd al terminar (cuando is_ready())
+await Mission.crops.clear()      # lo llama cosechar.gd al limpiar la planta muerta (cuando can_clear())
+Mission.crops.plant_blocked_reason(); Mission.crops.water_blocked_reason()   # "" o el motivo
+Mission.crops.stage()            # 0 sana, 1 débil (−10 %), 2 marchita (−25/−50 %), 3 muerta
+Mission.crops.expected_harvest() # papas que daría la cosecha ahora (24 × rendimiento × rol)
+Mission.crops.sols_to_harvest(); Mission.crops.sols_to_clear(); Mission.crops.progress()
 ```
 
-`Mission.crops` también actualiza **`GameState.greenhouse_step`** (lo que enseña el invernadero):
-0 = sembrar, 1 = toca regar hoy, 2 = ya regado o listo para cosechar. Al empezar cada sol vuelve a 1
-si hay que regar.
+Estado: `planted` (hay plantas, vivas o muertas), `dead`, `age` (sols desde la siembra, cuenta siempre),
+`growth` (sols de crecimiento, solo con el invernadero encendido y sin daños), `watered_today`,
+`dry_streak`, `worst_dry_streak`, `last_harvest`.
+
+Cómo se ve (`scripts/interiores/estacion_ares1/invernadero.gd`, assets en `invernadero/plantas/`, generados
+con `tools/build_plantas.py` a partir de las macetas de `tools/data/interiores/invernadero/`):
+
+| Etapa | Cuándo | Camas de la sala | Tarjeta |
+|---|---|---|---|
+| — | Nada plantado | Vacías (`camas_vacias.png`) | "BEDS EMPTY" y la última cosecha |
+| 0 sana | Siempre regada | Las del fondo | Sol de crecimiento y papas esperadas |
+| 1 débil | 1 sol sin regar (−10 %) | `camas_1.png` | ídem con "(−10 %)" |
+| 2 marchita | 2 o 3 sols sin regar (−25 / −50 %) | `camas_2.png` | ídem con "(−25 %)" o "(−50 %)" |
+| 3 muerta | 4 sols sin regar | `camas_3.png` | Sols que faltan para limpiar |
+
+La tarjeta (abajo a la derecha) usa `maceta_0..3.png` y avisa "Needs water today!". El minijuego de
+cosechar (`cosechar.gd`) dibuja las plantas con `planta_<etapa>.png`: se arrastra cada planta hacia arriba
+y salen las papas de `expected_harvest()` repartidas entre las 24 (con menos rendimiento algunas no
+tienen). Con la planta muerta es el mismo minijuego para limpiar, sin papas.
+
+`Mission.crops` también actualiza **`GameState.greenhouse_step`** (lo usa la guía del día 1):
+0 = sembrar, 1 = toca regar hoy, 2 = ya regado, listo para cosechar o planta muerta. Al empezar cada sol
+vuelve a 1 si hay que regar. El invernadero decide el paso actual con `next_task()`.
 
 ## Investigación y expediciones
 
@@ -234,7 +265,8 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Comer (¿cocina/comedor en la estación?) | `Mission.crew.eat()` (y `eat_blocked_reason()` para el botón). |
 | ~~Enfermería (`modulos/enfermeria/`)~~ | **Hecho**: escáner corporal → `await Mission.crew.medical_checkup(horas_jugadas)` (`escaneo.gd`, ver `docs/LABORATORIO_Y_ENFERMERIA.md`). |
 | ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
-| Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
+| ~~Invernadero: cosechar~~ | **Hecho**: camas → minijuego de cosechar (`cosechar.gd`) → `await Mission.crops.harvest()`; con la planta muerta, el mismo minijuego → `await Mission.crops.clear()`. |
+| Invernadero: reparar | Falta un sitio para `await Mission.repair_greenhouse()` tras una tormenta moderada o intensa. |
 | ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | `scripts/expedition_site.gd`: paneles pequeños (limpiar con el ratón, `zone_panels_clean.gd`) → `mark_zone_panels_clean()`; excavadora → minijuego del taladro (cada zona distinta) → `start_extraction()`; carro (`zone_rover_panel.gd`): comer, dormir y volver con la muestra. Suelo y posiciones: `tools/build_sites.py`. |
 | ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
@@ -271,6 +303,8 @@ Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden camb
 - Huecos de la tabla del hambre (61-69, 31-39, 1-9): se usa la fila de abajo.
 - Cada papa cosechada es 1 comida.
 - Invernadero dañado por una tormenta: las papas no crecen hasta repararlo (2 h, 10 EU).
+- Papas muertas: se quedan en las camas hasta que termina su ciclo (8 sols desde la siembra); luego se
+  limpian (1 h) para volver a plantar. Con la planta muerta el invernadero se puede apagar.
 - Viaje entre AP-8 y AP-9: se suman las dos idas, como si se pasara por la base.
 - Las actividades adelantan el reloj en unos segundos (no 1 min real por hora).
 - El análisis y la extracción fijan su duración al empezar, con las penalizaciones de ese momento.

@@ -16,6 +16,9 @@ func _ready() -> void:
 	player.get_node("Sprite").sprite_frames = GameState.frames_for()
 	camera.position = zone.center()
 	camera.zoom = Vector2.ONE * CAMERA_ZOOM
+	if has_node("Sitio"):  # AP-8 / AP-9: la cámara se acerca a la excavadora, los paneles y el carro
+		camera.position = $Sitio.view_center()
+		camera.zoom = Vector2.ONE * $Sitio.view_zoom()
 	await get_tree().process_frame  # esperar a que la cámara se aplique
 	zone.fit_to_camera(camera)
 	zone.walk_rect = zone.walk_rect.grow_individual(0, -HEAD_ROOM, 0, 0)

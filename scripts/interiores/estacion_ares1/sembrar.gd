@@ -195,7 +195,6 @@ func _sparkle(at: Vector2) -> void:
 ## 100 %: salen los brotes, se desbloquea el paso 2 (regar) y vuelta al invernadero.
 func _finish() -> void:
 	_finished = true
-	GameState.greenhouse_step = maxi(GameState.greenhouse_step, 1)
 	_hint.text = "Great job! The seed potatoes are starting to sprout. Next step: water them."
 	var tw := create_tween()
 	tw.tween_interval(0.3)

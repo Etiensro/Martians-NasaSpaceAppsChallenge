@@ -462,7 +462,6 @@ func _sparkle(at: Vector2) -> void:
 func _finish() -> void:
 	_finished = true
 	_meter.visible = false
-	GameState.greenhouse_step = maxi(GameState.greenhouse_step, 2)
 	_hint.text = "The sprouts are growing into strong potato plants!"
 	var tw := create_tween()
 	tw.tween_interval(0.6)

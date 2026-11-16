@@ -721,5 +721,5 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func debug_text() -> String:
 	return "%s | battery %.0f (net %.2f) | hunger %.1f fatigue %.1f radiation %.1f fitness %.1f | pantry %d | crops %s %.0f%% | research %.2f%% %s | site %s | task x%.2f" % [
 		time_text(), battery, net(), crew.hunger, crew.fatigue, crew.radiation, crew.fitness, pantry_meals,
-		"growing" if crops.is_growing() else "-", crops.progress() * 100.0, research.percent(),
+		("dead" if crops.dead else "growing") if crops.planted else "-", crops.progress() * 100.0, research.percent(),
 		research.analysis, expedition.site, task_multiplier("physical")]
