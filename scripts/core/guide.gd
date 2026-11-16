@@ -277,6 +277,13 @@ func _process(delta: float) -> void:
 	_t += delta
 	var scene := get_tree().current_scene
 	var path := scene.scene_file_path if scene else ""
+	if Mission.over:  # la misión terminó (finales): el robot se va. No se toca la pausa: la pone el final
+		_bubble.visible = false
+		_queue.clear()
+		_button.visible = false
+		_list.visible = false
+		_scene = path
+		return
 	if path.begins_with(PAUSED_SCENES):
 		_reset()  # en el menú o la intro: la guía vuelve a empezar
 		_button.visible = false
