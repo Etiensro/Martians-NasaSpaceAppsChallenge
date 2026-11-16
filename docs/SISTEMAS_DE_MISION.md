@@ -136,7 +136,8 @@ Paneles, cables, tormentas y los minijuegos del edificio de paneles: **`docs/PAN
 Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 % solar, moderada 24 h −45 %,
 intensa 48 h −70 %. Con moderada o intensa hay **encierro**: el jugador va a la estación y no puede
 salir (salvo que esté de expedición: se queda en la zona y no puede volver hasta que pase).
-Al terminar se ensucian los paneles (+20) y se rompen paneles y cables. La moderada también daña el
+Mientras dura, la arena ensucia los paneles hora a hora (leve +15, moderada +35, intensa +50 en total); al terminar,
+la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`). La moderada también daña el
 **invernadero** (las papas no crecen hasta repararlo: `await Mission.repair_greenhouse()`, 2 h y 10 EU)
 y la intensa además el **carro** (`await Mission.expedition.repair()`, 4 h y 10 EU).
 `Mission.damaged_systems()` dice qué está dañado.
@@ -184,6 +185,7 @@ await Mission.expedition.travel("AP-8")  # 6.5 h fuera; después la escena cambi
 # En la zona
 Mission.expedition.mark_zone_panels_clean()   # falta el minijuego de limpiar los paneles de la mini base
 Mission.expedition.start_extraction()          # "" o el motivo. 24 h; mientras, dormir en la mini base
+Mission.expedition.start_extraction(0.5)       # si el minijuego ya duró 0.5 h reales, se restan
 ```
 
 Requisitos para salir: carro inspeccionado y con mantenimiento (y reparado), comida para todo el viaje
@@ -226,14 +228,14 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 
 | Escena | Qué tiene que llamar |
 |---|---|
-| Dormitorios (`modulos/dormitorios/`) | Elegir horas (1-24) y `await Mission.crew.sleep(h)`. |
+| ~~Dormitorios (`modulos/dormitorios/`)~~ | **Hecho**: litera → reloj para elegir las horas (1-24) → `await Mission.crew.sleep(h)` (`scripts/interiores/estacion_ares1/dormitorios.gd`). |
 | Comer (¿cocina/comedor en la estación?) | `Mission.crew.eat()` (y `eat_blocked_reason()` para el botón). |
-| Enfermería (`modulos/enfermeria/`) | ✅ Hecho: escáner (`escaneo.gd`). Ver `docs/LABORATORIO_Y_ENFERMERIA.md`. |
-| Work Room / laboratorio (`modulos/sala_trabajo/`) | ✅ Hecho: preparar la muestra y empezar el análisis (`analisis.gd`). Falta el microscopio. |
+| ~~Enfermería (`modulos/enfermeria/`)~~ | **Hecho**: escáner corporal → `await Mission.crew.medical_checkup(horas_jugadas)` (`escaneo.gd`, ver `docs/LABORATORIO_Y_ENFERMERIA.md`). |
+| ~~Work Room / laboratorio (`modulos/sala_trabajo/`)~~ | **Hecho**: preparar la muestra de hielo → `Mission.research.start_analysis()` (`analisis.gd`). Falta el paso del microscopio. |
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
-| Carro (AP-1) | Pantalla de preparación: `inspect()`, `maintain()`, `repair()`, `load_meals(n)`, `departure_problems()`. |
+| ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
-| Excavadora (AP-1) | Muestra de AP-1: `Mission.expedition.start_extraction()` estando en AP-1. |
+| ~~Excavadora (AP-1)~~ | **Hecho**: el minijuego de extracción de hielo llama a `start_extraction(horas_jugadas)` (ver `docs/EXCAVADORA.md`). |
 
 ## Atajos de prueba (solo ejecutando desde el editor, con la misión en marcha)
 
@@ -242,7 +244,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+1 | Tormenta ya (leve → moderada → intensa) | Ctrl+6 | Comer |
 | Ctrl+2 | +1 hora | Ctrl+7 | Chequeo médico |
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
-| Ctrl+4 | Daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
+| Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
 
 ## Decisiones sobre el documento
@@ -270,4 +272,5 @@ Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden camb
 - Viaje entre AP-8 y AP-9: se suman las dos idas, como si se pasara por la base.
 - Las actividades adelantan el reloj en unos segundos (no 1 min real por hora).
 - El análisis y la extracción fijan su duración al empezar, con las penalizaciones de ese momento.
-- Daños de tormenta en paneles y cables, y ráfagas del minijuego de paneles (`docs/PANELES_SOLARES.md`).
+- Los paneles empiezan sucios (45-75 cada uno) y 3 rotos por la tormenta del aterrizaje.
+- Efecto de cada tormenta en los paneles (leve y moderada ensucian, intensa ensucia y rompe), y ráfagas del minijuego de paneles (`docs/PANELES_SOLARES.md`).

@@ -14,6 +14,8 @@ const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 const DIR := "res://assets/interiores/estacion_ares1/gimnasio/"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 const MINIGAME := "res://scenes/interiores/estacion_ares1/modulos/gimnasio/caminadora.tscn"
+const MSG_READY := "Run for 2 hours  ·  Click to start"
+const MSG_DONE := "You already trained today  ·  Come back tomorrow"
 
 var data: Dictionary
 var _treadmill: Rect2
@@ -51,6 +53,8 @@ func _ready() -> void:
 	_exit.position = Vector2(data.exit[0], data.exit[1])
 	add_child(_exit)
 	_build_ui()
+	_refresh()
+	Mission.sol_started.connect(_on_sol_started)
 
 
 # ---------------------------------------------------------------- efectos del cuarto
@@ -116,6 +120,8 @@ func _draw_fx() -> void:
 
 
 func _draw_glow() -> void:
+	if Mission.exercised_today():
+		return
 	var on := _hover == "treadmill"
 	var a := (0.55 + 0.45 * sin(_t * 4.0)) if not on else 1.0
 	var c := Style.NEON_YELLOW
@@ -181,12 +187,34 @@ func _build_ui() -> void:
 	layer.add_child(_sub)
 
 
+func _refresh() -> void:
+	var done: bool = Mission.exercised_today()
+	_sub.text = MSG_DONE if done else MSG_READY
+	_sub.add_theme_color_override("font_color", Style.WHITE if done else Style.NEON_YELLOW)
+	_pointer.visible = not done
+
+
+func _on_sol_started(_sol: int) -> void:
+	_refresh()
+
+
 # ---------------------------------------------------------------- interacción
 
 func _process(delta: float) -> void:
 	_t += delta
 	_fx.queue_redraw()
 	_glow.queue_redraw()
+
+
+## Avisa que hoy ya hubo sesión: el texto de abajo parpadea en rojo.
+func _deny() -> void:
+	_sub.add_theme_color_override("font_color", Color(1, 0.35, 0.35))
+	var tw := create_tween()
+	tw.tween_property(_sub, "modulate:a", 0.3, 0.1)
+	tw.tween_property(_sub, "modulate:a", 1.0, 0.1)
+	tw.tween_property(_sub, "modulate:a", 0.3, 0.1)
+	tw.tween_property(_sub, "modulate:a", 1.0, 0.1)
+	tw.tween_callback(func(): _sub.add_theme_color_override("font_color", Style.WHITE))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -196,13 +224,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		var p := get_global_mouse_position()
 		_hover = "exit" if _exit.hit(p) else ("treadmill" if _treadmill.has_point(p) else "")
 		_exit.hovered = _hover == "exit"
-		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if _hover != "" else Input.CURSOR_ARROW)
+		var clickable: bool = _hover == "exit" or (_hover == "treadmill" and not Mission.exercised_today())		
+		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if clickable else Input.CURSOR_ARROW)
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p := get_global_mouse_position()
 		if _exit.hit(p):
 			_go(STATION)
 		elif _treadmill.has_point(p):
-			_go(MINIGAME)
+			if Mission.exercised_today():
+				_deny()
+			else:
+				_go(MINIGAME)
 	elif event.is_action_pressed("ui_cancel"):
 		_go(STATION)
 
