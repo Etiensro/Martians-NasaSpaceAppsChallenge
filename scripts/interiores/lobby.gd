@@ -1,7 +1,7 @@
 extends Node2D
 ## Vestíbulo en primera persona: el jugador elige con el cursor a qué puerta ir.
 ## Lo usan la Estación Ares 1 (5 módulos) y los Paneles solares (campo solar y sala eléctrica).
-## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta del edificio.
+## La flecha animada de abajo (o Esc) sale a AP-1, delante de la puerta del edificio (o a `exit_scene`).
 ## Fondo, puertas y efectos: <data_dir>/hub.png y hub.json (los genera tools/build_lobbies.py).
 ## Si la puerta todavía no tiene escena, avisa "Coming soon".
 ## Las reglas de la misión (autoload Mission) pueden impedir salir (tormenta) o entrar a una puerta.
@@ -14,6 +14,9 @@ const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 @export_dir var data_dir := "res://assets/interiores/estacion_ares1"
 ## Texto de ayuda de arriba a la izquierda (lo ve el jugador: en inglés).
 @export var hint := "Ares 1 Station  ·  Click a room to enter  ·  Esc: exit"
+## Escena a la que lleva la flecha de salida. Vacío: sale a la zona (AP-1) delante del edificio.
+## Los módulos de la estación (laboratorio, enfermería) vuelven al centro de la estación.
+@export_file("*.tscn") var exit_scene := ""
 
 var data: Dictionary
 var _add := CanvasItemMaterial.new()
@@ -342,6 +345,11 @@ func _show_toast(text: String) -> void:
 
 
 func _leave() -> void:
+	if exit_scene != "":  # módulo de la estación: vuelve al centro (sigue dentro, no aplica el encierro)
+		_leaving = true
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+		SceneChanger.go_to(exit_scene)
+		return
 	var blocked := Mission.exit_blocked_reason()  # con tormenta moderada o intensa no se sale
 	if blocked != "":
 		_show_toast(blocked)

@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interiores/lobby.gd" id="1_lobby"]
+
+[node name="Enfermeria" type="Node2D"]
+script = ExtResource("1_lobby")
+data_dir = "res://assets/interiores/estacion_ares1/enfermeria"
+hint = "Infirmary  ·  Click the body scanner for a check-up  ·  Esc: back"
+exit_scene = "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
