@@ -11,6 +11,7 @@ var _busy := false
 
 func _ready() -> void:
 	layer = 100  # encima de cualquier HUD
+	process_mode = Node.PROCESS_MODE_ALWAYS  # el fundido termina aunque el juego esté en pausa
 	_curtain.color = Color.BLACK
 	_curtain.modulate.a = 0.0
 	_curtain.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -35,3 +36,8 @@ func _fade(alpha: float, duration: float) -> void:
 	var tw := create_tween()
 	tw.tween_property(_curtain, "modulate:a", alpha, duration)
 	await tw.finished
+
+
+## ¿Hay un cambio de escena (fundido) en marcha?
+func is_busy() -> bool:
+	return _busy

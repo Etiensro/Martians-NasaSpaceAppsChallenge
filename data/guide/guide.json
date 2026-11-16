@@ -1,0 +1,88 @@
+{
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas.",
+  "tasks": [
+    { "id": "fix_panels", "text": "Fix the solar panels" },
+    { "id": "plant", "text": "Plant potatoes" },
+    { "id": "water", "text": "Water the potatoes" },
+    { "id": "exercise", "text": "Exercise at the gym" }
+  ],
+  "routine": [
+    { "id": "panels", "ok": "Solar panels are clean", "todo": "Clean the solar panels" },
+    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes" },
+    { "id": "exercise", "ok": "You exercised today", "todo": "Exercise at the gym" },
+    { "id": "food", "ok": "You are not hungry", "todo": "Eat something" },
+    { "id": "sleep", "ok": "You are rested", "todo": "Sleep in the crew quarters" },
+    { "id": "radiation", "ok": "Radiation is low", "todo": "Get a check-up in the infirmary" }
+  ],
+  "lessons": [
+    {
+      "id": "welcome",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/estacion_ares1.tscn",
+      "pages": [
+        { "text": "Hi {player}! I'm A.R.I.A. Click me anytime to see your tasks." },
+        { "text": "Your goal: finish the RESEARCH and stay safe for 60 days.", "image": "goal" },
+        { "text": "Keep an eye on your bars. Don't let them get red!", "image": "hud" },
+        { "text": "First job: the storm broke the SOLAR PANELS. Let's go outside!", "image": "panel_states" }
+      ]
+    },
+    {
+      "id": "outside",
+      "trigger": "scene:res://scenes/ap1_zone.tscn",
+      "pages": [
+        { "text": "Walk with W A S D. Press E at a door. Go to the SOLAR PANELS!", "image": "ap1" }
+      ]
+    },
+    {
+      "id": "panels_lobby",
+      "trigger": "scene:res://scenes/interiores/paneles_solares/paneles_solares.tscn",
+      "pages": [
+        { "text": "Click SOLAR FIELD and change the broken panels.", "image": "panels" }
+      ]
+    },
+    {
+      "id": "panels_fixed",
+      "trigger": "task:fix_panels",
+      "pages": [
+        { "text": "Fixed! Dust makes the panels dirty every day. Clean them daily.", "image": "panel_states" },
+        { "text": "Now go to the GREENHOUSE in the station." }
+      ]
+    },
+    {
+      "id": "greenhouse",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn",
+      "pages": [
+        { "text": "Plant potatoes, then water them every day.", "image": "greenhouse" }
+      ]
+    },
+    {
+      "id": "watered",
+      "trigger": "task:water",
+      "pages": [
+        { "text": "Nice! Now visit the GYM." }
+      ]
+    },
+    {
+      "id": "gym",
+      "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/gimnasio/gimnasio.tscn",
+      "pages": [
+        { "text": "Run on the treadmill once a day to stay strong.", "image": "gym" }
+      ]
+    },
+    {
+      "id": "all_done",
+      "trigger": "all_tasks",
+      "pages": [
+        { "text": "Day 1 done! Every day: clean panels, water potatoes, exercise, eat and sleep." },
+        { "text": "To win, bring samples from AP-1, AP-8 and AP-9 to the WORK ROOM.", "image": "world_map" },
+        { "text": "Your superpower: {perk1}!" }
+      ]
+    },
+    {
+      "id": "day2",
+      "trigger": "sol:2",
+      "pages": [
+        { "text": "Good morning! The panels got dusty. Time to clean them!", "image": "panel_states" }
+      ]
+    }
+  ]
+}
