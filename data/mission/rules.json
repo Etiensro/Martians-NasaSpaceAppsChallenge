@@ -2,198 +2,198 @@
   "_comment": "Reglas de la misión (documento 'Sistema de Radiación y Salud Celular · Base Ares 1'). Las lee el autoload Mission (scripts/core/mission.gd) y sus módulos (scripts/core/mission/). Explicación de cada campo: docs/SISTEMAS_DE_MISION.md. Se usan los valores explícitos de cada sección del documento (no la tabla resumen del final). Los campos '_proposed' son decisiones nuestras donde el documento no dice nada; '_decision' son dudas que el equipo ya confirmó. Las tablas de penalización son listas [umbral, multiplicador] de mayor a menor umbral: se usa la primera fila cuyo umbral sea <= al valor de la barra.",
 
   "clock": {
-    "real_seconds_per_hour": 60,
-    "start_sol": 1,
-    "start_hour": 8,
-    "mission_sols": 60,
-    "_proposed_skip": "Las actividades (dormir, chequeo, viajes...) adelantan el reloj rápido: 0.35 s reales por hora, entre 1.5 y 6 s en total",
-    "skip_seconds_per_hour": 0.35,
-    "skip_min_seconds": 1.5,
-    "skip_max_seconds": 6.0
+	"real_seconds_per_hour": 60,
+	"start_sol": 1,
+	"start_hour": 8,
+	"mission_sols": 60,
+	"_proposed_skip": "Las actividades (dormir, chequeo, viajes...) adelantan el reloj rápido: 0.35 s reales por hora, entre 1.5 y 6 s en total",
+	"skip_seconds_per_hour": 0.35,
+	"skip_min_seconds": 1.5,
+	"skip_max_seconds": 6.0
   },
 
   "locations": {
-    "_comment": "Escenas que cuentan como 'exterior' para la radiación (prefijos de ruta). Todo lo demás es interior. Durante un viaje en el carro siempre es exterior.",
-    "outside": [
-      "res://scenes/ap1_zone.tscn",
-      "res://scenes/ap8_zone.tscn",
-      "res://scenes/ap9_zone.tscn",
-      "res://scenes/world_map.tscn",
+	"_comment": "Escenas que cuentan como 'exterior' para la radiación (prefijos de ruta). Todo lo demás es interior. Durante un viaje en el carro siempre es exterior.",
+	"outside": [
+	  "res://scenes/ap1_zone.tscn",
+	  "res://scenes/ap8_zone.tscn",
+	  "res://scenes/ap9_zone.tscn",
+	  "res://scenes/world_map.tscn",
       "res://scenes/interiores/paneles_solares/minijuegos/campo_solar/"
-    ]
+	]
   },
 
   "energy": {
-    "capacity": 1000,
-    "start": 800,
-    "_comment_generation": "EU/h según la limpieza de los paneles: [limpieza mínima, EU/h], de mayor a menor",
-    "generation_by_cleanliness": [[70, 12], [40, 6], [1, 2], [0, 0]],
-    "panel_repair_cost": 10,
-    "system_repair_cost": 10,
-    "system_repair_hours": 2,
-    "systems": {
-      "basic": {"name": "Life support", "detail": "Air, heat, water and pressure", "eu_per_hour": 4, "switchable": false,
-        "locked_message": "Life support can never be turned off: it gives you air, heat and water!"},
-      "cryo": {"name": "Cryo pods", "detail": "Keeps the sleeping crew safe", "eu_per_hour": 1, "switchable": false,
-        "locked_message": "The cryo pods keep your crew alive. They must stay on!"},
-      "greenhouse": {"name": "Greenhouse", "detail": "Lights, heat and water for the plants", "eu_per_hour": 2, "switchable": true,
-        "locked_message": "Potatoes are growing! The greenhouse can only be turned off when nothing is planted.",
-        "off_message": "Greenhouse OFF. You save 2 EU every hour."},
-      "auxiliary": {"name": "Lights & auxiliary", "detail": "Station rooms: work room, gym, infirmary...", "eu_per_hour": 1, "switchable": true,
-        "confirm_off": "Turn off lights and auxiliary systems? You won't be able to enter the station (lab, infirmary, gym...) until you turn them on again here.",
-        "off_message": "Lights and auxiliary systems OFF. Good idea before an expedition! Turn them on again before entering the station."}
-    }
+	"capacity": 1000,
+	"start": 800,
+	"_comment_generation": "EU/h según la limpieza de los paneles: [limpieza mínima, EU/h], de mayor a menor",
+	"generation_by_cleanliness": [[70, 12], [40, 6], [1, 2], [0, 0]],
+	"panel_repair_cost": 10,
+	"system_repair_cost": 10,
+	"system_repair_hours": 2,
+	"systems": {
+	  "basic": {"name": "Life support", "detail": "Air, heat, water and pressure", "eu_per_hour": 4, "switchable": false,
+		"locked_message": "Life support can never be turned off: it gives you air, heat and water!"},
+	  "cryo": {"name": "Cryo pods", "detail": "Keeps the sleeping crew safe", "eu_per_hour": 1, "switchable": false,
+		"locked_message": "The cryo pods keep your crew alive. They must stay on!"},
+	  "greenhouse": {"name": "Greenhouse", "detail": "Lights, heat and water for the plants", "eu_per_hour": 2, "switchable": true,
+		"locked_message": "Potatoes are growing! The greenhouse can only be turned off when nothing is planted.",
+		"off_message": "Greenhouse OFF. You save 2 EU every hour."},
+	  "auxiliary": {"name": "Lights & auxiliary", "detail": "Station rooms: work room, gym, infirmary...", "eu_per_hour": 1, "switchable": true,
+		"confirm_off": "Turn off lights and auxiliary systems? You won't be able to enter the station (lab, infirmary, gym...) until you turn them on again here.",
+		"off_message": "Lights and auxiliary systems OFF. Good idea before an expedition! Turn them on again before entering the station."}
+	}
   },
 
   "panels": {
-    "columns": 4,
-    "rows": 4,
-    "_proposed_start": "La tormenta de arena del aterrizaje (intro) deja los paneles sucios (suciedad al azar entre min y max en cada uno) y algunos rotos (al azar)",
-    "start_dirt_min": 45,
-    "start_dirt_max": 75,
-    "start_broken": 3,
-    "start_cut_cables": 0,
-    "dirt_per_sol": 10
+	"columns": 4,
+	"rows": 4,
+	"_proposed_start": "La tormenta de arena del aterrizaje (intro) deja los paneles sucios (suciedad al azar entre min y max en cada uno) y algunos rotos (al azar)",
+	"start_dirt_min": 45,
+	"start_dirt_max": 75,
+	"start_broken": 3,
+	"start_cut_cables": 0,
+	"dirt_per_sol": 10
   },
 
   "storms": {
-    "protection_sols": 3,
-    "daily_chance": 0.15,
-    "warning_hours": 6,
-    "_proposed_panels": "Efecto en los paneles (decisión del equipo de paneles): 'dirt' = suciedad que se suma a cada panel, repartida hora a hora mientras dura la tormenta; 'broken_panels' / 'cut_cables' = se rompen al terminar. Leve ensucia poco, moderada ensucia más, intensa ensucia y rompe.",
-    "types": {
-      "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false, "damages": [],
-        "dirt": 15, "broken_panels": 0, "cut_cables": 0},
-      "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true, "damages": ["greenhouse"],
-        "dirt": 35, "broken_panels": 0, "cut_cables": 0},
-      "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true, "damages": ["greenhouse", "rover"],
-        "dirt": 50, "broken_panels": 4, "cut_cables": 2}
-    }
+	"protection_sols": 3,
+	"daily_chance": 0.15,
+	"warning_hours": 6,
+	"_proposed_panels": "Efecto en los paneles (decisión del equipo de paneles): 'dirt' = suciedad que se suma a cada panel, repartida hora a hora mientras dura la tormenta; 'broken_panels' / 'cut_cables' = se rompen al terminar. Leve ensucia poco, moderada ensucia más, intensa ensucia y rompe.",
+	"types": {
+	  "light": {"name": "Light", "chance": 0.5, "hours": 12, "solar_loss": 0.2, "lockdown": false, "damages": [],
+		"dirt": 15, "broken_panels": 0, "cut_cables": 0},
+	  "moderate": {"name": "Moderate", "chance": 0.3, "hours": 24, "solar_loss": 0.45, "lockdown": true, "damages": ["greenhouse"],
+		"dirt": 35, "broken_panels": 0, "cut_cables": 0},
+	  "intense": {"name": "Intense", "chance": 0.2, "hours": 48, "solar_loss": 0.7, "lockdown": true, "damages": ["greenhouse", "rover"],
+		"dirt": 50, "broken_panels": 4, "cut_cables": 2}
+	}
   },
 
   "gusts": {
-    "_proposed": "ráfagas dentro del minijuego de paneles (segundos reales)",
-    "calm": {"every_min": 25, "every_max": 40, "panels": 2, "dirt_min": 6, "dirt_max": 12},
-    "storm": {"every_min": 12, "every_max": 20, "panels": 16, "dirt_min": 8, "dirt_max": 14}
+	"_proposed": "ráfagas dentro del minijuego de paneles (segundos reales)",
+	"calm": {"every_min": 25, "every_max": 40, "panels": 2, "dirt_min": 6, "dirt_max": 12},
+	"storm": {"every_min": 12, "every_max": 20, "panels": 16, "dirt_min": 8, "dirt_max": 14}
   },
 
   "crew": {
-    "hunger": {
-      "_comment": "100 = lleno. Baja poco a poco (6 por sol). 0 = abandono de la misión.",
-      "start": 100,
-      "loss_per_sol": 6,
-      "per_meal": 2,
-      "meal_cooldown_hours": 5,
-      "_decision_gaps": "El documento deja huecos (61-69, 31-39, 1-9): se cubren con la fila inferior",
-      "penalties": [[70, 1.0], [40, 1.15], [0, 1.35]],
-      "abandon_at_or_below": 0
-    },
-    "fatigue": {
-      "_comment": "0 = descansado. Sube despierto y baja dormido. 100 = abandono.",
-      "start": 20,
-      "awake_per_hour": 4,
-      "asleep_per_hour": -9,
-      "sleep_min_hours": 1,
-      "sleep_max_hours": 24,
-      "penalties": [[80, 1.35], [50, 1.10], [0, 1.0]],
-      "abandon_at_or_above": 100
-    },
-    "radiation": {
-      "_comment": "Indicador simplificado de exposición (0-100). 100 = abandono. Descansar no lo baja: solo el chequeo médico.",
-      "_decision_rates": "Sección 4 del documento: +1/h dentro y +4/h fuera (confirmado por el equipo; la tabla resumen no cuenta).",
-      "start": 0,
-      "inside_per_hour": 1,
-      "outside_per_hour": 4,
-      "warning_at": 25,
-      "penalties": [[75, 1.35], [50, 1.15], [0, 1.0]],
-      "abandon_at_or_above": 100,
-      "checkup_hours": 4,
-      "checkup_energy": 20,
-      "checkup_reduction": 30
-    },
-    "fitness": {
-      "_comment": "Condición física (100 = en forma). Solo penaliza tareas físicas.",
-      "_decision_session": "Sección 6 del documento: +20 por sesión (confirmado por el equipo; la tabla resumen no cuenta).",
-      "start": 100,
-      "loss_per_sol_without_exercise": 15,
-      "per_session": 20,
-      "session_hours": 2,
-      "penalties": [[75, 1.0], [50, 1.10], [25, 1.20], [1, 1.35], [0, 1.5]]
-    },
-    "warnings": {
-      "_comment": "Avisos de A.R.I.A. al cruzar un umbral (barra, umbral, texto). 'up' = al subir, 'down' = al bajar.",
-      "list": [
-        ["hunger", "down", 70, "You're getting hungry. Eat something in the station!"],
-        ["hunger", "down", 40, "You're very hungry: every task is slower. Time to eat!"],
-        ["hunger", "down", 10, "Danger! You're starving. Eat now or the mission ends."],
-        ["fatigue", "up", 50, "You're getting tired. Tasks are a bit slower."],
-        ["fatigue", "up", 80, "You're exhausted! Go to the dormitory and sleep."],
-        ["fatigue", "up", 95, "Danger! You're about to collapse. Sleep now!"],
-        ["radiation", "up", 25, "Medical warning: radiation is rising. Get a check-up in the infirmary."],
-        ["radiation", "up", 50, "Radiation is high: tasks are slower. Visit the infirmary!"],
-        ["radiation", "up", 75, "Danger! Radiation is very high. Get a check-up now!"],
-        ["fitness", "down", 75, "Your muscles are getting weak in low gravity. Train in the gym!"],
-        ["fitness", "down", 25, "Your fitness is very low: physical tasks are much slower."]
-      ]
-    }
+	"hunger": {
+	  "_comment": "100 = lleno. Baja poco a poco (6 por sol). 0 = abandono de la misión.",
+	  "start": 100,
+	  "loss_per_sol": 6,
+	  "per_meal": 2,
+	  "meal_cooldown_hours": 5,
+	  "_decision_gaps": "El documento deja huecos (61-69, 31-39, 1-9): se cubren con la fila inferior",
+	  "penalties": [[70, 1.0], [40, 1.15], [0, 1.35]],
+	  "abandon_at_or_below": 0
+	},
+	"fatigue": {
+	  "_comment": "0 = descansado. Sube despierto y baja dormido. 100 = abandono.",
+	  "start": 20,
+	  "awake_per_hour": 4,
+	  "asleep_per_hour": -9,
+	  "sleep_min_hours": 1,
+	  "sleep_max_hours": 24,
+	  "penalties": [[80, 1.35], [50, 1.10], [0, 1.0]],
+	  "abandon_at_or_above": 100
+	},
+	"radiation": {
+	  "_comment": "Indicador simplificado de exposición (0-100). 100 = abandono. Descansar no lo baja: solo el chequeo médico.",
+	  "_decision_rates": "Sección 4 del documento: +1/h dentro y +4/h fuera (confirmado por el equipo; la tabla resumen no cuenta).",
+	  "start": 0,
+	  "inside_per_hour": 1,
+	  "outside_per_hour": 4,
+	  "warning_at": 25,
+	  "penalties": [[75, 1.35], [50, 1.15], [0, 1.0]],
+	  "abandon_at_or_above": 100,
+	  "checkup_hours": 4,
+	  "checkup_energy": 20,
+	  "checkup_reduction": 30
+	},
+	"fitness": {
+	  "_comment": "Condición física (100 = en forma). Solo penaliza tareas físicas.",
+	  "_decision_session": "Sección 6 del documento: +20 por sesión (confirmado por el equipo; la tabla resumen no cuenta).",
+	  "start": 100,
+	  "loss_per_sol_without_exercise": 15,
+	  "per_session": 20,
+	  "session_hours": 2,
+	  "penalties": [[75, 1.0], [50, 1.10], [25, 1.20], [1, 1.35], [0, 1.5]]
+	},
+	"warnings": {
+	  "_comment": "Avisos de A.R.I.A. al cruzar un umbral (barra, umbral, texto). 'up' = al subir, 'down' = al bajar.",
+	  "list": [
+		["hunger", "down", 70, "You're getting hungry. Eat something in the station!"],
+		["hunger", "down", 40, "You're very hungry: every task is slower. Time to eat!"],
+		["hunger", "down", 10, "Danger! You're starving. Eat now or the mission ends."],
+		["fatigue", "up", 50, "You're getting tired. Tasks are a bit slower."],
+		["fatigue", "up", 80, "You're exhausted! Go to the dormitory and sleep."],
+		["fatigue", "up", 95, "Danger! You're about to collapse. Sleep now!"],
+		["radiation", "up", 25, "Medical warning: radiation is rising. Get a check-up in the infirmary."],
+		["radiation", "up", 50, "Radiation is high: tasks are slower. Visit the infirmary!"],
+		["radiation", "up", 75, "Danger! Radiation is very high. Get a check-up now!"],
+		["fitness", "down", 75, "Your muscles are getting weak in low gravity. Train in the gym!"],
+		["fitness", "down", 25, "Your fitness is very low: physical tasks are much slower."]
+	  ]
+	}
   },
 
   "tasks": {
-    "_comment": "Duración final = base x hambre x cansancio x radiación [x condición física si es física] / velocidad del rol. 'role_speed': tipo de tarea -> clave de 'modifiers' en data/intro/roles.json.",
-    "physical_kinds": ["physical", "repair", "maintenance", "excavation"],
-    "no_penalty_kinds": ["fixed"],
-    "role_speed": {"repair": "repair_speed", "maintenance": "repair_speed", "research": "research_speed", "excavation": "extraction_speed"}
+	"_comment": "Duración final = base x hambre x cansancio x radiación [x condición física si es física] / velocidad del rol. 'role_speed': tipo de tarea -> clave de 'modifiers' en data/intro/roles.json.",
+	"physical_kinds": ["physical", "repair", "maintenance", "excavation"],
+	"no_penalty_kinds": ["fixed"],
+	"role_speed": {"repair": "repair_speed", "maintenance": "repair_speed", "research": "research_speed", "excavation": "extraction_speed"}
   },
 
   "food": {
-    "_decision": "30 comidas al empezar (confirmado por el equipo).",
-    "_proposed": "1 comida por papa cosechada",
-    "start_meals": 30,
-    "meals_per_potato": 1
+	"_decision": "30 comidas al empezar (confirmado por el equipo).",
+	"_proposed": "1 comida por papa cosechada",
+	"start_meals": 30,
+	"meals_per_potato": 1
   },
 
   "crops": {
-    "potato": {
-      "name": "Potatoes",
-      "grow_sols": 8,
-      "harvest": 24,
-      "plant_hours": 1,
-      "water_hours": 0.5,
-      "harvest_hours": 1,
-      "_comment_dry": "Pérdida de rendimiento según los sols seguidos sin regar (índice = sols). Con 'dies_after_dry_sols' el cultivo muere.",
-      "dry_penalties": [0.0, 0.10, 0.25, 0.50],
-      "dies_after_dry_sols": 4,
-      "_proposed_damage": "Con el invernadero dañado por una tormenta, el cultivo no crece hasta repararlo"
-    }
+	"potato": {
+	  "name": "Potatoes",
+	  "grow_sols": 8,
+	  "harvest": 24,
+	  "plant_hours": 1,
+	  "water_hours": 0.5,
+	  "harvest_hours": 1,
+	  "_comment_dry": "Pérdida de rendimiento según los sols seguidos sin regar (índice = sols). Con 'dies_after_dry_sols' el cultivo muere.",
+	  "dry_penalties": [0.0, 0.10, 0.25, 0.50],
+	  "dies_after_dry_sols": 4,
+	  "_proposed_damage": "Con el invernadero dañado por una tormenta, el cultivo no crece hasta repararlo"
+	}
   },
 
   "research": {
-    "zones": {"AP-1": 33.33, "AP-8": 33.33, "AP-9": 33.34},
-    "extraction_hours": 24,
-    "analysis_hours": 72,
-    "lab_eu_per_hour": 4
+	"zones": {"AP-1": 33.33, "AP-8": 33.33, "AP-9": 33.34},
+	"extraction_hours": 24,
+	"analysis_hours": 72,
+	"lab_eu_per_hour": 4
   },
 
   "expeditions": {
-    "home": "AP-1",
-    "speed_kmh": 10,
-    "_comment": "Horas de viaje de ida desde AP-1 (las de vuelta son iguales).",
-    "travel_hours": {"AP-1": 0, "AP-8": 6.5, "AP-9": 6},
-    "_proposed_zone_to_zone": "De AP-8 a AP-9 (o al revés) se suma la ida de las dos, como si se pasara por la base",
-    "meals_per_sol": 3,
-    "max_meals": 6,
-    "sample_slots": 1,
-    "inspection_hours": 2,
-    "maintenance_hours": 2,
-    "repair_hours": 4,
-    "prepare_hours": 1,
-    "_decision_extraction": "El taladro trabaja solo y durante la extracción se puede dormir en la mini base (confirmado por el equipo)",
-    "zone_panels_before_extraction": true
+	"home": "AP-1",
+	"speed_kmh": 10,
+	"_comment": "Horas de viaje de ida desde AP-1 (las de vuelta son iguales).",
+	"travel_hours": {"AP-1": 0, "AP-8": 6.5, "AP-9": 6},
+	"_proposed_zone_to_zone": "De AP-8 a AP-9 (o al revés) se suma la ida de las dos, como si se pasara por la base",
+	"meals_per_sol": 3,
+	"max_meals": 6,
+	"sample_slots": 1,
+	"inspection_hours": 2,
+	"maintenance_hours": 2,
+	"repair_hours": 4,
+	"prepare_hours": 1,
+	"_decision_extraction": "El taladro trabaja solo y durante la extracción se puede dormir en la mini base (confirmado por el equipo)",
+	"zone_panels_before_extraction": true
   },
 
   "score": {
-    "_comment": "P = 10*I + H + (100 - C) + E/10 + F + D  (I investigación %, H hambre, C cansancio, E energía, F condición física, D sols restantes)",
-    "research_weight": 10,
-    "energy_divisor": 10
+	"_comment": "P = 10*I + H + (100 - C) + E/10 + F + D  (I investigación %, H hambre, C cansancio, E energía, F condición física, D sols restantes)",
+	"research_weight": 10,
+	"energy_divisor": 10
   }
 }
