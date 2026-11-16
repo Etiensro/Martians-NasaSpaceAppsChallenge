@@ -1,6 +1,7 @@
 extends Node2D
 ## Extracción de hielo, ICE DRILL CONTROL (scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn).
-## Se abre desde la consola del vestíbulo de la excavadora (excavadora.tscn). El jugador maneja el rover
+## Se abre desde la consola del vestíbulo de la excavadora (excavadora.tscn) o, en AP-8 / AP-9, desde la
+## excavadora de la zona (expedition_site.gd); cada zona se ve y se taladra distinto (SITE_LOOK). El jugador maneja el rover
 ## a distancia: lo que se ve es la cámara del rover en el campo de hielo de AP-1, de perfil.
 ##   - A/D o flechas: mover el rover (si la broca está abajo, primero la sube).
 ##   - Mantener Espacio o el clic: taladrar. La broca baja por el subsuelo; al tocar un depósito de hielo
@@ -45,6 +46,19 @@ const DEPOSITS := {
 const LAYOUT := ["large", "medium", "medium", "small"]  # 125 de hielo: sobra un poco para elegir
 const DEPOSIT_CELL := Vector2(72, 56)
 
+## Cada zona se taladra distinto (sale de lo que dice el mapa general de cada sitio):
+##   AP-1 normal · AP-8 roca dura entre cráteres: el hielo está más hondo, cuesta más romperlo y calienta más ·
+##   AP-9 pingos: hay mucho hielo y cerca de la superficie, más fácil.
+## tint = color de la cámara, hp = dureza del hielo (×), heat = calor (×), depth = px más hondo (o menos).
+const SITE_LOOK := {
+	"AP-1": {"field": "AP-1 ICE FIELD", "tint": Color(1, 1, 1), "hp": 1.0, "heat": 1.0, "depth": 0.0,
+		"layout": ["large", "medium", "medium", "small"]},
+	"AP-8": {"field": "AP-8 CRATER FIELD · HARD ROCK", "tint": Color(1.0, 0.82, 0.74), "hp": 1.4, "heat": 1.25,
+		"depth": 14.0, "layout": ["large", "medium", "medium", "small"]},
+	"AP-9": {"field": "AP-9 PINGO FIELD · LOTS OF ICE", "tint": Color(0.84, 0.94, 1.08), "hp": 0.8, "heat": 0.9,
+		"depth": -10.0, "layout": ["large", "large", "medium", "small"]},
+}
+
 const ROVER_SPEED := 70.0      # px nativos por segundo
 const DRILL_SPEED := 30.0      # bajada de la broca por tierra
 const RETRACT_SPEED := 120.0
@@ -87,9 +101,11 @@ var _played := 0.0             # segundos reales jugados (cuentan como horas ya 
 var _anim := 0.0
 var _dust_in := 0.0
 var _t := 0.0
+var _look: Dictionary = SITE_LOOK["AP-1"]
 
 
 func _ready() -> void:
+	_look = SITE_LOOK.get(Mission.expedition.site, SITE_LOOK["AP-1"])
 	_world.position = FEED
 	_world.scale = Vector2.ONE * SCALE
 	add_child(_world)
@@ -97,6 +113,7 @@ func _ready() -> void:
 	var bg := Sprite2D.new()
 	bg.texture = load(DIR + "fondo_hielo_nativo.png")
 	bg.centered = false
+	bg.modulate = _look.tint
 	_world.add_child(bg)
 	_holes.draw.connect(_draw_holes)
 	_world.add_child(_holes)
@@ -132,14 +149,15 @@ func _ready() -> void:
 ## Reparte los depósitos en franjas a lo ancho del campo, enterrados a distintas profundidades.
 func _place_deposits() -> void:
 	var tex: Texture2D = load(DIR + "hielo_depositos.png")
-	var kinds := LAYOUT.duplicate()
+	var kinds: Array = _look.layout.duplicate()
 	kinds.shuffle()
 	var slot := (ROVER_MAX_X - ROVER_MIN_X + 40.0) / kinds.size()
 	for i in kinds.size():
 		var rule: Dictionary = DEPOSITS[kinds[i]]
 		var box: Rect2 = rule.box
 		var cx := ROVER_MIN_X - 20.0 + slot * (i + 0.5) + randf_range(-slot * 0.2, slot * 0.2)
-		var top := randf_range(GROUND_Y + 16.0, minf(GROUND_Y + 70.0, GROUND_Y + MAX_DEPTH - box.size.y - 4.0))
+		var low := GROUND_Y + MAX_DEPTH - box.size.y - 4.0
+		var top := clampf(randf_range(GROUND_Y + 16.0, minf(GROUND_Y + 70.0, low)) + float(_look.depth), GROUND_Y + 8.0, low)
 		var world_box := Rect2(Vector2(roundf(cx - box.size.x / 2.0), roundf(top)), box.size)
 		var s := Sprite2D.new()
 		s.texture = tex
@@ -147,10 +165,11 @@ func _place_deposits() -> void:
 		s.hframes = 5
 		s.vframes = 3
 		s.frame = int(rule.row) * 5
+		s.modulate = _look.tint
 		s.position = world_box.position - box.position
 		_world.add_child(s)
 		_deposits.append({"sprite": s, "box": world_box, "row": int(rule.row), "ice": float(rule.ice),
-			"hp": float(rule.hp), "left": float(rule.hp), "broken": false})
+			"hp": float(rule.hp) * _look.hp, "left": float(rule.hp) * _look.hp, "broken": false})
 
 
 func _build_chips() -> void:
@@ -209,7 +228,7 @@ func _build_ui() -> void:
 	_heat_label = Style.label("", 16, Style.WHITE, 5)
 	_heat_label.position = FEED + Vector2(136, 25) * SCALE
 	layer.add_child(_heat_label)
-	_rec = Style.label("●  REC   ROVER CAM · AP-1 ICE FIELD", 14, Style.WHITE, 4)
+	_rec = Style.label("●  REC   ROVER CAM · " + _look.field, 14, Style.WHITE, 4)
 	_rec.position = FEED + Vector2(12, 648 - 30)
 	layer.add_child(_rec)
 	_status = Style.label("", 16, Style.WHITE, 5)
@@ -270,10 +289,10 @@ func _process(delta: float) -> void:
 func _drill(delta: float) -> void:
 	var hit := _deposit_at(_tip())
 	if hit >= 0:
-		_heat += HEAT_ICE * delta
+		_heat += HEAT_ICE * _look.heat * delta
 		_hit_deposit(hit, delta)
 	else:
-		_heat += HEAT_SOIL * delta
+		_heat += HEAT_SOIL * _look.heat * delta
 		var before := _depth
 		_depth = minf(_depth + DRILL_SPEED * delta, MAX_DEPTH)
 		# no atravesar un depósito: la punta se queda en su borde de arriba
@@ -355,7 +374,10 @@ func _finish() -> void:
 
 func _back() -> void:
 	set_process(false)
-	SceneChanger.go_to(HUB)
+	if Mission.expedition.is_away():  # AP-8 / AP-9: se entra desde la zona, se vuelve a ella
+		GameState.leave_building()
+	else:
+		SceneChanger.go_to(HUB)
 
 
 # ---------------------------------------------------------------- animación y efectos
