@@ -224,7 +224,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 
 | Escena | Qué tiene que llamar |
 |---|---|
-| Dormitorios (`modulos/dormitorios/`) | Elegir horas (1-24) y `await Mission.crew.sleep(h)`. |
+| ~~Dormitorios (`modulos/dormitorios/`)~~ | **Hecho**: litera → reloj para elegir las horas (1-24) → `await Mission.crew.sleep(h)` (`scripts/interiores/estacion_ares1/dormitorios.gd`). |
 | Comer (¿cocina/comedor en la estación?) | `Mission.crew.eat()` (y `eat_blocked_reason()` para el botón). |
 | Enfermería (`modulos/enfermeria/`) | `await Mission.crew.medical_checkup()`. |
 | Work Room / laboratorio (`modulos/sala_trabajo/`) | `Mission.research.start_analysis()` y el progreso. |
