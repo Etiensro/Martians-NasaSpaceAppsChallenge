@@ -61,6 +61,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			used.emit()
 
 
+## ¿El jugador está lo bastante cerca para usarlo? (el panel del carro lo usa para aparecer)
+func can_use() -> bool:
+	return _usable()
+
+
 func _usable() -> bool:
 	return doors_enabled and player != null and player.visible \
 		and player.position.distance_to(_door) <= door_range
