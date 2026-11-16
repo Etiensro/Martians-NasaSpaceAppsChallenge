@@ -134,7 +134,8 @@ Paneles, cables, tormentas y los minijuegos del edificio de paneles: **`docs/PAN
 Tras 3 sols de protección, 15 % por sol. Aviso ≥ 6 h antes. Leve 12 h −20 % solar, moderada 24 h −45 %,
 intensa 48 h −70 %. Con moderada o intensa hay **encierro**: el jugador va a la estación y no puede
 salir (salvo que esté de expedición: se queda en la zona y no puede volver hasta que pase).
-Al terminar se ensucian los paneles (+20) y se rompen paneles y cables. La moderada también daña el
+Mientras dura, la arena ensucia los paneles hora a hora (leve +15, moderada +35, intensa +50 en total); al terminar,
+la intensa rompe 4 paneles y corta 2 cables (`docs/PANELES_SOLARES.md`). La moderada también daña el
 **invernadero** (las papas no crecen hasta repararlo: `await Mission.repair_greenhouse()`, 2 h y 10 EU)
 y la intensa además el **carro** (`await Mission.expedition.repair()`, 4 h y 10 EU).
 `Mission.damaged_systems()` dice qué está dañado.
@@ -240,7 +241,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+1 | Tormenta ya (leve → moderada → intensa) | Ctrl+6 | Comer |
 | Ctrl+2 | +1 hora | Ctrl+7 | Chequeo médico |
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
-| Ctrl+4 | Daños de tormenta intensa | Ctrl+9 | Muestra de AP-1 al laboratorio y analizar |
+| Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Muestra de AP-1 al laboratorio y analizar |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
 
 ## Decisiones sobre el documento
@@ -268,4 +269,5 @@ Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden camb
 - Viaje entre AP-8 y AP-9: se suman las dos idas, como si se pasara por la base.
 - Las actividades adelantan el reloj en unos segundos (no 1 min real por hora).
 - El análisis y la extracción fijan su duración al empezar, con las penalizaciones de ese momento.
-- Daños de tormenta en paneles y cables, y ráfagas del minijuego de paneles (`docs/PANELES_SOLARES.md`).
+- Los paneles empiezan sucios (45-75 cada uno) y 3 rotos por la tormenta del aterrizaje.
+- Efecto de cada tormenta en los paneles (leve y moderada ensucian, intensa ensucia y rompe), y ráfagas del minijuego de paneles (`docs/PANELES_SOLARES.md`).
