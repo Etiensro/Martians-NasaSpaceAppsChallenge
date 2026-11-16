@@ -1,6 +1,7 @@
 extends CanvasLayer
 ## Limpiar los paneles pequeños de AP-8 / AP-9 (lo abre expedition_site.gd al pulsar E junto a ellos).
-## Se ven en grande, llenos de polvo: mantener el clic y mover el ratón quita el polvo como un cepillo.
+## Se ven en grande, llenos de polvo: mantener el clic y mover el ratón quita el polvo con la brocha
+## (la misma del campo solar de AP-1: assets/interiores/paneles_solares/campo_solar/field_brush.png).
 ## Al dejar limpio el 90 % de los paneles se termina solo -> finished(true). Esc o la flecha: finished(false).
 
 signal finished(done: bool)
@@ -11,6 +12,9 @@ const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 const SCALE := 3.5
 const BRUSH := 9          # radio del cepillo en px de la imagen
 const GOAL := 0.9         # parte del polvo que hay que quitar
+const BRUSH_ART := preload("res://assets/interiores/paneles_solares/campo_solar/field_brush.png")
+const BRUSH_ANCHOR := Vector2(14.2, 43.8)  # punto de la brocha que va bajo el ratón (field.json)
+const BRUSH_SCALE := 1.4
 
 var clean_texture: Texture2D
 var dirty_texture: Texture2D
@@ -27,6 +31,9 @@ var _exit := ExitArrow.new()
 var _brushing := false
 var _done := false
 var _puff: CPUParticles2D
+var _brush_sprite := Sprite2D.new()
+var _ring := Line2D.new()
+var _t := 0.0
 
 
 func _ready() -> void:
@@ -93,6 +100,33 @@ func _ready() -> void:
 	_puff.preprocess = 0.0
 	add_child(_puff)
 
+	# la brocha sigue al ratón (con un círculo del tamaño de lo que limpia)
+	var r := BRUSH * SCALE
+	for k in 33:
+		_ring.add_point(Vector2(cos(k * TAU / 32.0), sin(k * TAU / 32.0)) * r)
+	_ring.width = 2.0
+	_ring.default_color = Color(1, 1, 1, 0.5)
+	add_child(_ring)
+	_brush_sprite.texture = BRUSH_ART
+	_brush_sprite.centered = false
+	_brush_sprite.offset = -BRUSH_ANCHOR
+	_brush_sprite.scale = Vector2.ONE * BRUSH_SCALE
+	_brush_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	add_child(_brush_sprite)
+
+
+func _process(delta: float) -> void:
+	_t += delta
+	var m := get_viewport().get_mouse_position()
+	var over := Rect2(_view.position, _view.size).has_point(m) and not _done
+	_brush_sprite.visible = over
+	_ring.visible = over
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if over else Input.MOUSE_MODE_VISIBLE
+	var wobble := Vector2(sin(_t * 30.0) * 3.0, 0) if _brushing else Vector2.ZERO
+	_brush_sprite.position = m + wobble
+	_ring.position = m
+	_ring.default_color = Color(1, 1, 1, 0.85 if _brushing else 0.45)
+
 
 func _input(event: InputEvent) -> void:
 	if _done:
@@ -155,5 +189,6 @@ func _finish() -> void:
 
 func _close(done: bool) -> void:
 	_done = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	finished.emit(done)
 	queue_free()

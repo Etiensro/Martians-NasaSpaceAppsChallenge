@@ -6,7 +6,9 @@ extends "res://scripts/colony.gd"
 ##     paneles siguen sucios, el aviso dice LOCKED y A.R.I.A. explica por qué (Mission.entry_blocked_reason).
 ##     Mientras extrae (24 h) se ve una barra encima con el progreso, y al terminar "SAMPLE READY".
 ##   - EL CARRO: el jugador llega en él. Junto al carro: comer de lo que se cargó, dormir dentro mientras el
-##     taladro trabaja y volver (solo con la muestra; zone_rover_panel.gd).
+##     taladro trabaja y volver directo a Ares 1 con la muestra (zone_rover_panel.gd).
+## Una flecha amarilla señala siempre qué toca: paneles -> taladro -> carro.
+## La cámara se acerca a estas tres cosas (view_center / view_zoom, los usa fixed_zone.gd).
 ## Cada zona se ve distinta (efectos y color): AP-8 cráteres, rocas y remolinos de polvo; AP-9 pingos con
 ## hielo que brilla, neblina fría y escarcha cayendo.
 ## Posiciones en assets/zones/sites.json (tools/build_sites.py). Efectos de luces y humo: colony.gd.
@@ -29,6 +31,8 @@ var _drill_box: Control
 var _drill_fx: Array[Node2D] = []
 var _panel_glints: Array = []
 var _ice_glints: Array = []        # puntos del hielo de los pingos (AP-9) que también destellan
+var _arrow: Label                  # flecha que señala el siguiente paso
+var _arrow_target := Vector2.INF
 
 
 func _ready() -> void:
@@ -39,17 +43,32 @@ func _ready() -> void:
 	_add_panels()
 	_add_drill()
 	_add_vehicle()
+	_vehicle.hint_text = "E: your rover"
 	if site_id == "AP-8":
 		_craters_look()
 	else:
 		_pingos_look()
 	_add_vignette()
 	_glint_loop()
+	_arrow = Style.label("▼", 130, Style.NEON_YELLOW, 18)
+	_arrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_arrow.size = Vector2(200, 160)
+	_arrow.z_index = 80
+	add_child(_arrow)
 	Mission.expedition_changed.connect(_refresh)
 	_refresh()
 
 
 # ---------------------------------------------------------------- paneles pequeños
+
+## Centro y zoom de la cámara (sites.json): solo se ve lo que importa de la zona.
+func view_center() -> Vector2:
+	return Vector2(site.view[0], site.view[1])
+
+
+func view_zoom() -> float:
+	return site.zoom
+
 
 func _add_panels() -> void:
 	var data: Dictionary = site.panels.duplicate()
@@ -125,9 +144,9 @@ func _add_drill() -> void:
 	_drill_box = VBoxContainer.new()
 	_drill_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	# encima de la torre del taladro (a la derecha de la excavadora): 180 px de ancho ×3
-	_drill_box.position = Vector2(data.drill_tip[0] - 270, data.pos[1] - data.size[1] - 170)
+	_drill_box.position = Vector2(data.drill_tip[0] - 180, data.pos[1] - data.size[1] - 110)
 	_drill_box.z_index = 70
-	_drill_box.scale = Vector2.ONE * 3.0
+	_drill_box.scale = Vector2.ONE * 2.0
 	_drill_label = Style.label("", 18, Style.WHITE, 6)
 	_drill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_drill_box.add_child(_drill_label)
@@ -137,6 +156,9 @@ func _add_drill() -> void:
 
 
 func _process(_delta: float) -> void:
+	if _arrow_target != Vector2.INF:  # la flecha sube y baja sobre lo que toca
+		_arrow.visible = player.visible
+		_arrow.position = _arrow_target - Vector2(100, 170) + Vector2(0, sin(Time.get_ticks_msec() / 180.0) * 20.0)
 	var ex := Mission.expedition
 	if ex.is_extracting():
 		_drill_bar.value = ex.extraction_progress() * 100.0
@@ -149,10 +171,20 @@ func _refresh() -> void:
 	for p in _drill_fx:
 		p.emitting = working
 	_drill_bar.visible = working
+	var done := ex.extracted_here or Mission.research.has_sample_of(site_id)
+	_drill.doors_enabled = doors_enabled and not done  # con la muestra lista ya no hay nada que hacer aquí
+	# flecha: paneles sucios -> taladro -> carro (mientras taladra, el carro: descansar o comer)
+	var v: Dictionary = site.vehicle
+	if not ex.zone_panels_clean and not done:
+		_arrow_target = Vector2(site.panels.door[0], site.panels.door[1] - 150)  # sobre el módulo de los paneles
+	elif not working and not done:
+		_arrow_target = Vector2(site.excavator.door[0], site.excavator.door[1] - 190)
+	else:
+		_arrow_target = Vector2(v.pos[0], v.pos[1] - v.size[1] - 20)
 	if working:
 		_process(0.0)
-	elif ex.extracted_here or Mission.research.has_sample_of(site_id):
-		_drill_label.text = "SAMPLE READY!"
+	elif done:
+		_drill_label.text = "SAMPLE READY! Go to your rover"
 		_drill_label.add_theme_color_override("font_color", Style.NEON_YELLOW)
 	elif not ex.zone_panels_clean:
 		_drill_label.text = "NO POWER: clean the panels"
@@ -171,13 +203,35 @@ func _add_vehicle_panel() -> void:
 	add_child(panel)
 
 
-## Sale con el carro hacia el mapa (solo con la muestra: si no, A.R.I.A. explica por qué).
+## Vuelve con el carro directo a Ares 1 (solo con la muestra: si no, A.R.I.A. explica por qué).
+## El carro sale por el borde, el reloj avanza las horas del viaje y se llega a AP-1.
 func _drive_away() -> void:
-	var why := Mission.expedition.travel_blocked_reason(Mission.expedition.home())
+	var ex := Mission.expedition
+	var why := ex.travel_blocked_reason(ex.home())
 	if why != "":
 		Mission.notify(why)
 		return
-	super._drive_away()
+	_vehicle.doors_enabled = false
+	player.hide()
+	player.set_process(false)
+	_arrow_target = Vector2.INF
+	_arrow.hide()
+	var tw := create_tween()
+	tw.tween_property(_vehicle, "position:x", _edge_x(), 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	await tw.finished
+	why = await ex.travel(ex.home())
+	if why != "":
+		Mission.notify(why)
+		SceneChanger.go_to(GameState.WORLD_MAP)
+		return
+	GameState.selected_site = ex.home()
+	SceneChanger.go_to(GameState.site_scene(ex.home()))
+
+
+## Fuera de la vista, por el lado del carro (por donde llega y se va).
+func _edge_x() -> float:
+	var half := 1280.0 / view_zoom() / 2.0
+	return view_center().x - half - 300.0 if _vehicle.position.x < view_center().x else view_center().x + half + 300.0
 
 
 ## Llega desde el mapa: el carro entra por el borde y el jugador se baja a su lado.
@@ -186,13 +240,14 @@ func arrive() -> void:
 	player.hide()
 	player.set_process(false)
 	_vehicle.doors_enabled = false
-	_vehicle.position.x = -400.0
-	var tw := create_tween()
+	_vehicle.position.x = _edge_x()
+	# sigue aunque A.R.I.A. pause el juego para hablar (si no, el carro se queda a medio camino)
+	var tw := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(_vehicle, "position:x", to.x, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(_vehicle, "position:y", to.y - 6, 0.08)
 	tw.tween_property(_vehicle, "position:y", to.y, 0.08)
 	await tw.finished
-	_puffs(to + Vector2(-60, -10), Color(0.85, 0.62, 0.48, 0.6), Vector2(-1, -0.3), 10, 1.0, 50.0)
+	_puffs(to + Vector2(-60 if to.x < view_center().x else 60, -10), Color(0.85, 0.62, 0.48, 0.6), Vector2(-1, -0.3), 10, 1.0, 50.0)
 	player.show()
 	player.set_process(true)
 	_vehicle.doors_enabled = doors_enabled

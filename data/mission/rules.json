@@ -121,18 +121,18 @@
 	  "penalties": [[75, 1.0], [50, 1.10], [25, 1.20], [1, 1.35], [0, 1.5]]
 	},
 	"warnings": {
-	  "_comment": "Avisos de A.R.I.A. al cruzar un umbral (barra, umbral, texto). 'up' = al subir, 'down' = al bajar.",
+	  "_comment": "Avisos de A.R.I.A. al cruzar un umbral (barra, umbral, texto, texto opcional durante una expedición en AP-8 / AP-9). 'up' = al subir, 'down' = al bajar.",
 	  "list": [
-		["hunger", "down", 70, "You're getting hungry. Eat something in the station!"],
-		["hunger", "down", 40, "You're very hungry: every task is slower. Time to eat!"],
-		["hunger", "down", 10, "Danger! You're starving. Eat now or the mission ends."],
+		["hunger", "down", 70, "You're getting hungry. Eat something in the station!", "You're getting hungry. Eat a meal in your rover!"],
+		["hunger", "down", 40, "You're very hungry: every task is slower. Time to eat!", "You're very hungry: every task is slower. Eat in your rover!"],
+		["hunger", "down", 10, "Danger! You're starving. Eat now or the mission ends.", "Danger! You're starving. Eat in your rover now!"],
 		["fatigue", "up", 50, "You're getting tired. Tasks are a bit slower."],
-		["fatigue", "up", 80, "You're exhausted! Go to the dormitory and sleep."],
-		["fatigue", "up", 95, "Danger! You're about to collapse. Sleep now!"],
-		["radiation", "up", 25, "Medical warning: radiation is rising. Get a check-up in the infirmary."],
-		["radiation", "up", 50, "Radiation is high: tasks are slower. Visit the infirmary!"],
-		["radiation", "up", 75, "Danger! Radiation is very high. Get a check-up now!"],
-		["fitness", "down", 75, "Your muscles are getting weak in low gravity. Train in the gym!"],
+		["fatigue", "up", 80, "You're exhausted! Go to the dormitory and sleep.", "You're exhausted! Sleep in your rover."],
+		["fatigue", "up", 95, "Danger! You're about to collapse. Sleep now!", "Danger! You're about to collapse. Sleep in your rover now!"],
+		["radiation", "up", 25, "Medical warning: radiation is rising. Get a check-up in the infirmary.", "Radiation is rising out here. Get a check-up when you are back at Ares 1."],
+		["radiation", "up", 50, "Radiation is high: tasks are slower. Visit the infirmary!", "Radiation is high: tasks are slower. Visit the infirmary when you are back."],
+		["radiation", "up", 75, "Danger! Radiation is very high. Get a check-up now!", "Danger! Radiation is very high. Finish fast and go back to Ares 1!"],
+		["fitness", "down", 75, "Your muscles are getting weak in low gravity. Train in the gym!", "Your muscles are getting weak. Train in the gym when you are back."],
 		["fitness", "down", 25, "Your fitness is very low: physical tasks are much slower."]
 	  ]
 	}
