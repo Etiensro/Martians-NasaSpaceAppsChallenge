@@ -59,8 +59,9 @@ const STATION_SCENES := "res://scenes/interiores/estacion_ares1/"
 const PANEL_FIELD := "res://scenes/interiores/paneles_solares/minijuegos/campo_solar/campo_solar.tscn"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 const ICE_DRILL := "res://scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn"
-## Motivos de fin de misión (los usa el HUD para el texto).
-const END_REASONS := ["complete", "energy", "hunger", "fatigue", "radiation"]
+## Motivos de fin de misión: "research" (100 % de investigación, victoria), "complete" (llega el sol 60)
+## y las evacuaciones. Textos de cada final: data/mission/endings.json (ver docs/FINALES.md).
+const END_REASONS := ["research", "complete", "energy", "hunger", "fatigue", "radiation"]
 
 var rules: Dictionary
 var hours := 0.0              # horas de juego desde el inicio de la misión
@@ -74,6 +75,7 @@ var panels_need_check := false  # una tormenta pasó y los paneles no se han rev
 var pantry_meals := 0         # comidas en la despensa de la base
 var over := false
 var end_reason := ""
+var final_score := {}         # puntuación al terminar (la enseña la pantalla final del regreso)
 var activity := {}            # actividad en curso: {} o {"label", "total", "left", "state", "rate"}
 
 var crew: Crew
@@ -106,6 +108,7 @@ func reset() -> void:
 	_last_hour = 0
 	over = false
 	end_reason = ""
+	final_score = {}
 	battery = rules.energy.start
 	systems_on.clear()
 	for id in rules.energy.systems:
@@ -149,7 +152,7 @@ func is_running() -> bool:
 
 
 func _process(delta: float) -> void:
-	_hud.visible = is_running() or over
+	_hud.visible = is_running() or _hud.showing_end()
 	if not activity.is_empty():
 		_process_activity(delta)
 	elif is_running() and not get_tree().paused:
@@ -674,6 +677,8 @@ func gust_rule() -> Dictionary:
 # ---------------------------------------------------------------- puntuación y final
 
 ## Puntuación del documento: P = 10·I + H + (100 − C) + E/10 + F + D. Devuelve cada parte y "total".
+## D (sols restantes) solo cuenta si se gana (100 % de investigación): si no, una evacuación temprana
+## sumaría más puntos que aguantar (decisión del equipo, rules.json -> score._decision_sols_left).
 func score() -> Dictionary:
 	var s := {
 		"research": research.percent() * rules.score.research_weight,
@@ -681,7 +686,7 @@ func score() -> Dictionary:
 		"rest": 100.0 - crew.fatigue,
 		"energy": battery / rules.score.energy_divisor,
 		"fitness": crew.fitness,
-		"sols_left": float(sols_left()),
+		"sols_left": float(sols_left()) if end_reason == "research" else 0.0,
 	}
 	var total := 0.0
 	for k in s:
@@ -695,6 +700,13 @@ func notify(text: String) -> void:
 	_hud.say(text)
 
 
+## Termina la misión (uno de END_REASONS). Research lo llama al llegar al 100 %.
+func end_mission(reason: String) -> void:
+	_end(reason)
+
+
+## Fin de la misión: se congela la escena, Control de Misión manda su mensaje (HUD) y de ahí empieza
+## el regreso a la Tierra (scenes/finales/: despertar a la tripulación, despegue y llegada).
 func _end(reason: String) -> void:
 	if over:
 		return
@@ -702,18 +714,20 @@ func _end(reason: String) -> void:
 	end_reason = reason
 	if not activity.is_empty():
 		_finish_activity()
-	get_tree().paused = true  # la escena se congela detrás de la pantalla final (el HUD sigue activo)
+	final_score = score()
+	get_tree().paused = true  # la escena se congela detrás del mensaje (el HUD sigue activo)
 	mission_over.emit(reason)
-	_hud.show_over(reason, score())
+	_hud.show_end(reason)
 
 
 # ---------------------------------------------------------------- atajos de prueba (solo en el editor)
 # Ctrl+1 tormenta ya (leve -> moderada -> intensa)   Ctrl+2 +1 hora         Ctrl+3 +1 sol
 # Ctrl+4 daños de tormenta intensa                   Ctrl+5 dormir 8 h      Ctrl+6 comer
 # Ctrl+7 chequeo médico                              Ctrl+8 ejercicio       Ctrl+9 muestra de AP-1 guardada (probar el laboratorio)
-# Ctrl+0 imprime el estado en la consola
+# Ctrl+0 imprime el estado en la consola              Ctrl+E termina la misión (cada vez con otro final)
 
 var _debug_storm := 0
+var _debug_end := 0
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -748,6 +762,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			notify("Debug: AP-1 sample stored. Prepare it in the Work Room.")
 		KEY_0:
 			print(debug_text())
+		KEY_E:
+			_end(END_REASONS[_debug_end % END_REASONS.size()])
+			_debug_end += 1
 
 
 ## Estado completo en texto (Ctrl+0 lo imprime). Útil para depurar.

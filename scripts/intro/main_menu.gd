@@ -14,10 +14,6 @@ const WindLayer := preload("res://scripts/intro/wind_layer.gd")
 const NEXT_SCENE := "res://scenes/intro/base_interior.tscn"
 const REPO_URL := "https://github.com/Etiensro/Martians-NasaSpaceAppsChallenge"
 
-## Suelo de AP-1: la colonia encima y el suelo liso repetido alrededor (por si la cámara ve más allá).
-const COLONY_GROUND := preload("res://assets/zones/ap1_colony_ground.png")
-const PLAIN_GROUND := preload("res://assets/zones/ap1_ground.png")
-const CELL := 3.0                          # igual que ap1_zone.tscn
 @export var cinematic_duration := 9.0
 
 ## Ancho del panel de marca (izquierda) y margen interior.
@@ -59,22 +55,7 @@ func _ready() -> void:
 # ---------------------------------------------------------------- mundo
 
 func _build_world() -> void:
-	var tile := Vector2(PLAIN_GROUND.get_size()) * CELL
-	var around := Sprite2D.new()
-	around.texture = PLAIN_GROUND
-	around.centered = false
-	around.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	around.region_enabled = true
-	around.region_rect = Rect2(Vector2.ZERO, PLAIN_GROUND.get_size() * 5)
-	around.scale = Vector2.ONE * CELL
-	around.position = -tile * 2.0
-	add_child(around)
-
-	var ground := Sprite2D.new()
-	ground.texture = COLONY_GROUND
-	ground.centered = false
-	ground.scale = Vector2.ONE * CELL
-	add_child(ground)
+	Colony.add_ground(self)  # suelo de AP-1 (el mismo que ap1_zone.tscn)
 
 	# Colonia de AP-1 (edificios, vehículo, luces, viento); sin jugador ni puertas
 	var colony := Colony.new()
