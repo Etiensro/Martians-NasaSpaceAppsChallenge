@@ -3,6 +3,8 @@ extends CanvasLayer
 ##   - Abajo a la izquierda: botón pequeño con el robot y una barrita del progreso del día.
 ##     Al hacer clic se abre/cierra la lista de tareas: el día 1, las 4 tareas para aprender la
 ##     rutina; después, la rutina diaria (✓ lo que está bien, ! lo que hay que cuidar).
+##     Debajo, la sección de comida: comidas en la despensa, barra de hambre y botón EAT
+##     (solo sale dentro de la base principal, la Estación Ares 1; espera de rules.json crew.hunger.meal_cooldown_hours entre comidas).
 ##   - Lecciones muy cortas (con capturas del juego) que salen una sola vez cuando pasa algo:
 ##     entrar a una escena, completar una tarea, terminar el día 1... Mientras habla, el juego se pausa.
 ## Textos y disparadores: data/guide/guide.json. Capturas: assets/ui/guide/ (tools/build_guide_shots.py).
@@ -13,6 +15,8 @@ const DATA := "res://data/guide/guide.json"
 const SHOTS := "res://assets/ui/guide/%s.png"
 const ROBOT_FRAMES := preload("res://assets/characters/robot_frames.tres")
 const PAUSED_SCENES := "res://scenes/intro/"
+## Base principal: aquí (y solo aquí) sale la sección de comida.
+const BASE_SCENES := "res://scenes/interiores/estacion_ares1/"
 ## En los minijuegos el robot se esconde para no tapar el juego.
 const HIDDEN_IN := [
 	"res://scenes/interiores/estacion_ares1/modulos/invernadero/sembrar.tscn",
@@ -42,6 +46,11 @@ var _list: PanelContainer     # lista de tareas (se abre con el botón)
 var _list_title: Label
 var _list_bar: ProgressBar
 var _list_rows: VBoxContainer
+var _food: VBoxContainer      # sección de comida (dentro de la lista; solo en la estación)
+var _food_meals: Label
+var _food_bar: ProgressBar
+var _food_note: Label
+var _eat: Button
 var _bubble: PanelContainer
 var _text: Label
 var _image: TextureRect
@@ -124,6 +133,43 @@ func _build_list() -> void:
 	_list_rows = VBoxContainer.new()
 	_list_rows.add_theme_constant_override("separation", 3)
 	col.add_child(_list_rows)
+	_build_food(col)
+
+
+## Sección de comida: cuántas comidas quedan, el hambre y el botón para comer.
+func _build_food(parent: VBoxContainer) -> void:
+	_food = VBoxContainer.new()
+	_food.add_theme_constant_override("separation", 6)
+	parent.add_child(_food)
+	var col := _food
+	var line := ColorRect.new()
+	line.color = Color(Style.NEON_YELLOW, 0.5)
+	line.custom_minimum_size = Vector2(0, 2)
+	col.add_child(line)
+	var head := HBoxContainer.new()
+	col.add_child(head)
+	var title := Style.brand_title("FOOD", 16, Style.WHITE)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
+	_food_meals = Style.label("", 15, Style.NEON_YELLOW, 0)
+	head.add_child(_food_meals)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	col.add_child(row)
+	row.add_child(Style.label("Hunger", 14, Style.WHITE, 0))
+	_food_bar = Style.progress_bar(180, 10)
+	_food_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_food_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_food_bar)
+	_eat = Button.new()
+	_eat.custom_minimum_size = Vector2(0, 34)
+	Style.brand_button(_eat, true, 15)
+	_eat.pressed.connect(_on_eat)
+	col.add_child(_eat)
+	_food_note = Style.label("", 13, Color(1, 1, 1, 0.7), 0)
+	_food_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_food_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(_food_note)
 
 
 func _build_bubble() -> void:
@@ -297,6 +343,38 @@ func _fill_list() -> void:
 			var it: Array = items[i]
 			l.text = ("✓  " if it[1] else "!  ") + str(it[0])
 			l.add_theme_color_override("font_color", Color(1, 1, 1, 0.55) if it[1] else Style.NEON_YELLOW)
+	_fill_food()
+
+
+## Solo se come dentro de la base principal (la Estación Ares 1 y sus módulos).
+func _at_base() -> bool:
+	return not Mission.expedition.is_away() and _scene.begins_with(BASE_SCENES)
+
+
+## Motivo por el que no se puede comer ahora ("" si se puede).
+func _eat_blocked() -> String:
+	var wait := Mission.crew.hours_until_meal()
+	if wait > 0.0:
+		return "Next meal in %d h." % ceili(wait)
+	return Mission.crew.eat_blocked_reason()
+
+
+func _fill_food() -> void:
+	_food.visible = _at_base()  # fuera de la estación no sale la sección de comida
+	if not _food.visible:
+		return
+	_food_meals.text = "%d meals left" % Mission.pantry_meals
+	_food_bar.value = Mission.crew.value_of("hunger")
+	var why := _eat_blocked()
+	_eat.disabled = why != "" or Mission.is_busy()
+	_eat.text = "EAT A MEAL" if why == "" else "CAN'T EAT NOW"
+	_food_note.text = why if why != "" else "You can eat once every %d hours." % int(Mission.rules.crew.hunger.meal_cooldown_hours)
+
+
+func _on_eat() -> void:
+	var why := Mission.crew.eat() if _eat_blocked() == "" else _eat_blocked()
+	Mission.notify(why if why != "" else "Yum! A hot potato meal. Hunger +%d." % int(Mission.rules.crew.hunger.per_meal))
+	_fill_food()
 
 
 func _on_button_input(event: InputEvent) -> void:
