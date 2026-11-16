@@ -15,7 +15,7 @@ cambia el JSON, no el código.
 | `scripts/core/mission/crops.gd` | `Mission.crops`: cultivo de papas (plantar, regar, crecer, cosechar, limpiar la planta muerta). |
 | `scripts/core/mission/research.gd` | `Mission.research`: muestras y análisis en el laboratorio. |
 | `scripts/core/mission/expedition.gd` | `Mission.expedition`: carro explorador, viajes a AP-8/AP-9 y extracción de muestras. |
-| `scripts/core/mission_hud.gd` | HUD: reloj, batería, barras, investigación, tormenta, mensajes de A.R.I.A., cartel de actividad y pantalla final con la puntuación. |
+| `scripts/core/mission_hud.gd` | HUD: reloj, batería, barras, investigación, tormenta, mensajes de A.R.I.A., cartel de actividad y el mensaje de Control de Misión al terminar. |
 | `data/mission/rules.json` | Todas las reglas. Los campos `_proposed` son decisiones nuestras que el documento no fija. |
 | `data/intro/roles.json` | Ventajas de cada rol (`modifiers`), que se leen con `GameState.modifier(clave)`. |
 
@@ -229,11 +229,14 @@ sobrante a la despensa. La muestra de AP-1 se extrae en la base (va directa al l
 ## Puntuación y fin de misión
 
 `P = 10·I + H + (100 − C) + E/10 + F + D` (investigación %, hambre, cansancio, energía, condición física,
-sols restantes). `Mission.score()` devuelve cada parte y `total`.
+sols restantes). `Mission.score()` devuelve cada parte y `total`. **D solo cuenta al ganar** (100 % de
+investigación); en una evacuación vale 0, para que rendirse pronto no dé más puntos que aguantar.
 
-La misión termina (`Mission.mission_over(reason)`, `Mission.end_reason`) con `"complete"` (pasan los 60
-sols), `"energy"`, `"hunger"`, `"fatigue"` o `"radiation"`. La pantalla final enseña el motivo y la
-puntuación; "BACK TO MENU" llama a `Mission.reset()`.
+La misión termina (`Mission.mission_over(reason)`, `Mission.end_reason`) con `"research"` (100 % de
+investigación: victoria), `"complete"` (pasan los 60 sols), `"energy"`, `"hunger"`, `"fatigue"` o
+`"radiation"`. La puntuación se guarda al terminar en `Mission.final_score`. Siempre sigue el regreso a la
+Tierra (mensaje de Control de Misión, despertar a la tripulación, despegue y llegada con la medalla y la
+puntuación): **ver `docs/FINALES.md`**. "BACK TO MENU" llama a `Mission.reset()`.
 
 ## Señales
 
@@ -280,6 +283,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
 | Ctrl+4 | Suciedad y daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
+| Ctrl+E | Termina la misión (cada vez con otro final: research, complete, energy...) | | |
 
 ## Decisiones sobre el documento
 
@@ -297,8 +301,12 @@ Confirmadas por el equipo (`_decision` en `rules.json`):
 5. **Comida:** la despensa empieza con 30 comidas.
 6. **Auxiliares apagados:** no se puede entrar a la estación principal (Ares 1). El edificio de paneles
    (con la Power Room, donde se vuelven a encender) sigue accesible.
+7. **Sols restantes (D) en la puntuación:** solo suman al ganar; en una evacuación valen 0.
 
 Propuestas nuestras donde el documento no dice nada (`_proposed`, se pueden cambiar):
+
+- La misión termina al llegar al 100 % de investigación (victoria); el sol 60 es la última ventana de
+  regreso. Todos los finales regresan a la Tierra (`docs/FINALES.md`).
 
 - Huecos de la tabla del hambre (61-69, 31-39, 1-9): se usa la fila de abajo.
 - Cada papa cosechada es 1 comida.

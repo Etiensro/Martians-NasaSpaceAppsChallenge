@@ -12,7 +12,12 @@ scenes/intro/main_menu.tscn ──START──▶ scenes/intro/base_interior.tscn
                                                                                        │ flecha EXIT
                                                                                        ▼
                  scenes/interiores/*  ◀──E (puerta)──  scenes/ap1_zone.tscn / ap8 / ap9  ──Esc──▶ scenes/world_map.tscn
+
+fin de la misión (100 % de investigación, sol 60 o evacuación) ──▶ mensaje de Control de Misión
+  ──▶ scenes/finales/despertar.tscn ──▶ despegue.tscn ──▶ tierra.tscn (medalla y puntuación) ──▶ menú
 ```
+
+Finales: `docs/FINALES.md`.
 
 ## Autoloads (existen en todas las escenas)
 
@@ -39,6 +44,7 @@ Se usan con `const X := preload("res://scripts/core/x.gd")`.
 |---|---|
 | `scenes/` | `zone_base.tscn` (zona genérica) y `ap1/ap8/ap9_zone.tscn` que la **heredan**; `world_map.tscn`; `astronaut.tscn`, `rover.tscn`, `robot.tscn` |
 | `scenes/intro/` | Menú + cinemática y el interior con diálogo, selección de rol y criosueño |
+| `scenes/finales/` | El regreso a la Tierra: despertar a la tripulación, despegue y llegada con la medalla (`scripts/finales/`, `docs/FINALES.md`) |
 | `scenes/interiores/` | `interior_base.tscn` y los interiores que la heredan (ver su README) |
 | `scripts/` | Un script por escena o personaje (mismo nombre que su escena cuando se puede) |
 | `scripts/core/` | Lo compartido (ver arriba) |
@@ -74,6 +80,7 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 | `build_fx.py` | Texturas de efectos de `assets/fx/` |
 | `build_dormitorios.py` | Dormitorios: cuarto, reloj, manecillas (recortadas del fondo verde) y `dorm.json` (`assets/interiores/estacion_ares1/dormitorios/`) |
 | `build_lab_medico.py` | Sprites del laboratorio (hielo, matraces, pinzas, letreros) y del escáner de la enfermería (`assets/interiores/estacion_ares1/sala_trabajo/lab/`, `.../enfermeria/scan/`). Ver `docs/LABORATORIO_Y_ENFERMERIA.md` |
+| `build_nave_vuelo.py` | La nave de la colonia sin la sombra de la plataforma, para el despegue del final (`assets/buildings/nave_vuelo.png`) |
 | `build_plantas.py` | Plantas del invernadero en 4 etapas (sana, débil, marchita, muerta): macetas de la tarjeta, capas de las camas de la sala y planta cenital del minijuego de cosechar (`assets/interiores/estacion_ares1/invernadero/plantas/`) |
 | `build_power_room.py` | Sala eléctrica de los paneles: fondo, interruptores, placa y monitor (`assets/interiores/paneles_solares/sala_electrica/`) |
 | `build_field.py` | Campo solar de los paneles: panel limpio y roto, caja de repuestos, suelo, caja de conexiones y brocha (`assets/interiores/paneles_solares/campo_solar/`) |
