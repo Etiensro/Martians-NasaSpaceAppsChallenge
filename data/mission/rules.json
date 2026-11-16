@@ -26,8 +26,8 @@
   "energy": {
 	"capacity": 1000,
 	"start": 800,
-	"_comment_generation": "EU/h según la limpieza de los paneles: [limpieza mínima, EU/h], de mayor a menor",
-	"generation_by_cleanliness": [[70, 12], [40, 6], [1, 2], [0, 0]],
+	"_proposed_generation": "EU/h que entran = max_generation x (paneles que funcionan / paneles totales) x (limpieza % / 100), menos la pérdida por tormenta (decisión del equipo de paneles)",
+	"max_generation": 12,
 	"panel_repair_cost": 10,
 	"system_repair_cost": 10,
 	"system_repair_hours": 2,
@@ -48,9 +48,9 @@
   "panels": {
 	"columns": 4,
 	"rows": 4,
-	"_proposed_start": "La tormenta de arena del aterrizaje (intro) deja los paneles sucios (suciedad al azar entre min y max en cada uno) y algunos rotos (al azar)",
-	"start_dirt_min": 45,
-	"start_dirt_max": 75,
+	"_proposed_start": "La tormenta de arena del aterrizaje (intro) deja los paneles completamente cubiertos de polvo (suciedad al azar entre min y max en cada uno) y algunos rotos (al azar)",
+	"start_dirt_min": 100,
+	"start_dirt_max": 100,
 	"start_broken": 3,
 	"start_cut_cables": 0,
 	"dirt_per_sol": 10
