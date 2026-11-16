@@ -188,8 +188,10 @@ Mission.expedition.start_extraction()          # "" o el motivo. 24 h; mientras,
 Mission.expedition.start_extraction(0.5)       # si el minijuego ya duró 0.5 h reales, se restan
 ```
 
-Requisitos para salir: carro inspeccionado y con mantenimiento (y reparado), comida para todo el viaje
-(3 por sol), energía suficiente para la ausencia, hueco para la muestra y ninguna tormenta activa.
+Requisitos para salir: carro inspeccionado y con mantenimiento (y reparado), energía suficiente para la
+ausencia, hueco para la muestra y ninguna tormenta activa. La comida la decide el jugador (1 a 6 en el
+carro): `meals_needed(dest)` es solo la cantidad **recomendada** (3 por sol de viaje); con menos, se pasa
+hambre durante la expedición. Ir al mapa y volver a AP-1 sin viajar no cambia nada del carro.
 No se puede volver a la base sin la muestra. Al volver, la muestra pasa al laboratorio y la comida
 sobrante a la despensa. La muestra de AP-1 se extrae en la base (va directa al laboratorio).
 
