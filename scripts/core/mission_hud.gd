@@ -4,11 +4,11 @@ extends CanvasLayer
 ##     condición física), investigación y tormenta;
 ##   - abajo: mensajes de A.R.I.A. (Mission.notify);
 ##   - en el centro, mientras dura una actividad (dormir, viajar...): el cartel con el reloj adelantándose;
-##   - la pantalla de fin de misión con la puntuación.
+##   - al terminar la misión, el mensaje de Control de Misión que empieza el regreso (scripts/finales/).
 
 const Style := preload("res://scripts/core/style.gd")
 const MESSAGE_SECONDS := 5.0
-const MAIN_MENU := "res://scenes/intro/main_menu.tscn"
+const Final := preload("res://scripts/finales/final.gd")
 const BAR_W := 150.0
 ## Barras de la tripulación: id en Mission.crew, nombre, si "más es mejor" y valor a partir del que se
 ## pinta en rojo (aviso).
@@ -18,14 +18,6 @@ const CREW_BARS := [
 	["radiation", "RADIATION", false, 50.0],
 	["fitness", "FITNESS", true, 50.0],
 ]
-const END_TEXT := {
-	"complete": "You kept Ares Base running until the end of the mission!",
-	"energy": "The battery ran out. Without power, the base can't keep the crew safe.",
-	"hunger": "You ran out of food energy. The crew had to abandon the mission.",
-	"fatigue": "You were too exhausted to go on. The crew had to abandon the mission.",
-	"radiation": "Radiation got too high. You had to leave Mars to get medical care.",
-}
-
 var _clock: Label
 var _battery: Label
 var _battery_bar: ProgressBar
@@ -207,48 +199,63 @@ func _next_message() -> void:
 	create_tween().tween_property(_message_box, "modulate:a", 1.0, 0.2)
 
 
-## Pantalla de fin de misión: motivo y puntuación (Mission.score()).
-func show_over(reason: String, score: Dictionary) -> void:
+## Fin de la misión: mensaje de Control de Misión (textos de data/mission/endings.json) con el botón
+## que empieza el regreso a la Tierra (scenes/finales/). La puntuación sale al final del regreso.
+func show_end(_reason: String) -> void:
 	if _over:
 		return
+	var info: Dictionary = Final.reason()
+	var emergency: bool = info.mood == "emergency"
 	_over = ColorRect.new()
-	(_over as ColorRect).color = Color(Style.DEEP_BLUE, 0.92)
+	(_over as ColorRect).color = Color(Style.DEEP_BLUE, 0.85)
 	_over.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_over)
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_over.add_child(center)
+	var panel := PanelContainer.new()
+	var accent := Style.ROCKET_RED if emergency else Style.NEON_YELLOW
+	panel.add_theme_stylebox_override("panel", Style.box(Style.NAVY_SOFT, accent, 4, 28))
+	panel.custom_minimum_size = Vector2(760, 0)
+	center.add_child(panel)
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 14)
-	center.add_child(col)
-	var won := reason == "complete"
-	var title := Style.brand_title("MISSION COMPLETE" if won else "MISSION OVER", 56, Style.NEON_YELLOW if won else Style.WHITE)
+	col.add_theme_constant_override("separation", 16)
+	panel.add_child(col)
+	var from := Style.label("INCOMING MESSAGE FROM MISSION CONTROL  ·  EARTH", 16, Style.BLUE_YONDER, 0)
+	from.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(from)
+	var title := Style.brand_title(str(info.title), 52, accent)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)
-	var sub := Style.label(END_TEXT.get(reason, ""), 22, Style.WHITE, 0)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(sub)
-	var lines := "Research %d %%  ×10 = %d\nFood %d   ·   Rest %d   ·   Energy %d   ·   Fitness %d   ·   Sols left %d" % [
-		roundi(Mission.research.percent()), roundi(score.research), roundi(score.hunger), roundi(score.rest),
-		roundi(score.energy), roundi(score.fitness), roundi(score.sols_left)]
-	var detail := Style.label(lines, 18, Style.WHITE, 0)
-	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(detail)
-	var total := Style.brand_title("SCORE  %d" % score.total, 40, Style.NEON_YELLOW)
-	total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	col.add_child(total)
-	var again := Button.new()
-	again.text = "BACK TO MENU"
-	again.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	Style.style_button(again, 24)
-	again.pressed.connect(_back_to_menu)
-	col.add_child(again)
+	var msg := Style.label(Final.fill(str(info.control)), 22, Style.WHITE, 0)
+	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	msg.custom_minimum_size = Vector2(700, 0)
+	col.add_child(msg)
+	var go := Button.new()
+	go.text = "WAKE UP THE CREW"
+	go.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	Style.brand_button(go, true, 24)
+	go.pressed.connect(_start_return)
+	col.add_child(go)
+	# aparece con un pequeño "pop" (como una transmisión que llega)
+	panel.pivot_offset = panel.custom_minimum_size / 2.0
+	panel.scale = Vector2(0.9, 0.9)
+	_over.modulate.a = 0.0
+	var tw := create_tween().set_parallel()
+	tw.tween_property(_over, "modulate:a", 1.0, 0.35)
+	tw.tween_property(panel, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	go.grab_focus()
 
 
-func _back_to_menu() -> void:
+## ¿Se está enseñando el mensaje del final? (Mission deja el HUD visible mientras tanto)
+func showing_end() -> bool:
+	return _over != null
+
+
+func _start_return() -> void:
 	get_tree().paused = false
 	_over.queue_free()
 	_over = null
-	Mission.reset()
-	SceneChanger.go_to(MAIN_MENU)
+	SceneChanger.go_to(Final.WAKE)

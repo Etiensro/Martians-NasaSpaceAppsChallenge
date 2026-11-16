@@ -2,6 +2,7 @@ extends Node2D
 ## Colonia de AP-1: coloca los edificios y el vehículo (building.gd, con su panel rover_panel.gd) y todos los efectos
 ## (luces, destellos de los paneles, viento con polvo, humo, vapor y rociadores).
 ## Lee assets/buildings/colony.json (lo genera tools/build_colony.py).
+## add_ground() pone debajo el suelo de AP-1 (lo usan el menú y el despegue del final).
 
 const COLONY := "res://assets/buildings/colony.json"
 const Building := preload("res://scripts/building.gd")
@@ -24,6 +25,8 @@ const SOLAR_LOOKS := {
 @export var wind := Vector2(1.0, 0.12)  # dirección del viento
 
 var meta: Dictionary
+var buildings := {}         # id -> Building
+var fx_nodes := {}          # id -> efectos (luces, humo...) de ese edificio, p. ej. para moverlos con él
 var _glints: Array = []
 var _vehicle: Building
 var _solar: Building
@@ -44,11 +47,14 @@ func _ready() -> void:
 		b.setup(data, meta.cell, player)
 		b.doors_enabled = doors_enabled and data.get("enterable", true)
 		add_child(b)
+		buildings[id] = b
 		if id == SOLAR_ID:
 			_solar = b
 			_solar_look = data.texture
+		var before := get_child_count()
 		for f in data.fx:
 			_add_fx(f)
+		fx_nodes[id] = get_children().slice(before)
 		if id != SOLAR_ID or (Mission.cleanliness() >= 70.0 and Mission.broken_count() == 0):  # el sol solo brilla en paneles limpios y sanos
 			_glints += data.get("glints", [])
 	_add_vehicle()
@@ -57,6 +63,28 @@ func _ready() -> void:
 	if not _glints.is_empty():
 		_glint_loop()
 	Mission.panels_changed.connect(_refresh_solar)  # tormentas y polvo de cada sol con el jugador fuera
+
+
+## Suelo de AP-1 bajo la colonia (mismo que scenes/ap1_zone.tscn), con el suelo liso repetido alrededor
+## por si la cámara ve más allá. Se añade a `parent` antes que la colonia.
+static func add_ground(parent: Node) -> void:
+	var plain: Texture2D = load("res://assets/zones/ap1_ground.png")
+	var cell := 3.0
+	var tile := Vector2(plain.get_size()) * cell
+	var around := Sprite2D.new()
+	around.texture = plain
+	around.centered = false
+	around.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	around.region_enabled = true
+	around.region_rect = Rect2(Vector2.ZERO, plain.get_size() * 5)
+	around.scale = Vector2.ONE * cell
+	around.position = -tile * 2.0
+	parent.add_child(around)
+	var ground := Sprite2D.new()
+	ground.texture = load("res://assets/zones/ap1_colony_ground.png")
+	ground.centered = false
+	ground.scale = Vector2.ONE * cell
+	parent.add_child(ground)
 
 
 ## Cambia la imagen del campo solar si su estado cambió mientras se está en la colonia.

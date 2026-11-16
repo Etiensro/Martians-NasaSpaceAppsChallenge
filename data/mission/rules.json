@@ -195,6 +195,7 @@
 
   "score": {
 	"_comment": "P = 10*I + H + (100 - C) + E/10 + F + D  (I investigación %, H hambre, C cansancio, E energía, F condición física, D sols restantes)",
+	"_decision_sols_left": "D (sols restantes) solo suma al ganar (100 % de investigación). En el sol 60 ya es 0, y en una evacuación no cuenta: si no, rendirse pronto daría más puntos que aguantar (confirmado por el equipo).",
 	"research_weight": 10,
 	"energy_divisor": 10
   }

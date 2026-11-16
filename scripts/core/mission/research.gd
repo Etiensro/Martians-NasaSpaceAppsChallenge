@@ -30,6 +30,14 @@ func _r() -> Dictionary:
 	return Mission.rules.research
 
 
+## Ya están analizadas todas las zonas (100 %).
+func is_complete() -> bool:
+	for site in _r().zones:
+		if not analysed.has(site):
+			return false
+	return true
+
+
 ## Porcentaje de investigación completado (0-100).
 func percent() -> float:
 	var total := 0.0
@@ -100,3 +108,5 @@ func tick(h: float) -> void:
 		Mission.notify("Analysis complete! The %s sample adds %.2f %% to your research (total %d %%)." % [
 			site, float(_r().zones.get(site, 0.0)), roundi(percent())])
 		Mission.research_changed.emit()
+		if is_complete():  # 100 %: la misión termina con la victoria (regreso a la Tierra)
+			Mission.end_mission("research")

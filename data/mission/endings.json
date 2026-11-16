@@ -1,0 +1,61 @@
+{
+  "_comment": "Finales de la misión (scripts/finales/). Siempre se regresa a la Tierra: la nave de regreso espera en órbita y el sol 60 es la ÚLTIMA ventana de lanzamiento, no la única. 'reasons' = por qué termina (Mission.end_reason): 'research' (100 % de investigación: victoria), 'complete' (llega el sol 60 sin el 100 %) y las evacuaciones ('energy', 'hunger', 'fatigue', 'radiation'). 'mood' decide cómo se ve el regreso: 'victory', 'calm' o 'emergency' (alarma). 'control' = mensaje de Control de Misión; 'arrival' = texto al llegar; 'tip' = consejo para la próxima vez. 'medals' = según las zonas analizadas (cada una vale 33.33 %). 'wake_lines' = lo que dice cada tripulante al despertar, por mood. Textos en inglés (los ve el jugador), cortos, para niños. {player} = nombre del jugador.",
+
+  "reasons": {
+	"research": {
+	  "mood": "victory",
+	  "title": "SCIENCE COMPLETE!",
+	  "control": "Amazing work, {player}! All the samples are analysed. The return ship is ready. Wake up your crew!",
+	  "arrival": "Your Mars samples reached the scientists on Earth!",
+	  "tip": "You finished early, so the sols you had left add to your score."
+	},
+	"complete": {
+	  "mood": "calm",
+	  "title": "TIME TO GO HOME",
+	  "control": "It's sol 60, {player}. The last launch window to Earth is open. Wake up your crew!",
+	  "arrival": "Everyone is home safe after 60 sols on Mars.",
+	  "tip": "Next time: bring ice samples from AP-1, AP-8 and AP-9 and analyse them in the Work Room."
+	},
+	"energy": {
+	  "mood": "emergency",
+	  "title": "EMERGENCY RETURN",
+	  "control": "The battery is empty! Without power the base can't keep you safe. We are bringing the crew home. Wake them up!",
+	  "arrival": "Everyone is home safe. The base will wait for the next crew.",
+	  "tip": "Clean the solar panels every sol and turn off the systems you don't need."
+	},
+	"hunger": {
+	  "mood": "emergency",
+	  "title": "EMERGENCY RETURN",
+	  "control": "{player}, you're too hungry to keep working. For your safety, we are bringing the crew home. Wake them up!",
+	  "arrival": "Everyone is home safe, and a big meal is waiting!",
+	  "tip": "Eat in the station when your FOOD bar gets low, and grow potatoes in the greenhouse."
+	},
+	"fatigue": {
+	  "mood": "emergency",
+	  "title": "EMERGENCY RETURN",
+	  "control": "{player}, you're too exhausted to go on. For your safety, we are bringing the crew home. Wake them up!",
+	  "arrival": "Everyone is home safe. Time for a long rest!",
+	  "tip": "Sleep in the crew quarters before your TIREDNESS bar gets red."
+	},
+	"radiation": {
+	  "mood": "emergency",
+	  "title": "EMERGENCY RETURN",
+	  "control": "{player}, your radiation is too high. You need doctors on Earth. Wake up your crew, we're bringing you home!",
+	  "arrival": "Everyone is home safe, and the doctors say you'll be fine.",
+	  "tip": "Get check-ups in the infirmary, especially after long trips outside."
+	}
+  },
+
+  "medals": [
+	{"zones": 3, "name": "GOLD MEDAL", "color": "ffd84a", "text": "All the research is done: AP-1, AP-8 and AP-9!"},
+	{"zones": 2, "name": "SILVER MEDAL", "color": "d6dde8", "text": "Two zones researched. So close!"},
+	{"zones": 1, "name": "BRONZE MEDAL", "color": "e0904a", "text": "One zone researched. A great start!"},
+	{"zones": 0, "name": "SAFE RETURN", "color": "2e96f5", "text": "No research this time, but everyone came home safe."}
+  ],
+
+  "wake_lines": {
+	"victory": ["We did it? Amazing!", "Time to go home, heroes!", "Great job, {player}!"],
+	"calm": ["Is it sol 60 already?", "Good morning, {player}!", "Let's go home."],
+	"emergency": ["What happened?!", "Hurry, to the ship!", "Thanks for waking us, {player}!"]
+  }
+}
