@@ -130,7 +130,7 @@ func reset() -> void:
 
 
 ## Busca en una tabla [[umbral, valor], ...] (de mayor a menor umbral) la primera fila con
-## umbral <= `value` y devuelve su valor. Lo usan las penalizaciones y la generación solar.
+## umbral <= `value` y devuelve su valor. Lo usan las penalizaciones.
 func tier(table: Array, value: float) -> float:
 	for row in table:
 		if value >= row[0]:
@@ -317,10 +317,11 @@ func capacity() -> float:
 	return rules.energy.capacity
 
 
-## EU/h que entran ahora: según la limpieza, cuántos paneles funcionan y si hay tormenta.
+## EU/h que entran ahora: máximo x (paneles que funcionan / total) x (limpieza / 100), menos la tormenta.
 func generation() -> float:
-	var rate := tier(rules.energy.generation_by_cleanliness, cleanliness())
+	var rate: float = rules.energy.max_generation
 	rate *= float(working_panels()) / panel_count()
+	rate *= cleanliness() / 100.0
 	if storm_active():
 		rate *= 1.0 - storm_rule().solar_loss
 	return rate
