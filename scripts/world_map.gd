@@ -175,6 +175,8 @@ func _go_to(id: String) -> void:
 		_astro.flip_h = false
 		_astro.play("celebrate")
 		await get_tree().create_timer(0.35).timeout
+	if id != Mission.expedition.site:
+		Audio.play("driving")
 	var why: String = await Mission.expedition.travel(id)  # el reloj avanza las horas de viaje
 	if why != "":
 		Mission.notify(why)
