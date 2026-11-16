@@ -21,6 +21,10 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
 
 `estacion_ares1.tscn` es la entrada: un menú en primera persona donde se elige con el cursor a qué módulo ir o la flecha EXIT para salir a AP-1.
 
+Hechos: `invernadero` y `gimnasio` (con sus minijuegos), `sala_trabajo` (laboratorio: preparar muestras) y
+`enfermeria` (escáner). Los dos últimos son vestíbulos con `lobby.gd` y `exit_scene` hacia la estación;
+ver `docs/LABORATORIO_Y_ENFERMERIA.md`. Falta `dormitorios`.
+
 ## Reglas para que todo siga funcionando
 
 1. **No cambies el nombre ni la ruta** de las tres escenas de entrada (`estacion_ares1.tscn`,

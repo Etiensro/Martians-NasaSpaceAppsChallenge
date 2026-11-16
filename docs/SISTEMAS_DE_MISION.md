@@ -91,7 +91,9 @@ Mission.crew.eat_blocked_reason()        # para desactivar un botón
 await Mission.crew.sleep(8)              # 1-24 h. Bajo techo: cuenta como interior
 await Mission.crew.exercise(0.25)        # al terminar la caminadora. "" o "You already trained today..."
 Mission.crew.can_exercise()
-await Mission.crew.medical_checkup()     # 20 EU (médico: 0), 4 h (médico: más rápido), radiación −30
+await Mission.crew.medical_checkup(0.1)  # 20 EU (médico: 0), 4 h (médico: más rápido), radiación −30
+                                         # (0.1 h ya jugadas en el minijuego del escáner)
+Mission.crew.checkup_blocked_reason()    # "" o el motivo (sin energía)
 Mission.crew.value_of("fatigue")         # valor de una barra por nombre
 ```
 
@@ -226,8 +228,8 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 |---|---|
 | Dormitorios (`modulos/dormitorios/`) | Elegir horas (1-24) y `await Mission.crew.sleep(h)`. |
 | Comer (¿cocina/comedor en la estación?) | `Mission.crew.eat()` (y `eat_blocked_reason()` para el botón). |
-| Enfermería (`modulos/enfermeria/`) | `await Mission.crew.medical_checkup()`. |
-| Work Room / laboratorio (`modulos/sala_trabajo/`) | `Mission.research.start_analysis()` y el progreso. |
+| Enfermería (`modulos/enfermeria/`) | ✅ Hecho: escáner (`escaneo.gd`). Ver `docs/LABORATORIO_Y_ENFERMERIA.md`. |
+| Work Room / laboratorio (`modulos/sala_trabajo/`) | ✅ Hecho: preparar la muestra y empezar el análisis (`analisis.gd`). Falta el microscopio. |
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
 | Carro (AP-1) | Pantalla de preparación: `inspect()`, `maintain()`, `repair()`, `load_meals(n)`, `departure_problems()`. |
 | AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
@@ -240,7 +242,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Ctrl+1 | Tormenta ya (leve → moderada → intensa) | Ctrl+6 | Comer |
 | Ctrl+2 | +1 hora | Ctrl+7 | Chequeo médico |
 | Ctrl+3 | +1 sol | Ctrl+8 | Ejercicio |
-| Ctrl+4 | Daños de tormenta intensa | Ctrl+9 | Muestra de AP-1 al laboratorio y analizar |
+| Ctrl+4 | Daños de tormenta intensa | Ctrl+9 | Guarda una muestra de AP-1 en la base (para probar el laboratorio) |
 | Ctrl+5 | Dormir 8 h | Ctrl+0 | Imprime todo el estado en la consola (`Mission.debug_text()`) |
 
 ## Decisiones sobre el documento
