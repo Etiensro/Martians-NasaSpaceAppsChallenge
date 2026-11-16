@@ -74,6 +74,7 @@ Requieren `pip install numpy pillow`. Se ejecutan desde la raíz del proyecto: `
 | `build_fx.py` | Texturas de efectos de `assets/fx/` |
 | `build_dormitorios.py` | Dormitorios: cuarto, reloj, manecillas (recortadas del fondo verde) y `dorm.json` (`assets/interiores/estacion_ares1/dormitorios/`) |
 | `build_lab_medico.py` | Sprites del laboratorio (hielo, matraces, pinzas, letreros) y del escáner de la enfermería (`assets/interiores/estacion_ares1/sala_trabajo/lab/`, `.../enfermeria/scan/`). Ver `docs/LABORATORIO_Y_ENFERMERIA.md` |
+| `build_plantas.py` | Plantas del invernadero en 4 etapas (sana, débil, marchita, muerta): macetas de la tarjeta, capas de las camas de la sala y planta cenital del minijuego de cosechar (`assets/interiores/estacion_ares1/invernadero/plantas/`) |
 | `build_power_room.py` | Sala eléctrica de los paneles: fondo, interruptores, placa y monitor (`assets/interiores/paneles_solares/sala_electrica/`) |
 | `build_field.py` | Campo solar de los paneles: panel limpio y roto, caja de repuestos, suelo, caja de conexiones y brocha (`assets/interiores/paneles_solares/campo_solar/`) |
 | `build_lobbies.py` | Vestíbulos en primera persona (`hub.png` + `hub.json`): estación Ares 1, paneles solares, excavadora, laboratorio (Work Room) y enfermería |

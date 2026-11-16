@@ -1,5 +1,5 @@
 {
-  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas. 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
   "tasks": [
     { "id": "fix_panels", "text": "Fix the solar panels" },
     { "id": "plant", "text": "Plant potatoes" },
@@ -14,7 +14,9 @@
   ],
   "routine": [
     { "id": "panels", "ok": "Solar panels are clean", "todo": "Clean the solar panels" },
-    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes" },
+    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes",
+      "plant": "Plant potatoes", "water": "Water the potatoes", "harvest": "Harvest the potatoes",
+      "clear": "Clear the dead plants", "dead": "Dead plants: wait for the cycle to end" },
     { "id": "exercise", "ok": "You exercised today", "todo": "Exercise at the gym" },
     { "id": "food", "ok": "You are not hungry", "todo": "Eat something" },
     { "id": "sleep", "ok": "You are rested", "todo": "Sleep in the crew quarters" },

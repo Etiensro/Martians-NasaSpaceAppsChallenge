@@ -1,15 +1,20 @@
 extends Node2D
 ## Invernadero de la Estación Ares 1 (scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn).
-## Las tareas van por pasos (GameState.greenhouse_step): 1) sembrar (semillas), 2) regar (tanque de agua),
-## 3) cosechar (camas, aún "Coming soon"). Un paso se desbloquea al completar el anterior al 100 %.
+## Las tareas siguen al cultivo (Mission.crops.next_task()): 1) sembrar (semillas), 2) regar cada sol
+## (tanque de agua), 3) cosechar a los 8 sols (camas). Si las papas mueren se quedan secas en las camas hasta
+## que termina su ciclo; entonces el paso 3 es limpiar las camas (el mismo minijuego, sin papas).
 ## El paso actual se marca con un contorno que late y una flecha. La flecha de abajo (o Esc) vuelve a la estación.
-## Fondo y zonas: assets/interiores/estacion_ares1/invernadero/ (los preparó el equipo, ver tools/invernadero/).
+## Las camas se ven según el cultivo (vacías, sanas, débiles, marchitas o muertas) y la tarjeta de abajo a la
+## derecha enseña la planta, los sols y las papas que dará la cosecha.
+## Fondo y zonas: assets/interiores/estacion_ares1/invernadero/ (los preparó el equipo, ver tools/invernadero/);
+## plantas y macetas: plantas/ (tools/build_plantas.py).
 
 const Style := preload("res://scripts/core/style.gd")
 const Fx := preload("res://scripts/core/fx.gd")
 const ExitArrow := preload("res://scripts/core/exit_arrow.gd")
 
 const DIR := "res://assets/interiores/estacion_ares1/invernadero/"
+const PLANTS := DIR + "plantas/"
 const STATION := "res://scenes/interiores/estacion_ares1/estacion_ares1.tscn"
 const GAMES := "res://scenes/interiores/estacion_ares1/modulos/invernadero/%s.tscn"
 
@@ -17,8 +22,12 @@ const GAMES := "res://scenes/interiores/estacion_ares1/modulos/invernadero/%s.ts
 const SPOTS := [
 	["semillas", "SEED POTATOES", "Plant the seed potatoes", "sembrar"],
 	["tanque_agua", "WATER TANK", "Water the sprouts", "regar"],
-	["camas", "GROW BEDS", "Harvest the potatoes", ""],
+	["camas", "GROW BEDS", "Harvest the potatoes", "cosechar"],
 ]
+## Tarea de Mission.crops -> lugar que la hace
+const TASK_SPOT := {"plant": "semillas", "water": "tanque_agua", "harvest": "camas", "clear": "camas"}
+const STAGE_NAMES := ["Healthy", "Weak", "Wilting", "Dead"]
+const STAGE_COLORS := [Color("7be05a"), Color("eafe07"), Color("ff9a3c"), Color("e43700")]
 const BEDS := Rect2(124, 398, 1044, 212)          # las 3 camas juntas (cosecha)
 const TANK_WATER := Rect2(162, 150, 56, 146)      # ventana del tanque de agua
 const SCREENS := [Rect2(568, 130, 44, 54), Rect2(622, 130, 44, 54), Rect2(676, 130, 44, 54)]
@@ -37,6 +46,11 @@ var _exit := ExitArrow.new()
 var _banner: Label
 var _sub: Label
 var _toast: Label
+var _beds := Sprite2D.new()  # capa de las camas: vacías o plantas marchitas (nada = plantas sanas del fondo)
+var _step_rows: Array = []   # [label, barra] de cada paso
+var _card_icon: TextureRect
+var _card_title: Label
+var _card_lines: Label
 var _t := 0.0
 var _leaving := false
 
@@ -57,6 +71,8 @@ func _ready() -> void:
 	bg.texture = load(DIR + "invernadero_base.png")
 	bg.centered = false
 	add_child(bg)
+	_beds.centered = false
+	add_child(_beds)
 
 	_build_grow_lights()
 	_build_tank()
@@ -69,6 +85,8 @@ func _ready() -> void:
 	_exit.position = Vector2(640, 676)
 	add_child(_exit)
 	_build_ui()
+	Mission.crops_changed.connect(_refresh)
+	_refresh()
 	_drip_loop()
 
 
@@ -217,6 +235,7 @@ func _build_ui() -> void:
 	_toast = _top_label(Style.label("", 22, Style.WHITE, 6), 116)
 	layer.add_child(_toast)
 	_build_steps(layer)
+	_build_card(layer)
 
 
 ## Panel de pasos (abajo a la izquierda): cada tarea con su barra; la actual resaltada.
@@ -230,30 +249,122 @@ func _build_steps(layer: CanvasLayer) -> void:
 	panel.add_child(col)
 	var title := Style.brand_title("GREENHOUSE TASKS", 18, Style.WHITE)
 	col.add_child(title)
-	var step: int = GameState.greenhouse_step
 	for k in SPOTS.size():
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		col.add_child(row)
-		var done := k < step
-		var name := "%d. %s" % [k + 1, SPOTS[k][2]]
-		if SPOTS[k][3] == "":
-			name += "  (soon)"
-		var color := Style.NEON_YELLOW if k == step else (Style.WHITE if done else Color(1, 1, 1, 0.5))
-		var l := Style.label(("✓ " if done else "") + name, 15, color, 0)
+		var l := Style.label("", 15, Style.WHITE, 0)
 		l.custom_minimum_size = Vector2(250, 0)
 		row.add_child(l)
 		var bar := Style.progress_bar(110, 12)
-		bar.value = 100.0 if done else 0.0
 		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(bar)
+		_step_rows.append([l, bar])
 
 
-## Lugar del paso actual ("" si ya no queda ninguno disponible).
+## Tarjeta de la planta (abajo a la derecha): maceta según la etapa, sols y papas esperadas.
+func _build_card(layer: CanvasLayer) -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Style.box(Style.NAVY_SOFT, Style.NEON_YELLOW, 3, 10))
+	panel.position = Vector2(800, 586)
+	panel.custom_minimum_size = Vector2(320, 0)
+	layer.add_child(panel)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	panel.add_child(row)
+	_card_icon = TextureRect.new()
+	_card_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_card_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_card_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_card_icon.custom_minimum_size = Vector2(88, 88)
+	row.add_child(_card_icon)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(col)
+	_card_title = Style.brand_title("", 18, Style.WHITE)
+	col.add_child(_card_title)
+	_card_lines = Style.label("", 15, Style.WHITE, 0)
+	col.add_child(_card_lines)
+
+
+## Vuelve a pintar camas, pasos y tarjeta con el estado de Mission.crops (también al empezar un sol).
+func _refresh() -> void:
+	var c = Mission.crops
+	var st: int = c.stage()
+	if not c.planted:
+		_beds.texture = load(PLANTS + "camas_vacias.png")
+	elif st > 0:
+		_beds.texture = load(PLANTS + "camas_%d.png" % st)
+	else:
+		_beds.texture = null  # plantas sanas: las del fondo
+
+	# pasos
+	var task: String = c.next_task()
+	var texts := ["Plant the seed potatoes", "Water the potatoes today",
+		"Clear the dead plants" if c.dead else "Harvest the potatoes"]
+	var done := [c.planted, c.is_growing() and (c.watered_today or c.is_ready()), false]
+	var bars := [1.0 if c.planted else 0.0, 1.0 if done[1] else 0.0,
+		clampf(c.age / c.grow_sols(), 0.0, 1.0) if c.dead else c.progress()]
+	_spots.camas.sub = texts[2]
+	for k in SPOTS.size():
+		var current: bool = TASK_SPOT.get(task, "") == SPOTS[k][0]
+		var l: Label = _step_rows[k][0]
+		l.text = ("✓ " if done[k] else "") + "%d. %s" % [k + 1, texts[k]]
+		l.add_theme_color_override("font_color", Style.NEON_YELLOW if current else (Style.WHITE if done[k] else Color(1, 1, 1, 0.5)))
+		var bar: ProgressBar = _step_rows[k][1]
+		bar.value = bars[k] * 100.0
+
+	# tarjeta
+	_card_icon.visible = c.planted
+	if c.planted:
+		_card_icon.texture = load(PLANTS + "maceta_%d.png" % st)
+	var lines := []
+	if not c.planted:
+		_card_title.text = "BEDS EMPTY"
+		lines.append("Plant seed potatoes to grow food.")
+		if c.last_harvest > 0:
+			lines.append("Last harvest: %d potatoes" % c.last_harvest)
+	elif c.dead:
+		_card_title.text = "POTATOES: DEAD"
+		lines.append("They got no water for %d sols." % c.rule().dies_after_dry_sols)
+		lines.append("Clear the beds now!" if c.can_clear() else "Clear them in %d sols." % c.sols_to_clear())
+	else:
+		_card_title.text = "POTATOES: %s" % STAGE_NAMES[st].to_upper()
+		if c.is_ready():
+			lines.append("Ready to harvest!")
+		else:
+			lines.append("Growing: sol %d of %d" % [mini(int(c.growth) + 1, ceili(c.grow_sols())), ceili(c.grow_sols())])
+		var lost := roundi((1.0 - c.yield_ratio()) * 100.0)
+		lines.append("Harvest: %d potatoes%s" % [c.expected_harvest(), "" if lost == 0 else "  (-%d %%)" % lost])
+		if c.needs_water():
+			lines.append("Needs water today!")
+	_card_title.add_theme_color_override("font_color", STAGE_COLORS[st] if c.planted else Style.WHITE)
+	_card_lines.text = "
+".join(lines)
+
+
+## Lugar del paso actual ("" si ahora no hay nada que hacer: regado y creciendo, o planta muerta esperando).
 func _current_spot() -> String:
-	var step: int = GameState.greenhouse_step
-	if step < SPOTS.size():
-		return SPOTS[step][0]
+	return TASK_SPOT.get(Mission.crops.next_task(), "")
+
+
+## Motivo por el que ahora no se puede usar un lugar ("" si se puede).
+func _blocked(id: String) -> String:
+	var c = Mission.crops
+	match id:
+		"semillas":
+			return c.plant_blocked_reason()
+		"tanque_agua":
+			return c.water_blocked_reason()
+		"camas":
+			if c.next_task() in ["harvest", "clear"]:
+				return ""
+			if not c.planted:
+				return "Nothing is planted yet. Start with the seed potatoes."
+			if c.dead:
+				return c.plant_blocked_reason()
+			return "The potatoes need %d more sols to grow." % c.sols_to_harvest()
 	return ""
 
 
@@ -303,33 +414,28 @@ func _set_hover(id: String) -> void:
 	_hover = id
 	_exit.hovered = id == "exit"
 	Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND if id != "" else Input.CURSOR_ARROW)
-	var show := id != "" and id != "exit"
-	if show:
+	var shown := id != "" and id != "exit"
+	if shown:
 		_banner.text = _spots[id].name
-		var locked: bool = _spots[id].step > GameState.greenhouse_step
-		_sub.text = "%s  ·  %s" % [_spots[id].sub, "Locked" if locked else "Click to start"]
+		_sub.text = "%s  ·  %s" % [_spots[id].sub, "Not now" if _blocked(id) != "" else "Click to start"]
 	var tw := create_tween().set_parallel()
-	tw.tween_property(_banner, "modulate:a", 1.0 if show else 0.0, 0.15)
-	tw.tween_property(_sub, "modulate:a", 1.0 if show else 0.0, 0.15)
+	tw.tween_property(_banner, "modulate:a", 1.0 if shown else 0.0, 0.15)
+	tw.tween_property(_sub, "modulate:a", 1.0 if shown else 0.0, 0.15)
 
 
 func _use(id: String) -> void:
-	var game: String = _spots[id].game
-	var step: int = _spots[id].step
-	if step > GameState.greenhouse_step:  # bloqueado: falta completar el paso anterior
-		_show_toast("Finish step %d first: %s" % [step, SPOTS[step - 1][2]])
+	var why := _blocked(id)
+	if why != "":
+		_show_toast(why)
 		return
-	if game != "":
-		_go(GAMES % game)
-		return
-	_show_toast("%s  ·  Coming soon" % _spots[id].name)
+	_go(GAMES % _spots[id].game)
 
 
 func _show_toast(text: String) -> void:
 	_toast.text = text
 	var tw := create_tween()
 	tw.tween_property(_toast, "modulate:a", 1.0, 0.2)
-	tw.tween_interval(1.2)
+	tw.tween_interval(2.0)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.4)
 
 
