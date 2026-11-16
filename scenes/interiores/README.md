@@ -37,7 +37,12 @@ La estación tiene varios módulos. Cada uno tiene su carpeta para su escena en
    Por ejemplo, para ir a un módulo de la estación:
    `SceneChanger.go_to("res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn")`.
 
-Ahora mismo las tres escenas son provisionales (pantalla con el nombre y "E or Esc: exit").
+La estación, los paneles solares y la excavadora ya son vestíbulos en primera persona (`scripts/interiores/lobby.gd`).
+
+## Excavadora: extracción de hielo
+
+`excavadora.tscn` es un vestíbulo con una sola puerta, la consola **ICE DRILL CONTROL**, que abre
+`scenes/interiores/excavadora/minijuegos/extraccion_hielo/extraccion_hielo.tscn`. Detalles en `docs/EXCAVADORA.md`.
 
 ## Tiempo, energía y barras del jugador
 
