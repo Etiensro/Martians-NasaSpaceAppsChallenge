@@ -1,99 +1,87 @@
 {
-  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos para niños de 7 a 12 años, en inglés (los ve el jugador). Cada lección se enseña UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea, 'all_tasks' al terminar las tareas del día 1 y 'sol:2' al empezar el día 2. {player} = nombre del tripulante, {role} = su profesión, {perk1}/{perk2} = sus ventajas. 'image' es una captura del juego en assets/ui/guide/ (la genera tools/build_guide_shots.py).",
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas.",
   "tasks": [
-    { "id": "fix_panels", "text": "Fix the broken solar panels" },
-    { "id": "plant", "text": "Plant the potatoes" },
+    { "id": "fix_panels", "text": "Fix the solar panels" },
+    { "id": "plant", "text": "Plant potatoes" },
     { "id": "water", "text": "Water the potatoes" },
     { "id": "exercise", "text": "Exercise at the gym" }
+  ],
+  "routine": [
+    { "id": "panels", "ok": "Solar panels are clean", "todo": "Clean the solar panels" },
+    { "id": "potatoes", "ok": "Potatoes are watered", "todo": "Water the potatoes" },
+    { "id": "exercise", "ok": "You exercised today", "todo": "Exercise at the gym" },
+    { "id": "food", "ok": "You are not hungry", "todo": "Eat something" },
+    { "id": "sleep", "ok": "You are rested", "todo": "Sleep in the crew quarters" },
+    { "id": "radiation", "ok": "Radiation is low", "todo": "Get a check-up in the infirmary" }
   ],
   "lessons": [
     {
       "id": "welcome",
       "trigger": "scene:res://scenes/interiores/estacion_ares1/estacion_ares1.tscn",
       "pages": [
-        { "text": "Hi {player}! I'm A.R.I.A., your robot helper. I'll stay with you during your first day on Mars. Ready?" },
-        { "text": "YOUR MISSION: stay safe for 60 sols (a sol is one day on Mars) and finish 100% of the RESEARCH. That's how you WIN!", "image": "goal" },
-        { "text": "Look at the top right corner. These bars tell you how you are doing. Keep FOOD and FITNESS high. Keep TIREDNESS and RADIATION low.", "image": "hud" },
-        { "text": "Be careful! The mission ends if the BATTERY or FOOD reaches 0, or if TIREDNESS or RADIATION reaches 100.", "image": "hud" },
-        { "text": "Time flies on Mars: 1 real minute is 1 hour in the game. The clock is next to the battery.", "image": "hud" },
-        { "text": "Inside the base, move the mouse over a door and CLICK to go in. The yellow arrow at the bottom takes you outside.", "image": "station" },
-        { "text": "Oh no! The storm broke our SOLAR PANELS. Without them, the battery will run out. Let's fix them first! Click the yellow arrow to go outside." }
+        { "text": "Hi {player}! I'm A.R.I.A. Click me anytime to see your tasks." },
+        { "text": "Your goal: finish the RESEARCH and stay safe for 60 days.", "image": "goal" },
+        { "text": "Keep an eye on your bars. Don't let them get red!", "image": "hud" },
+        { "text": "First job: the storm broke the SOLAR PANELS. Let's go outside!", "image": "panel_states" }
       ]
     },
     {
       "id": "outside",
       "trigger": "scene:res://scenes/ap1_zone.tscn",
       "pages": [
-        { "text": "This is AP-1, our base on Mars. Walk with W A S D (or the arrow keys). Hold SHIFT to run.", "image": "ap1" },
-        { "text": "Walk to a door and press E to go in. Here is the map: the STATION, the SOLAR PANELS, the ICE EXCAVATOR, the ROVER and the ROCKET.", "image": "ap1" },
-        { "text": "Outside, RADIATION goes up faster. Do your job and go back in! Now walk to the SOLAR PANELS (top right) and press E." }
+        { "text": "Walk with W A S D. Press E at a door. Go to the SOLAR PANELS!", "image": "ap1" }
       ]
     },
     {
       "id": "panels_lobby",
       "trigger": "scene:res://scenes/interiores/paneles_solares/paneles_solares.tscn",
       "pages": [
-        { "text": "This is the solar power building. SOLAR FIELD: clean the panels and change the broken ones. POWER ROOM: turn machines on and off to save energy.", "image": "panels" },
-        { "text": "Click SOLAR FIELD and fix the broken panels. Changing a panel uses a little energy, but it's worth it!", "image": "solar_field" }
+        { "text": "Click SOLAR FIELD and change the broken panels.", "image": "panels" }
       ]
     },
     {
       "id": "panels_fixed",
       "trigger": "task:fix_panels",
       "pages": [
-        { "text": "Great job, {player}! The panels make energy again. Clean panels give 12 energy every hour. The base uses about 8." },
-        { "text": "Mars dust makes the panels dirty EVERY DAY. Dirty panels make less energy. Clean them once a day!" },
-        { "text": "Next, let's make food. Go back to the STATION and enter the GREENHOUSE." }
+        { "text": "Fixed! Dust makes the panels dirty every day. Clean them daily.", "image": "panel_states" },
+        { "text": "Now go to the GREENHOUSE in the station." }
       ]
     },
     {
       "id": "greenhouse",
       "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/invernadero/invernadero.tscn",
       "pages": [
-        { "text": "Potatoes are our food! Follow the steps: 1. PLANT the seeds. 2. WATER them every day. 3. HARVEST them after 8 sols.", "image": "greenhouse" },
-        { "text": "If you forget to water them, you get fewer potatoes. After 4 days without water, they die! Click the SEED POTATOES to start." }
-      ]
-    },
-    {
-      "id": "planted",
-      "trigger": "task:plant",
-      "pages": [
-        { "text": "Nice planting! Now click the WATER TANK and water the sprouts. Click when the water is in the GREEN zone." }
+        { "text": "Plant potatoes, then water them every day.", "image": "greenhouse" }
       ]
     },
     {
       "id": "watered",
       "trigger": "task:water",
       "pages": [
-        { "text": "Your potatoes are growing! Next: the GYM. On Mars there is less gravity, so your muscles get weak. Exercise once every day!" }
+        { "text": "Nice! Now visit the GYM." }
       ]
     },
     {
       "id": "gym",
       "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/gimnasio/gimnasio.tscn",
       "pages": [
-        { "text": "Click the TREADMILL. Jump over the rocks with SPACE and duck under the meteors with the DOWN arrow until the bar is full.", "image": "gym" }
+        { "text": "Run on the treadmill once a day to stay strong.", "image": "gym" }
       ]
     },
     {
       "id": "all_done",
       "trigger": "all_tasks",
       "pages": [
-        { "text": "WOW! You finished all the jobs for today. Now let me tell you how to WIN the mission." },
-        { "text": "RESEARCH is in 3 places: AP-1, AP-8 and AP-9. At each one you take a SAMPLE. At AP-1 you use the ICE EXCAVATOR.", "image": "ap1" },
-        { "text": "AP-8 and AP-9 are far away. Drive the ROVER there. Before you go: check the rover, fix it and pack food.", "image": "world_map" },
-        { "text": "Bring each sample to the WORK ROOM in the station. The analysis takes 3 sols and works alone while you do other things." },
-        { "text": "STORMS: I will warn you before a storm comes. If it is strong, stay inside. When it ends, fix what broke." },
-        { "text": "Your superpowers as the {role}: {perk1}. {perk2}." },
-        { "text": "Every day: eat 3 times, sleep about 8 hours at night, clean the panels, water the potatoes and exercise. Visit the INFIRMARY if radiation gets high." },
-        { "text": "That's all! I'll stay here in the corner. CLICK ME anytime and I'll tell you what to do next. Good luck, {player}!" }
+        { "text": "Day 1 done! Every day: clean panels, water potatoes, exercise, eat and sleep." },
+        { "text": "To win, bring samples from AP-1, AP-8 and AP-9 to the WORK ROOM.", "image": "world_map" },
+        { "text": "Your superpower: {perk1}!" }
       ]
     },
     {
       "id": "day2",
       "trigger": "sol:2",
       "pages": [
-        { "text": "Good morning, {player}! Day 1 is done. The dust made the solar panels dirty, so clean them today. And don't forget your potatoes!" }
+        { "text": "Good morning! The panels got dusty. Time to clean them!", "image": "panel_states" }
       ]
     }
   ]

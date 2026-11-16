@@ -61,11 +61,33 @@ def build(name, src, crop, labels, boxes):
     im.save(OUT / f"{name}.png")
 
 
+# Estados del campo solar (las mismas imágenes que usa el mapa de AP-1): qué le pasa a los paneles
+PANEL_STATES = [("paneles_averiados.png", "BROKEN"), ("paneles_grande.png", "FIXED"),
+                ("paneles sucios 1.png", "NEXT DAY"), ("paneles sucios 3.png", "DIRTY")]
+
+
+def panel_states():
+    tiles = [Image.open(ROOT / "assets/buildings" / f).convert("RGBA") for f, _ in PANEL_STATES]
+    tw, th = tiles[0].size
+    gap = 30
+    im = Image.new("RGB", (2 * tw + 3 * gap, 2 * th + 3 * gap + 60), (170, 92, 58))
+    d = ImageDraw.Draw(im)
+    for k, (tile, (_, text)) in enumerate(zip(tiles, PANEL_STATES)):
+        x = gap + (k % 2) * (tw + gap)
+        y = gap + 30 + (k // 2) * (th + gap + 30)
+        im.paste(tile, (x, y), tile)
+        label(d, text, x + tw // 2, y - 6, size=26)
+    k = W / im.width
+    im.resize((W, round(im.height * k)), Image.LANCZOS).save(OUT / "panel_states.png")
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for name, (src, crop, labels, boxes) in SHOTS.items():
         build(name, src, crop, labels, boxes)
         print("guía:", name)
+    panel_states()
+    print("guía: panel_states")
 
 
 if __name__ == "__main__":
