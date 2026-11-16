@@ -9,12 +9,12 @@ const RoverPanel := preload("res://scripts/rover_panel.gd")
 const Fx := preload("res://scripts/core/fx.gd")
 const SOLAR_ID := "paneles_grande"
 const SOLAR_LOOKS := {
-	"broken": "res://assets/buildings/paneles_averiados.png",
-	"dirt": [  # [limpieza mínima, imagen]
+	"broken": "res://assets/buildings/paneles_averiados.png",  # limpios pero con paneles rotos o cables cortados
+	"dirt": [  # [limpieza mínima, imagen]: limpio y los 3 niveles de suciedad
 		[95.0, "res://assets/buildings/paneles_grande.png"],  # recién limpios; al día siguiente ya se ven sucios
-		[70.0, "res://assets/buildings/paneles sucios 1.png"],
-		[40.0, "res://assets/buildings/paneles sucios 2.png"],
-		[0.0, "res://assets/buildings/paneles sucios 3.png"],
+		[66.0, "res://assets/buildings/paneles sucios 1.png"],  # un poco de polvo
+		[33.0, "res://assets/buildings/paneles sucios 2.png"],  # medio cubiertos
+		[0.0, "res://assets/buildings/paneles sucios 3.png"],   # cubiertos de polvo (así empieza la misión)
 	],
 }
 
@@ -26,6 +26,8 @@ const SOLAR_LOOKS := {
 var meta: Dictionary
 var _glints: Array = []
 var _vehicle: Building
+var _solar: Building
+var _solar_look := ""
 var _add_mat := CanvasItemMaterial.new()
 
 
@@ -42,6 +44,9 @@ func _ready() -> void:
 		b.setup(data, meta.cell, player)
 		b.doors_enabled = doors_enabled and data.get("enterable", true)
 		add_child(b)
+		if id == SOLAR_ID:
+			_solar = b
+			_solar_look = data.texture
 		for f in data.fx:
 			_add_fx(f)
 		if id != SOLAR_ID or (Mission.cleanliness() >= 70.0 and Mission.broken_count() == 0):  # el sol solo brilla en paneles limpios y sanos
@@ -51,12 +56,21 @@ func _ready() -> void:
 	_add_vignette()
 	if not _glints.is_empty():
 		_glint_loop()
+	Mission.panels_changed.connect(_refresh_solar)  # tormentas y polvo de cada sol con el jugador fuera
+
+
+## Cambia la imagen del campo solar si su estado cambió mientras se está en la colonia.
+func _refresh_solar() -> void:
+	var look := _solar_texture()
+	if _solar != null and look != _solar_look:
+		_solar_look = look
+		_solar.set_texture(load(look))
 
 
 ## Imagen del campo solar según su estado real (autoload Mission): limpio, tres niveles de
 ## suciedad o averiado (paneles rotos o cables cortados).
 func _solar_texture() -> String:
-	if Mission.broken_count() + Mission.cut_cable_count() > 0 and Mission.cleanliness() >= 70.0:
+	if Mission.broken_count() + Mission.cut_cable_count() > 0 and Mission.cleanliness() >= SOLAR_LOOKS.dirt[1][0]:
 		return SOLAR_LOOKS.broken
 	for look in SOLAR_LOOKS.dirt:
 		if Mission.cleanliness() >= look[0]:

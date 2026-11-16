@@ -2,7 +2,8 @@ extends RefCounted
 ## Módulo del autoload Mission: el carro explorador y las expediciones a AP-8 y AP-9 (Mission.expedition).
 ## Antes de salir de AP-1 hay que tener (departure_problems):
 ##   - el carro inspeccionado (2 h) y con mantenimiento (2 h), y reparado si una tormenta intensa lo dañó (4 h);
-##   - comida cargada para todo el viaje (3 comidas por sol, máximo 6 en el carro; prepararla 1 h);
+##   - la comida la decide el jugador (máximo 6 en el carro; prepararla 1 h). meals_needed() solo es
+##     la cantidad recomendada (3 por sol de viaje): si se lleva menos, se pasa hambre durante la expedición;
 ##   - energía suficiente para que la base aguante la ausencia;
 ##   - hueco para la muestra y ninguna tormenta activa.
 ## Viajes (a 10 km/h): AP-8 6 h 30 min, AP-9 6 h (ida; la vuelta igual). Durante el viaje se está fuera
@@ -66,7 +67,8 @@ func trip_hours(dest: String) -> float:
 	return travel_hours(home(), dest) * 2.0 + Mission.task_hours(Mission.rules.research.extraction_hours, "excavation")
 
 
-## Comidas necesarias para toda la expedición (3 por sol, como mucho las que caben en el carro).
+## Comidas recomendadas para toda la expedición (3 por sol, como mucho las que caben en el carro).
+## Es solo una recomendación: no impide salir.
 func meals_needed(dest: String) -> int:
 	return mini(ceili(trip_hours(dest) / 24.0 * _r().meals_per_sol), _r().max_meals)
 
@@ -82,8 +84,6 @@ func departure_problems(dest: String) -> Array[String]:
 		out.append("Inspect the rover first (2 h).")
 	elif not maintained:
 		out.append("Do the rover's maintenance first (2 h).")
-	if meals_loaded < meals_needed(dest):
-		out.append("Load at least %d meals in the rover (now %d)." % [meals_needed(dest), meals_loaded])
 	var net := Mission.net()
 	if net < 0.0 and Mission.battery + net * trip_hours(dest) <= 0.0:
 		out.append("The battery won't last while you're away. Save energy or clean the panels.")
@@ -114,6 +114,8 @@ func travel_blocked_reason(dest: String) -> String:
 ## Viaja a `dest`: el reloj avanza las horas del viaje (fuera de la base). Corrutina; después la
 ## escena que llama cambia a la zona. Devuelve "" o el motivo por el que no se pudo.
 func travel(dest: String) -> String:
+	if dest == site:  # volver al mismo sitio desde el mapa no es un viaje: no se toca el carro
+		return ""
 	var reason := travel_blocked_reason(dest)
 	if reason != "":
 		return reason
