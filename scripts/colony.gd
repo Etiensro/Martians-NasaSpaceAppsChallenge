@@ -96,11 +96,8 @@ func _add_vehicle() -> void:
 	_vehicle.hint_height = v.door[1] - v.pos[1] + v.size[1] + 55
 	_vehicle.used.connect(_drive_away)
 	add_child(_vehicle)
-	if doors_enabled:  # botones para preparar el carro antes de una expedición
-		var panel := RoverPanel.new()
-		panel.vehicle = _vehicle
-		panel.drive = _drive_away
-		add_child(panel)
+	if doors_enabled:
+		_add_vehicle_panel()
 	# sombra (va con el vehículo, así no se queda en el suelo cuando se va)
 	var shadow := Sprite2D.new()
 	shadow.texture = load(v.texture)
@@ -113,6 +110,14 @@ func _add_vehicle() -> void:
 	# faros encendidos, parpadeo suave (también se van con el vehículo)
 	var lamp := _light(_vehicle.position + Vector2(-v.size[0] * 0.18, -v.size[1] * 0.32), Color("fff07a"), 1.6, "pulse", 2.5)
 	lamp.reparent(_vehicle)
+
+
+## Botones junto al carro: en AP-1, prepararlo antes de una expedición (expedition_site.gd lo cambia).
+func _add_vehicle_panel() -> void:
+	var panel := RoverPanel.new()
+	panel.vehicle = _vehicle
+	panel.drive = _drive_away
+	add_child(panel)
 
 
 ## El astronauta sube al vehículo (vacío), arranca y sale por la izquierda; luego el mapa general.
