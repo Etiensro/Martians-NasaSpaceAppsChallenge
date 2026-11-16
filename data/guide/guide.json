@@ -1,5 +1,5 @@
 {
-  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2, 'crops:ready' papas listas, 'lab:sample' hay una muestra para analizar, 'storm:warning' aviso de tormenta y 'storm:damage' algo que reparar tras una tormenta. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas).",
+  "_comment": "Guía del robot A.R.I.A. (scripts/core/guide.gd). Textos CORTOS para niños de 7 a 12 años, en inglés (los ve el jugador): orientan, no explican todo. Cada lección sale UNA vez cuando ocurre su 'trigger': 'scene:<ruta>' al entrar a esa escena, 'task:<id>' al completar una tarea del día 1, 'all_tasks' al terminar las 4 y 'sol:2' al empezar el día 2, 'crops:ready' papas listas, 'lab:sample' hay una muestra para analizar, 'storm:warning' aviso de tormenta y 'storm:damage' algo que reparar tras una tormenta. {player} = nombre, {role} = profesión, {perk1}/{perk2} = ventajas. 'image' = captura del juego en assets/ui/guide/ (tools/build_guide_shots.py). 'routine' = lo que se revisa cada día en el botón de tareas (las papas tienen un texto por tarea del invernadero: plant, water, harvest, clear y dead). 'expedition' = los pasos que enseña la lista en AP-8 / AP-9. 'where' (opcional): 'base' o 'zone'; sin él, las lecciones de una escena salen allí y las demás solo en la base (si estás de expedición esperan a que vuelvas). SKIP TUTORIAL marca como vistas las lecciones del tutorial (entrar a un lugar, tareas del día 1 y all_tasks; las de AP-8/AP-9 no).",
   "tasks": [
     { "id": "fix_panels", "text": "Fix the solar panels" },
     { "id": "plant", "text": "Plant potatoes" },
@@ -28,7 +28,7 @@
       "trigger": "scene:res://scenes/interiores/estacion_ares1/estacion_ares1.tscn",
       "pages": [
         { "text": "Hi {player}! I'm A.R.I.A. Click me anytime to see your tasks." },
-        { "text": "Your goal: finish the RESEARCH and stay safe for 60 days.", "image": "goal" },
+        { "text": "Your MAIN MISSION: collect ice SAMPLES and study them in the lab. Stay safe for 60 days!", "image": "goal" },
         { "text": "Keep an eye on your bars. Don't let them get red!", "image": "hud" },
         { "text": "First job: the storm broke the SOLAR PANELS. Let's go outside!", "image": "panel_states" }
       ]
@@ -37,7 +37,8 @@
       "id": "outside",
       "trigger": "scene:res://scenes/ap1_zone.tscn",
       "pages": [
-        { "text": "Walk with W A S D. Press E at a door. Go to the SOLAR PANELS!", "image": "ap1" }
+        { "text": "Walk with W A S D. Press E at a door. Go to the SOLAR PANELS!", "image": "ap1" },
+        { "text": "Careful! Outside, RADIATION goes up 4 times faster. Do your job and go back inside quickly." }
       ]
     },
     {
@@ -81,7 +82,10 @@
       "trigger": "all_tasks",
       "pages": [
         { "text": "Day 1 done! Every day: clean panels, water potatoes, exercise, eat and sleep." },
-        { "text": "To win, bring samples from AP-1, AP-8 and AP-9 to the WORK ROOM.", "image": "world_map" },
+        { "text": "Hungry? Inside the station, click me and press EAT. Eat when your FOOD bar gets low!" },
+        { "text": "Now the MAIN MISSION: collect ice SAMPLES and study them. That's how you win!" },
+        { "text": "1. Drill ice at the ICE EXCAVATOR. 2. Take the sample to the WORK ROOM lab. 3. Drive the rover to AP-8 and AP-9 for more.", "image": "world_map" },
+        { "text": "Is your RADIATION getting high? Get a check-up at the INFIRMARY body scanner." },
         { "text": "Your superpower: {perk1}!" }
       ]
     },
@@ -89,21 +93,22 @@
       "id": "excavator",
       "trigger": "scene:res://scenes/interiores/excavadora/excavadora.tscn",
       "pages": [
-        { "text": "This is the ICE EXCAVATOR. Drill an ice sample here: it's the first part of your RESEARCH!" }
+        { "text": "This is the ICE EXCAVATOR. Click the glowing console and drill an ice SAMPLE: it's the first part of your RESEARCH!" },
+        { "text": "When you have the sample, take it to the WORK ROOM in the station." }
       ]
     },
     {
       "id": "work_room",
       "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/sala_trabajo.tscn",
       "pages": [
-        { "text": "WORK ROOM: put ice samples in the lab. It takes 3 days and works while you do other things." }
+        { "text": "WORK ROOM: click the glowing BIOSAFETY CABINET to prepare your ice sample. The lab analyzes it for 3 days while you do other things." }
       ]
     },
     {
       "id": "infirmary",
       "trigger": "scene:res://scenes/interiores/estacion_ares1/modulos/enfermeria/enfermeria.tscn",
       "pages": [
-        { "text": "INFIRMARY: a check-up lowers your RADIATION. Come when that bar gets red!" }
+        { "text": "INFIRMARY: click the glowing BODY SCANNER for a check-up. It lowers your RADIATION. Come when that bar gets red!" }
       ]
     },
     {
