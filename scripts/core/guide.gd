@@ -317,8 +317,8 @@ func _routine_ok(id: String) -> bool:
 	match id:
 		"panels":
 			return Mission.cleanliness() >= 90.0 and Mission.broken_count() + Mission.cut_cable_count() == 0
-		"potatoes":
-			return not Mission.crops.needs_water() and (Mission.crops.is_growing() or Mission.crops.is_ready())
+		"potatoes":  # bien si no hay nada que hacer en el invernadero (regadas, o muertas esperando su ciclo)
+			return Mission.crops.next_task() == ""
 		"exercise":
 			return Mission.exercised_today()
 		"food":
@@ -343,6 +343,18 @@ func _step_done(id: String) -> bool:
 	return false
 
 
+## Texto de un punto de la rutina. Las papas tienen uno por tarea del invernadero ("plant", "water",
+## "harvest", "clear") y "dead" mientras la planta muerta espera a que termine su ciclo.
+func _routine_text(r: Dictionary, ok: bool) -> String:
+	if r.id == "potatoes":
+		var task: String = Mission.crops.next_task()
+		if task == "" and Mission.crops.dead:
+			task = "dead"
+		if r.has(task):
+			return str(r[task])
+	return str(r.ok if ok else r.todo)
+
+
 ## [[texto, hecho]] de lo que se enseña en la lista.
 func _items() -> Array:
 	var out := []
@@ -359,7 +371,7 @@ func _items() -> Array:
 	else:
 		for r in data.get("routine", []):
 			var ok := _routine_ok(r.id)
-			out.append([str(r.ok if ok else r.todo), ok])
+			out.append([_routine_text(r, ok), ok])
 	return out
 
 

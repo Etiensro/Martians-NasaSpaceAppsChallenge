@@ -163,7 +163,9 @@
 	  "_comment_dry": "Pérdida de rendimiento según los sols seguidos sin regar (índice = sols). Con 'dies_after_dry_sols' el cultivo muere.",
 	  "dry_penalties": [0.0, 0.10, 0.25, 0.50],
 	  "dies_after_dry_sols": 4,
-	  "_proposed_damage": "Con el invernadero dañado por una tormenta, el cultivo no crece hasta repararlo"
+	  "_proposed_damage": "Con el invernadero dañado por una tormenta, el cultivo no crece hasta repararlo",
+	  "_proposed_dead": "Un cultivo muerto se queda marchito en las camas hasta que termina su ciclo (grow_sols contados desde la siembra; con el biólogo, el ciclo más corto). Entonces se limpian las camas (clear_hours, tarea física) y se puede plantar otra vez. Mientras tanto el invernadero sí se puede apagar: una planta muerta no es una plantación activa.",
+	  "clear_hours": 1
 	}
   },
 
