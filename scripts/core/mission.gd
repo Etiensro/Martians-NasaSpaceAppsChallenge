@@ -178,6 +178,11 @@ func sols_left() -> int:
 	return maxi(0, int(rules.clock.mission_sols) - sol() + 1)
 
 
+## ¿Ya hubo una sesión de ejercicio en el sol actual? (solo se permite una al día)
+func exercised_today() -> bool:
+	return not crew.can_exercise()
+
+
 func hour_of_day() -> float:
 	return fmod(rules.clock.start_hour + hours, 24.0)
 

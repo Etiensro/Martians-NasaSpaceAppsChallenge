@@ -301,7 +301,7 @@ func _final_shot(role_id: String) -> void:
 	tw.tween_property(camera, "position", me.position + Vector2(0, -70), 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	me.play("celebrate")
 	var card := _centered_title("YOU ARE IN COMMAND", 54, 70, 1000)
-	var sub := _centered_label("Keep Energy, Oxygen, Health and Research in balance until the storm passes.",
+	var sub := _centered_label("Keep Energy, Oxygen, Health and complete the Research before 60 sols pass.",
 		20, Style.WHITE, 5, 140, 1200)
 	var t2 := create_tween()
 	t2.tween_interval(0.8)
