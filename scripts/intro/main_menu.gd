@@ -43,6 +43,14 @@ var _shake := 0.0
 var _t := 0.0
 var _in_cinematic := false
 var _leaving := false
+## El aviso de imágenes con IA sale una vez al abrir el juego (no cada vez que se vuelve al menú).
+static var _ai_notice_seen := false
+
+## Aviso obligatorio: las imágenes del juego se generaron con IA.
+const AI_TITLE := "AI-GENERATED IMAGES"
+const AI_TEXT := "The images and pixel art in this game were generated with AI
+(Google Gemini and Anthropic Claude)."
+const AI_SHORT := "AI-generated images: Google Gemini and Anthropic Claude"
 
 
 func _ready() -> void:
@@ -50,6 +58,8 @@ func _ready() -> void:
 	_build_ui()
 	_build_cinematic_layer()
 	_start_btn.grab_focus()
+	if not _ai_notice_seen:
+		_show_ai_notice()
 
 
 # ---------------------------------------------------------------- mundo
@@ -169,6 +179,47 @@ Every choice counts.", 20, Style.WHITE, 400)
 	col.add_child(bottom_space)
 
 	col.add_child(Style.brand_label("NASA Space Apps Challenge  ·  Junior Astronaut Mission Trainer", 13, Color(1, 1, 1, 0.75), 400))
+	col.add_child(Style.brand_label(AI_SHORT, 13, Style.NEON_YELLOW, 600))  # aviso de IA, siempre visible
+
+
+## Aviso al abrir el juego: las imágenes se generaron con IA. Se cierra con el botón (o Enter / clic).
+func _show_ai_notice() -> void:
+	_ai_notice_seen = true
+	var layer := CanvasLayer.new()
+	layer.layer = 30
+	add_child(layer)
+	var dim := ColorRect.new()
+	dim.color = Color(Style.DEEP_BLUE, 0.92)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.add_child(center)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Style.box(Style.NAVY_SOFT, Style.NEON_YELLOW, 4, 32))
+	panel.custom_minimum_size = Vector2(760, 0)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 18)
+	panel.add_child(col)
+	var title := Style.brand_title(AI_TITLE, 46, Style.NEON_YELLOW)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(title)
+	var text := Style.brand_label(AI_TEXT, 22, Style.WHITE, 500)
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(text)
+	var ok := Button.new()
+	ok.text = "OK"
+	ok.custom_minimum_size = Vector2(200, 54)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	Style.brand_button(ok, true, 24)
+	col.add_child(ok)
+	ok.pressed.connect(func():
+		var tw := create_tween()
+		tw.tween_property(dim, "modulate:a", 0.0, 0.3)
+		tw.tween_callback(layer.queue_free)
+		_start_btn.grab_focus())
+	ok.grab_focus()
 
 
 func _build_cinematic_layer() -> void:
