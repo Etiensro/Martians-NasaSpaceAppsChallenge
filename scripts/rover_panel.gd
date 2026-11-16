@@ -2,7 +2,9 @@ extends CanvasLayer
 ## Panel del carro explorador en AP-1 (lo crea colony.gd). Aparece al acercarse al carro con botones
 ## para prepararlo antes de una expedición a AP-8 o AP-9 (reglas en Mission.expedition):
 ##   INSPECT 2 h → MAINTENANCE 2 h (después de inspeccionar) → REPAIR 4 h (solo si una tormenta intensa
-##   lo dañó, cuesta energía) → LOAD FOOD 1 h (el jugador elige de 1 a 6 comidas con − / +) → DRIVE TO MAP.
+##   lo dañó, cuesta energía) → LOAD FOOD 1 h (el jugador elige de 1 a 6 comidas con − / +; se enseña la
+##   cantidad recomendada, pero no es obligatoria) → DRIVE TO MAP.
+## El estado (inspección, mantenimiento, comida) vive en Mission.expedition: no se pierde al ir y volver del mapa.
 ## Cada tarea solo enseña el cartel de Mission con el tiempo pasando (Mission.run_task): no hay minijuego.
 ## Las horas que enseñan los botones ya llevan las penalizaciones de hambre, cansancio y radiación.
 
@@ -92,7 +94,7 @@ func _process(_delta: float) -> void:
 
 # ---------------------------------------------------------------- estado
 
-## Comidas que pide el viaje más largo (lo que se propone al acercarse).
+## Comidas recomendadas para el viaje más largo (lo que se propone al acercarse).
 func food_target() -> int:
 	var need := 0
 	for dest in DESTINATIONS:
@@ -151,15 +153,18 @@ func _refresh() -> void:
 	else:
 		b.text = "%s  ·  %s" % ["LOAD" if _meals > ex.meals_loaded else "UNLOAD", _hours("prepare_hours", "general")]
 		b.disabled = false
-	_need_label.text = "Trip needs: %s" % "  ·  ".join(DESTINATIONS.map(
-		func(d: String) -> String: return "%s %d meals" % [d, ex.meals_needed(d)]))
+	_need_label.text = "Recommended: %s" % "  ·  ".join(DESTINATIONS.map(
+		func(d: String) -> String: return "%d meals for %s" % [ex.meals_needed(d), d]))
 
 	var lines: Array[String] = []
 	var all_ready := true
 	for dest in DESTINATIONS:
 		var problems := ex.departure_problems(dest)
 		all_ready = all_ready and problems.is_empty()
-		lines.append("%s: %s" % [dest, "READY" if problems.is_empty() else problems[0]])
+		var line := "READY" if problems.is_empty() else problems[0]
+		if problems.is_empty() and ex.meals_loaded < ex.meals_needed(dest):  # aviso, no bloquea
+			line += "  (only %d meals: you may go hungry)" % ex.meals_loaded
+		lines.append("%s: %s" % [dest, line])
 	_ready_label.text = "\n".join(lines)
 	_ready_label.add_theme_color_override("font_color", Style.NEON_YELLOW if all_ready else Style.WHITE)
 	_buttons.drive.text = "DRIVE TO MAP  (E)"
