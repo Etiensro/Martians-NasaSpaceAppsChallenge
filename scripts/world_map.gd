@@ -27,6 +27,7 @@ var _travelling := false
 
 
 func _ready() -> void:
+	add_child(preload("res://scripts/core/storm_fx.gd").new())  # tormenta de polvo según su intensidad
 	meta = JSON.parse_string(FileAccess.get_file_as_string(SITES_FILE))
 	px_scale = meta.scale
 	title_scale = meta.get("title_scale", px_scale)

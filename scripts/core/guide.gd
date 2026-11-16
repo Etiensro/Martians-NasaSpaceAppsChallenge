@@ -7,6 +7,10 @@ extends CanvasLayer
 ##     (solo sale dentro de la base principal, la Estación Ares 1; espera de rules.json crew.hunger.meal_cooldown_hours entre comidas).
 ##   - Lecciones muy cortas (con capturas del juego) que salen una sola vez cuando pasa algo:
 ##     entrar a una escena, completar una tarea, terminar el día 1... Mientras habla, el juego se pausa.
+##   - Sección STORM REPAIRS (solo en la base, cuando una tormenta dañó algo): un botón por sistema
+##     (paneles, invernadero, carro), 2 h y 10 EU cada uno (Mission.repair_system).
+##   - La rutina diaria incluye el siguiente paso de la investigación (taladro de AP-1, laboratorio,
+##     expediciones) y avisa de lo que hay que reparar.
 ##   - Cambia según dónde estés: en una expedición (AP-8 / AP-9) la lista enseña los pasos de la zona
 ##     (paneles, taladro, esperar la muestra, volver) y las lecciones de la base (tareas del día 1, el
 ##     polvo de cada mañana...) esperan a que vuelvas. Cada lección puede llevar "where": "base" o "zone".
@@ -25,8 +29,13 @@ const HIDDEN_IN := [
 	"res://scenes/interiores/estacion_ares1/modulos/invernadero/sembrar.tscn",
 	"res://scenes/interiores/estacion_ares1/modulos/invernadero/regar.tscn",
 	"res://scenes/interiores/estacion_ares1/modulos/gimnasio/caminadora.tscn",
+	"res://scenes/interiores/estacion_ares1/modulos/invernadero/cosechar.tscn",
+	"res://scenes/interiores/estacion_ares1/modulos/sala_trabajo/analisis.tscn",
+	"res://scenes/interiores/estacion_ares1/modulos/enfermeria/escaneo.tscn",
+	"res://scenes/interiores/excavadora/minijuegos/",
 	"res://scenes/interiores/paneles_solares/minijuegos/",
 ]
+const SYSTEM_NAMES := {"panels": "solar panels", "greenhouse": "greenhouse", "rover": "rover"}
 const SHOW_DELAY := 1.0       # espera tras cambiar de escena (que termine el fundido)
 const CHARS_PER_SECOND := 45.0
 const BUTTON := Vector2(76, 86)
@@ -54,6 +63,9 @@ var _food_meals: Label
 var _food_bar: ProgressBar
 var _food_note: Label
 var _eat: Button
+var _repairs: VBoxContainer   # sección de reparaciones tras una tormenta (dentro de la lista)
+var _repair_buttons := {}     # sistema -> Button
+var _repairing := false
 var _bubble: PanelContainer
 var _text: Label
 var _image: TextureRect
@@ -137,6 +149,51 @@ func _build_list() -> void:
 	_list_rows.add_theme_constant_override("separation", 3)
 	col.add_child(_list_rows)
 	_build_food(col)
+	_build_repairs(col)
+
+
+## Sección de reparaciones: un botón por sistema que dañó una tormenta.
+func _build_repairs(parent: VBoxContainer) -> void:
+	_repairs = VBoxContainer.new()
+	_repairs.add_theme_constant_override("separation", 6)
+	_repairs.visible = false
+	parent.add_child(_repairs)
+	var line := ColorRect.new()
+	line.color = Color(Style.NEON_YELLOW, 0.5)
+	line.custom_minimum_size = Vector2(0, 2)
+	_repairs.add_child(line)
+	_repairs.add_child(Style.brand_title("STORM REPAIRS", 16, Style.WHITE))
+	for id in SYSTEM_NAMES:
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(0, 34)
+		Style.brand_button(b, false, 14)
+		b.pressed.connect(_on_repair.bind(id))
+		_repair_buttons[id] = b
+		_repairs.add_child(b)
+
+
+func _fill_repairs() -> void:
+	var damaged := Mission.damaged_systems()
+	_repairs.visible = not damaged.is_empty() and not _away()
+	if not _repairs.visible:
+		return
+	for id in _repair_buttons:
+		var b: Button = _repair_buttons[id]
+		b.visible = id in damaged
+		b.text = "FIX THE %s  ·  2 h  ·  10 EU" % str(SYSTEM_NAMES[id]).to_upper()
+		b.disabled = _repairing or Mission.is_busy() or Mission.storm_active()
+
+
+func _on_repair(id: String) -> void:
+	if _repairing:
+		return
+	_repairing = true
+	_list.visible = false
+	var why: String = await Mission.repair_system(id)
+	_repairing = false
+	if why == "":
+		why = "All fixed! The %s work again." % SYSTEM_NAMES[id] if id == "panels" else "All fixed! The %s works again." % SYSTEM_NAMES[id]
+	Mission.notify(why)
 
 
 ## Sección de comida: cuántas comidas quedan, el hambre y el botón para comer.
@@ -297,6 +354,15 @@ func _check_tasks() -> void:
 			_queue_trigger("all_tasks")
 	if Mission.sol() >= 2:
 		_queue_trigger("sol:2")
+	# misiones de AP-1 y tormentas: avisos que salen una vez, cuando pasan
+	if Mission.crops.is_ready():
+		_queue_trigger("crops:ready")
+	if not Mission.research.stored.is_empty():
+		_queue_trigger("lab:sample")
+	if not Mission.storm.is_empty() and not Mission.storm_active():
+		_queue_trigger("storm:warning")
+	if not Mission.damaged_systems().is_empty():
+		_queue_trigger("storm:damage")
 
 
 func _task_done(id: String) -> bool:
@@ -355,6 +421,26 @@ func _routine_text(r: Dictionary, ok: bool) -> String:
 	return str(r.ok if ok else r.todo)
 
 
+## Siguiente paso de la investigación (lo que gana la misión): [texto, hecho].
+func _research_step() -> Array:
+	var r := Mission.research
+	var ex := Mission.expedition
+	if r.percent() >= 99.9:
+		return ["Research complete! You did it!", true]
+	if r.is_analysing():
+		return ["The lab is analyzing a sample", true]
+	if not r.stored.is_empty():
+		return ["Analyze the sample in the WORK ROOM", false]
+	if ex.is_extracting() and not ex.is_away():
+		return ["The ice drill is getting the AP-1 sample", true]
+	if not r.has_sample_of("AP-1"):
+		return ["Drill an ice sample at the ICE EXCAVATOR", false]
+	for site in ["AP-8", "AP-9"]:
+		if not r.has_sample_of(site):
+			return ["Get ready for a trip to %s (rover)" % site, false]
+	return ["Bring the sample back to Ares 1", false]
+
+
 ## [[texto, hecho]] de lo que se enseña en la lista.
 func _items() -> Array:
 	var out := []
@@ -372,6 +458,9 @@ func _items() -> Array:
 		for r in data.get("routine", []):
 			var ok := _routine_ok(r.id)
 			out.append([_routine_text(r, ok), ok])
+		out.append(_research_step())
+		for id in Mission.damaged_systems():  # lo que rompió una tormenta (se arregla en STORM REPAIRS)
+			out.append(["Fix the %s (storm)" % SYSTEM_NAMES[id], false])
 	return out
 
 
@@ -404,6 +493,7 @@ func _fill_list() -> void:
 			l.text = ("✓  " if it[1] else "!  ") + str(it[0])
 			l.add_theme_color_override("font_color", Color(1, 1, 1, 0.55) if it[1] else Style.NEON_YELLOW)
 	_fill_food()
+	_fill_repairs()
 
 
 ## Solo se come dentro de la base principal (la Estación Ares 1 y sus módulos).
