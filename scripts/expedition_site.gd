@@ -156,6 +156,7 @@ func _add_drill() -> void:
 
 
 func _process(_delta: float) -> void:
+	Audio.set_loop("excavator", Mission.expedition.is_extracting(), -12.0)  # la excavadora trabajando, de fondo
 	if _arrow_target != Vector2.INF:  # la flecha sube y baja sobre lo que toca
 		_arrow.visible = player.visible
 		_arrow.position = _arrow_target - Vector2(100, 170) + Vector2(0, sin(Time.get_ticks_msec() / 180.0) * 20.0)
@@ -211,6 +212,7 @@ func _drive_away() -> void:
 	if why != "":
 		Mission.notify(why)
 		return
+	Audio.play("driving")
 	_vehicle.doors_enabled = false
 	player.hide()
 	player.set_process(false)
@@ -225,6 +227,7 @@ func _drive_away() -> void:
 		SceneChanger.go_to(GameState.WORLD_MAP)
 		return
 	GameState.selected_site = ex.home()
+	Audio.play("parking")  # llega a Ares 1
 	SceneChanger.go_to(GameState.site_scene(ex.home()))
 
 
@@ -236,6 +239,7 @@ func _edge_x() -> float:
 
 ## Llega desde el mapa: el carro entra por el borde y el jugador se baja a su lado.
 func arrive() -> void:
+	Audio.play("parking")
 	var to := _vehicle.position
 	player.hide()
 	player.set_process(false)

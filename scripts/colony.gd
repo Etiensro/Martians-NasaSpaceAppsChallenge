@@ -122,6 +122,7 @@ func _add_vehicle_panel() -> void:
 
 ## El astronauta sube al vehículo (vacío), arranca y sale por la izquierda; luego el mapa general.
 func _drive_away() -> void:
+	Audio.play("driving")
 	_vehicle.doors_enabled = false
 	player.hide()
 	player.set_process(false)

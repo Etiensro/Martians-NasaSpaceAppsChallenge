@@ -224,6 +224,7 @@ func _process(delta: float) -> void:
 	_hud.queue_redraw()
 	_shake = move_toward(_shake, 0.0, delta * 30.0)
 	_clip.position = _field.position + Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake
+	Audio.set_loop("gym_running", state == State.RUNNING)
 	if state != State.RUNNING:
 		return
 

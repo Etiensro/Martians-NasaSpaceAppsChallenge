@@ -211,6 +211,8 @@ func _next_message() -> void:
 func show_over(reason: String, score: Dictionary) -> void:
 	if _over:
 		return
+	if reason == "complete":  # misión cumplida: la nave despega
+		Audio.play("space_rocket_launch")
 	_over = ColorRect.new()
 	(_over as ColorRect).color = Color(Style.DEEP_BLUE, 0.92)
 	_over.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

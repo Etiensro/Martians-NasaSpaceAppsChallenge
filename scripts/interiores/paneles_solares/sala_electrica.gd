@@ -207,6 +207,7 @@ func _on_breaker(id: String) -> void:
 func _switch(id: String, on: bool) -> void:
 	var rule := Mission.system_rule(id)
 	Mission.set_system(id, on)
+	Audio.play("switch")
 	if not on and rule.has("off_message"):
 		Mission.notify(rule.off_message)
 
