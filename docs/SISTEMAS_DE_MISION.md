@@ -229,7 +229,7 @@ Todas son multiplicadores (1.0 = normal) y se leen con `GameState.modifier(clave
 | Enfermería (`modulos/enfermeria/`) | `await Mission.crew.medical_checkup()`. |
 | Work Room / laboratorio (`modulos/sala_trabajo/`) | `Mission.research.start_analysis()` y el progreso. |
 | Invernadero: cosechar | Minijuego de cosechar → `await Mission.crops.harvest()`. Reparar → `await Mission.repair_greenhouse()`. |
-| Carro (AP-1) | Pantalla de preparación: `inspect()`, `maintain()`, `repair()`, `load_meals(n)`, `departure_problems()`. |
+| ~~Carro (AP-1)~~ | **Hecho**: al acercarse al carro sale un panel con botones (inspeccionar, mantenimiento, reparar, cargar comida, ir al mapa) que llaman a `Mission.expedition`; cada tarea solo enseña el cartel del tiempo pasando (`scripts/rover_panel.gd`). |
 | AP-8 / AP-9 | Mini base: limpiar paneles → `mark_zone_panels_clean()`; taladro → `start_extraction()`; dormir y comer. |
 | Excavadora (AP-1) | Muestra de AP-1: `Mission.expedition.start_extraction()` estando en AP-1. |
 
