@@ -1,8 +1,8 @@
 extends Node2D
 ## Final, paso 2: DESPEGUE (scenes/finales/despegue.tscn).
 ## La colonia de AP-1 (colony.gd, sin jugador ni puertas) con la nave que ya está allí (edificio "nave").
-## Para que despegue se cambia por nave_vuelo.png (la misma sin la sombra de la plataforma, de
-## tools/build_nave_vuelo.py) y sus luces se mueven con ella.
+## Para que despegue se cambia por nave_vuelo.png (el cohete solo, de tools/build_nave.py) y sus luces se
+## mueven con ella; las de la plataforma se quedan en el suelo y la sombra se desvanece al subir.
 ## La tripulación sube, cuenta atrás 3-2-1, se enciende el motor (fuego y humo) y la nave sube hasta salir
 ## de la pantalla con sus luces. Luego, el viaje a la Tierra (scenes/finales/tierra.tscn).
 
@@ -22,6 +22,8 @@ var _ground_y := 0.0
 var _caption: Label
 var _big: Label
 var _shake := 0.0
+var _nozzle := Vector2(0, -60)          # tobera respecto al pie de la nave
+var _shadow: Sprite2D
 var _add := CanvasItemMaterial.new()
 
 
@@ -45,6 +47,19 @@ func _ready() -> void:
 	ship.add_child(spr)
 	for n in colony.fx_nodes.get(SHIP, []):  # las luces de la nave suben con ella
 		n.reparent(ship)
+	# la tobera (el brillo "glow" de la nave en colony.json): de ahí sale el fuego
+	for f in info.fx:
+		if f.type == "glow":
+			_nozzle = Vector2(f.at[0], f.at[1]) - ship.position
+	# la sombra se queda en el suelo y se desvanece al subir (la del edificio se esconde con él)
+	_shadow = Sprite2D.new()
+	_shadow.texture = load(info.texture)
+	_shadow.centered = false
+	_shadow.scale = Vector2.ONE * colony.meta.cell
+	_shadow.position = ship.position + Vector2(-info.size[0] / 2.0, -info.size[1]) + Vector2(10, 6) * colony.meta.cell
+	_shadow.modulate = Color(0.12, 0.04, 0.02, 0.4)
+	colony.add_child(_shadow)
+	colony.move_child(_shadow, 0)
 	_ground_y = ship.position.y
 	camera.position = ship.position + Vector2(0, -330)
 	camera.zoom = Vector2.ONE * ZOOM
@@ -85,6 +100,7 @@ func _run() -> void:
 	var tw := create_tween()
 	tw.tween_property(ship, "position:y", _ground_y - RISE, 5.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(camera, "position:y", camera.position.y - 520, 4.0).set_trans(Tween.TRANS_SINE)
+	tw.parallel().tween_property(_shadow, "modulate:a", 0.0, 1.5)
 	await _wait(4.6)
 	SceneChanger.go_to(Final.EARTH, 1.0)
 
@@ -115,14 +131,14 @@ func _ignite() -> void:
 	fire.color_ramp = Fx.ramp(Color(1, 0.95, 0.6, 1), Color(1, 0.35, 0.1, 0))
 	fire.material = _add
 	fire.preprocess = 0.0
-	fire.position = Vector2(0, -20)
+	fire.position = _nozzle + Vector2(0, 30)
 	ship.add_child(fire)
 	var glow := Sprite2D.new()
 	glow.texture = Fx.GLOW
 	glow.material = _add
 	glow.modulate = Color(1, 0.6, 0.2, 0.9)
 	glow.scale = Vector2(5, 3.5)
-	glow.position = Vector2(0, 10)
+	glow.position = _nozzle + Vector2(0, 50)
 	ship.add_child(glow)
 	var smoke := Fx.particles(Fx.PUFF, 60, 3.0, Vector2(0, -0.2), 85, 120, 260, Vector2(0, -20))
 	smoke.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
