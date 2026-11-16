@@ -103,7 +103,7 @@ func _process(delta: float) -> void:
 
 func _update_storm(delta: float) -> void:
 	var target := -60.0
-	if Mission.storm_active():
+	if Mission.storm_active() and Mission.is_running():  # no en el menú ni en los finales
 		target = STORM_DB.get(Mission.storm.get("type", ""), -12.0)
 		var inside := Mission.location() == "inside"
 		if inside:
